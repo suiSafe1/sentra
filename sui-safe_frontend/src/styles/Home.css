@@ -1,0 +1,44 @@
+.icon {
+  margin-right: 15px;
+  vertical-align: middle;
+  color: #4f46e5; 
+}
+
+.connect-button .icon,
+.learn-more-button .icon {
+  font-size: 16px;
+}
+
+.feature-icon .icon,
+.feature-icon-lock {
+  font-size: 24px;
+  color: #10b981; 
+}
+
+.quote-icon {
+  color: #6366f1;
+  margin-right: 6px;
+}
+
+.stat-value .icon {
+  font-size: 18px;
+  margin-right: 4px;
+  color: #f59e0b;
+}
+
+.security-item .icon {
+  margin-right: 8px;
+  color: #10b981;
+}
+
+
+.step-icon {
+  font-size: 28px;
+  color: #4f46e5; /* Purple */
+}
+
+.step-number {
+  font-weight: 700;
+  font-size: 20px;
+  color: #6b7280; /* Gray */
+}

@@ -1,0 +1,816 @@
+
+.icons-large{
+  background: none;
+  font-size: 42px;
+  color: #99A5B7;
+  display: inline-block;
+  width: fit-content;
+}
+.icons-big{
+  background: none;
+  font-size: 30px;
+  display: inline-block;
+  width: fit-content;
+}
+.icons-small{
+  background: none;
+  font-size: 18px;
+  display: inline-block;
+  width: fit-content;
+
+}
+.lock-container {
+  width: fit-content;
+  margin: 88px auto;
+  overflow: visible;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 2rem;
+  padding: 10px;
+  
+}
+
+.lock-form{
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  flex: 1;
+  width: 898px;
+  border-radius: 16px 16px;
+  overflow: auto;
+}
+.lock-subform{
+  background: white;
+  padding: 20px;
+  width: auto;
+}
+
+.lock-preview-container {
+  width: 432px;
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.lock-preview {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+  width: 432px;
+  height: fit-content;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.form-header {
+  background: #00076C;
+  width: auto;
+  padding: 20px;
+  color: #FFFFFF;
+  font-size: 20.87px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  h3,span{
+    background: #00076C;
+    width: fit-content;
+  }
+  
+}
+.lock-preview-h3{
+  font-size: 20px;
+  font-weight: 700;
+  background: transparent;
+    width: fit-content;
+}
+.lock-tabs {
+  display: flex;
+  background: #F2F5F9;
+  width: auto;
+  padding: 5px;
+  border-radius: 8px;
+  margin-bottom: 1.2rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  font-size: 16.05px;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+}
+
+.tab.active {
+  background: #00076C;
+  color: white;
+  transition: all 0.3s ease-in-out;
+
+}
+.lock-subform > form,.lock-nft-subform > form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: auto;
+  background: #FFFFFF;
+}
+.form-label {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: auto;
+  background: transparent;
+  color: #505A6B;
+  font-size: 16.05px;
+  font-weight: 700;
+  span{
+  background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  }
+  button{
+    width: 100%;
+    height: 48px;
+    background: #FFFFFF;
+    color: #4D5562;
+    border: 1px solid #4D5562;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0px 10px;
+    border-radius: 8px;
+    text-wrap: nowrap;
+    font-size: 16.05px;
+    font-weight: 600;
+    cursor: pointer;
+    input{
+    font-size: 16.05px;
+      outline: none;
+      border: none;
+      background: transparent;
+    }
+    span{
+      width: fit-content;
+    }
+  }
+}
+
+
+
+.amount-field {
+  position: relative;
+  width: auto;
+    height: 48px;
+    background: #FFFFFF;
+    color: #4D5562;
+    border: 1px solid #4D5562;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0px 10px;
+    border-radius: 8px;
+    text-wrap: nowrap;
+    font-size: 16.05px;
+    font-weight: 600;
+    cursor: pointer;
+    input{
+      font-size: 16.05px;
+        outline: none;
+        border: none;
+        background: transparent;
+      }
+}
+
+.max-btn {
+  width: fit-content;
+  background: transparent;
+  color: #00076C;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.duration-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: transparent;
+}
+
+.duration {
+  min-width: 204px;
+  text-wrap: nowrap;
+  flex: 1;
+  padding: 0.6rem;
+  background: #FFFFFF;
+  border: 1px solid #4D5562;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16.05px;
+  font-weight: 600;
+  color: #000000;
+  transition: all 0.3s ease-in-out;
+
+}
+.duration:hover {
+  color: #FFFFFF;
+  border: none;
+  background: #00076c8c;
+  transition: all 0.3s ease-in-out;
+}
+.duration.active {
+  color: #FFFFFF;
+  border: none;
+  background: #00076C;
+  transition: all 0.3s ease-in-out;
+}
+.select-date{
+  font-size: 16.05px;
+  background: #FFFFFF;
+  padding: 10px;
+  z-index: 1;
+  width: auto;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 2px solid #00076C;
+  position: absolute;
+  left: 0%;
+  top: 50px;
+}
+.yield-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #F0FCF5;
+  border: 0.99px solid #3C7E44;
+  border-radius: 7.91px;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  width: auto;
+  color: #2e2e2e;
+}
+
+.yield-card-text{
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ background: #F0FCF5;
+
+ h3{
+  font-size: 16.05px;
+  font-weight: 600;
+  color: #4D5562;
+  background: #F0FCF5;
+  }
+ p{
+  font-size: 13.76px;
+  font-weight: 500;
+  color:  #787E86;
+  background: #F0FCF5;
+  }
+}
+
+
+
+.yield-card-value {
+  font-size: 20.76px;
+  font-weight: 800;
+  color: #3C7E44;
+  text-wrap: nowrap;
+  width: fit-content;
+  background: #F0FCF5;
+
+}
+
+
+
+textarea.memo {
+  width: auto;
+  height: 85px;
+  resize: vertical;
+  border: 1px solid #4D5562;
+  background: #FFFFFF;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 16.05px;
+  font-weight: 600;
+  outline: none;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.confirm {
+  flex: 1;
+  background: #00076C;
+  color: white;
+  border: none;
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel {
+  width: 144px;
+  background: white;
+  color: #4D5562;
+  border: 1px solid #4D5562;
+  padding: 0.8rem;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+.cancel:hover {
+  color: #4D5562;
+  
+}
+.lock-preview {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.preview-placeholder {
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  color: #99A5B7;
+  font-size: 15.53px;
+  font-weight: 600;
+  text-align: center;
+  padding: 2rem;
+}
+
+
+/* NFT CARDS  */
+.lock-nft-subform{
+  background: white;
+  width: auto;
+}
+.nft-cards{
+  width: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: space-between;
+  background: transparent;
+}
+.card {
+  border: 0.98px solid #B5B5B5;
+  border-radius: 12px;
+  padding: 21.51px;
+  padding-left: 62px;
+  max-width: 330px;
+  width: 330px;
+  background-color: #fff;
+  position: relative;
+  transition: background-color 0.3s ease;
+}
+
+.card.selected {
+  background-color: #F0F6FE;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  width: fit-content;
+ 
+}
+
+.nft-card-h{
+  color: #101729;
+  font-size: 16.88px;
+  font-weight: 800;
+  background: #FFFFFF;
+  width: fit-content;
+}
+.nft-card-h.active{
+  background: #F0F6FE;
+}
+.card p {
+  font-size: 14.47px;
+  font-weight: 600;
+  color: #4D5562;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  width: fit-content;
+  background: #FFFFFF;
+
+}
+.card p.active {
+  background: #F0F6FE;
+
+}
+
+.badge {
+  width: fit-content;
+  display: inline-block;
+  background-color: #DEEAFC;
+  color: #3266E3;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13.51px;
+  font-weight: 600;
+}
+
+.checkmark {
+  background-color: #000a7d;
+  color: white;
+  border-radius: 50%;
+  padding: 6px 8px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  width: fit-content;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+}
+
+
+/* LOCK SUMMARY  */
+
+.modal-staking-card {
+  width: auto;
+  background: #FFFFFF;
+  padding: 20px;
+
+}
+
+.modal-staking-nft-info {
+  width: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #F9FAFC;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.modal-staking-nft-icon {
+  font-size: 24px;
+  width: fit-content;
+  background: #F9FAFC;
+
+}
+
+.modal-staking-nft-title {
+  margin: 0;
+  font-size: 16.88px;
+  font-weight: 800;
+  color: #101729;
+  background: #F9FAFC;
+
+}
+
+.modal-staking-nft-subtitle {
+  margin: 0;
+  color: #4D5562;
+  font-size: 14.47px;
+  font-weight: 600;
+  background: #F9FAFC;
+
+}
+
+.modal-staking-divider {
+  border: none;
+  border-top: 1px solid #e2e2e2;
+  margin: 16px 0;
+  background-color: #FFFFFF;
+
+}
+
+.modal-staking-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  background: #FFFFFF;
+  
+}
+
+.modal-staking-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #4D5562;
+  font-size: 16.02px;
+  font-weight: 600;
+  width: fit-content;
+  background: #FFFFFF;
+
+}
+
+.modal-staking-value {
+  font-size: 16.02px;
+  color: #000000;
+  font-weight: 600;
+  width: fit-content;
+  background: #FFFFFF;
+
+}
+
+.modal-staking-yield-box {
+  background-color: #F0FCF5;
+  border: 0.83px solid #3C7E44;
+  border-radius: 6.66px;
+  padding: 12px;
+  margin: 16px 0;
+  width: auto;
+}
+
+.modal-staking-yield-header {
+  color: #3C7E44;
+  font-size: 13.52px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #F0FCF5;
+
+}
+
+.modal-staking-yield-amount {
+  font-size: 17.49px;
+  font-weight: 800;
+  color: #3C7E44;
+  background-color: #F0FCF5;
+
+}
+
+.modal-staking-yield-rate {
+  font-size: 11.59px;
+  font-weight: 500;
+  color: #3C7E44;
+  margin-top: 4px;
+  background-color: #F0FCF5;
+
+}
+
+.modal-staking-icon {
+  font-size: 16px;
+  width: fit-content;
+}
+
+/* CONFIRM LOCK MODAL */
+.confirm-lock-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  font-family: sans-serif;
+}
+
+/*  CONFIRM Modal Container */
+.confirm-lock-container {
+  position: relative;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 21px 29px;
+  width: 400px;
+  /* height: 536px; */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.confirm-lock-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 30px;
+  background: #FFFFFF;
+
+}
+
+.confirm-lock-header h2 {
+  font-size: 21.27px;
+  font-weight: 800;
+  color: #00076C;
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  gap: 5px;
+  span{
+    width: fit-content;
+    background: #FFFFFF;
+  }
+}
+
+.confirm-lock-header p {
+  font-size: 16.55px;
+  font-weight: 400px;
+  color: #4D5562;
+  background: #FFFFFF;
+}
+
+.confirm-lock-close {
+  position: absolute;
+  top: 5px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 32px;
+  font-weight: lighter;
+  color: #4D5562;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.confirm-lock-details {
+  width: auto;
+  background-color: #F9FAFC;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.confirm-lock-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+  color: #4D5562;
+  font-size: 16.02px;
+  font-weight: 600;
+  background: none;
+  span{
+    width: fit-content;
+    background: none;
+  }
+}
+.confirm-lock-value {
+  color: #000000;
+  font-weight: 800;
+  
+}
+
+.confirm-lock-yield {
+  color: #16a34a;
+  font-weight: bold;
+}
+
+.confirm-lock-warning {
+  width: auto;
+  background-color: #FEFCEA;
+  border: 1px solid #B05900;
+  color: #7E4F1F;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: start;
+  gap: 10px;
+  span{
+    width: fit-content;
+    background: none;
+  }
+}
+.confirm-lock-warning >div{
+  background: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  span{
+    font-size: 16.68px;
+    font-weight: 700;
+  }
+  p{
+    font-size: 17.05px;
+    font-weight: 500;
+    background: none;
+  }
+}
+
+.confirm-lock-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 50px;
+  background: none;
+}
+
+.confirm-lock-cancel {
+ width: 97px;
+ height: 53px;
+  background-color: white;
+  border: 1px solid #4D5562;
+  color: #4D5562;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirm-lock-confirm {
+  width: 168px;
+  height: 53px;
+  background-color: #00076C;
+  color: white;
+  border: 1px solid #00076C;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  text-wrap: nowrap;
+}
+
+
+
+
+
+/* LOCK CONFIRMED  */
+.lock-confirmed{
+background: #FFFFFF;
+width: auto;
+height: 126px;
+border-radius: 16px;
+padding: 0% 20px;
+display: flex;
+flex-direction: column;
+justify-content: center;
+gap: 5px;
+h4{
+  color: #000000;
+  background: #FFFFFF;
+  font-size: 16.75px;
+  font-weight: 600;
+
+}
+p{
+  color: #4D5562;
+  background: #FFFFFF;
+  font-size: 14.62px;
+  font-weight: 500;
+}
+}
+
+@media (max-width: 1372px) {
+  .nft-cards{
+    width: 100%;
+    
+  }
+  .card {
+    max-width: 100%;
+    width: 100%;  
+  padding-left: 20px;
+
+  }
+}
+@media (max-width: 965px) {
+  .lock-container {
+    width: 95%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 0px;
+  }
+   .lock-form,.lock-preview-container ,.lock-preview {
+    width: 100%;
+  }
+
+
+  .tab,.confirm,.cancel,textarea.memo  {
+    font-size: 12px;
+    font-weight: 800;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

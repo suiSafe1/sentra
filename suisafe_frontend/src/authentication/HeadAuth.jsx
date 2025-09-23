@@ -25,34 +25,32 @@ function HeadAuth() {
   };
 
   return (
-    <header className="heading">
-      <Link to="/dashboard" className="logo-container">
-        <img src={logo} alt="SuiSafe Logo" className="logo-image" />
-        <span className="logo-text">suiSafe</span>
+    <header className='flex justify-between items-center bg-white shadow-md px-6 py-4'>
+      <Link to='/dashboard' className='flex items-center space-x-2'>
+        <img src={logo} alt='SuiSafe Logo' className='h-8' />
+        <span className='font-bold text-blue-900 text-xl'>suiSafe</span>
       </Link>
 
-      <div className="header-actions">
-        {/* Clickable Sui network badge */}
+      <div className='flex items-center space-x-4'>
         <Badge
-          className="network-badge"
-          style={{ cursor: "pointer" }}
+          className='cursor-pointer network-badge'
           onClick={handleLogout}
-          title="Click to logout"
+          title='Click to logout'
         >
-          <div className="status-dot"></div>Sui
+          <div className='bg-green-500 mr-2 rounded-full w-2 h-2'></div>Sui
         </Badge>
 
-        <span className="wallet-address">
+        <span className='text-gray-600'>
           {account ? formatAddress(account.address) : "Not connected"}
         </span>
 
-        <div className="notification-container">
-          <Bell className="notification-icon" />
-          <div className="notification-dot"></div>
+        <div className='relative'>
+          <Bell className='w-6 h-6 text-gray-600' />
+          <div className='top-0 right-0 absolute bg-red-500 rounded-full w-2 h-2'></div>
         </div>
 
-        <Button variant="ghost" size="sm" className="mobile-menu">
-          <Menu className="menu-icon" />
+        <Button variant='ghost' size='sm' className='md:hidden'>
+          <Menu className='w-6 h-6 text-gray-600' />
         </Button>
       </div>
     </header>

@@ -1,7 +1,6 @@
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.svg";
 import React, { useState } from "react";
-import { Link } from "react-router";
-
+import { Link } from "react-router-dom";
 
 function NoAuth() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,21 +9,19 @@ function NoAuth() {
     setIsMenuOpen(!isMenuOpen);
   };
 
-
   return (
-    <header className='header'>
-      <div className='header-logo-container'>
-        <Link to="/" className="logo-container">
-          <img src={logo} alt="SuiSafe Logo" className="logo-image" />
+    <header className='flex justify-between items-center bg-white shadow-md px-6 py-4'>
+      <div className='flex items-center space-x-4'>
+        <Link to='/' className='flex items-center'>
+          <img src={logo} alt='SuiSafe Logo' className='h-8' />
         </Link>
-
         <div
-          className='menu-toggle'
+          className='md:hidden cursor-pointer'
           onClick={toggleMenu}
           aria-label='Toggle navigation menu'
         >
           <svg
-            className='menu-icon'
+            className='w-6 h-6 text-blue-900'
             fill='none'
             stroke='currentColor'
             viewBox='0 0 24 24'
@@ -35,30 +32,25 @@ function NoAuth() {
               strokeLinejoin='round'
               strokeWidth='2'
               d={
-                isMenuOpen
-                  ? "M6 18L18 6M6 6l12 12"
-                  : "M4 6h16M4 12h16M4 18h16"
+                isMenuOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"
               }
             />
           </svg>
         </div>
       </div>
-      <nav className={`nav ${isMenuOpen ? "nav-open" : ""}`}>
-        <a href='#how-it-works' className='nav-link'>
+      <nav className='flex gap-12'>
+        <Link to='#how-it-works' className=''>
           How It Works
-        </a>
-        <a href='#features' className='nav-link'>
-          Features
-        </a>
-        <a href='#security' className='nav-link'>
-          Security
-        </a>
-        <a href='#testimonials' className='nav-link'>
-          Trusted
-        </a>
+        </Link>
+        <Link to='#features'>Features</Link>
       </nav>
-      <Link to='/connect' className='launch-button'>
-        Connect Wallet
+      <Link to='/connect' className='bg-[#00076C] px-4 py-2 rounded ring-2'>
+        <p
+          className='text-white'
+        >
+          {" "}
+          Launch App
+        </p>
       </Link>
     </header>
   );

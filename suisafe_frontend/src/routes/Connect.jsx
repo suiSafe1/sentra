@@ -7,7 +7,7 @@ import {
   useCurrentAccount,
 } from "@mysten/dapp-kit";
 
-import logo from "../assets/Logo.png";
+import logo from "../assets/logo.svg";
 import ethos from "../assets/ethos.png";
 import slush from "../assets/slush.png";
 import phantom from "../assets/Metamask.png";

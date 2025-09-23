@@ -10,99 +10,109 @@ import {
   FaQuoteLeft,
 } from "react-icons/fa";
 import mark from "../assets/Mark.png";
-import "../styles/landing.css";
+import lock from "../assets/lock.png";
+import nft from "../assets/nft.png";
+import yield_token from "../assets/yield.png";
+import smart_vesting from "../assets/smart_vesting.png";
+import deposit from "../assets/deposit.png";
+import earn_withdraw from "../assets/earn_withdraw.png";
+import lock_secure from "../assets/lock_secure.png";
 
 
 const Home = () => {
   const steps = [
     {
       title: "Connect & Deposit",
-      description: "Connect your wallet and deposit or transfer to secure vaults.",
-      icon: <FaWallet className='step-icon' />,
+      description:
+        "Connect your wallet and deposit or transfer to secure vaults.",
+      icon: deposit,
     },
     {
       title: "Lock & Secure",
-      description: "Choose lock period and our smart contracts secure your assets.",
-      icon: <FaLock className='step-icon' />,
+      description:
+        "Choose lock period and our smart contracts secure your assets.",
+      icon: lock_secure,
     },
     {
       title: "Earn & Withdraw",
       description: "Earn and withdraw yield generated from market trends.",
-      icon: <FaCoins className='step-icon' />,
+      icon: earn_withdraw,
     },
   ];
 
-
   return (
-    <div className='sui-safe-landing'>
-      <section className='hero-section'>
-        <section className='hero-content'>
-          <h1 className='hero-title'>Secure Your Future with</h1>
-          <h1 className='hero-title-highlight'>SuiSafe Vaults</h1>
-          <p className='hero-description'>
-            Lock your tokens and NFTs in our battle-tested vaults. Earn yield <br />
-            while maintaining complete control and security on the Sui Blockchain.
+    <div className='flex flex-col justify-center bg-white font-sans text-gray-800'>
+      <section className='flex justify-center bg-gradient-to-br from-white via-white to-[#2b3075]'>
+        <div className='justify-center content-center self-center my-28 p-4 w-fit text-left align-center'>
+          <h1 className='font-bold text-black text-2xl md:text-3xl lg:text-4xl text-center'>
+            Secure Your Future with <br />
+            <span className='mb-4 font-bold text-blue-900 text-2xl md:text-3xl lg:text-4xl hero-title-highlight'>
+              Sentra Vaults
+            </span>
+          </h1>
+          <p className='mb-6 text-gray-600 text-base md:text-lg text-center hero-description'>
+            Lock your tokens and NFTs in our battle-tested vaults. Earn yield{" "}
+            <br />
+            while maintaining complete control and security on the Sui
+            Blockchain.
           </p>
-          <div className='hero-buttons'>
-            <Link to='/connect' className='connect-button'>
+          <div className='flex md:flex-row flex-col justify-center items-center gap-4 mb-10 hero-buttons'>
+            <Link
+              to='/connect'
+              className='bg-blue-900 px-6 py-2 rounded text-white connect-button'
+            >
               Connect Wallet
             </Link>
-            <button className='learn-more-button'>
+            <button className='hover:bg-gray-100 px-6 py-2 border border-blue-900 rounded text-blue-900 learn-more-button'>
               Learn More
             </button>
           </div>
-          <div className='stats-grid'>
-            <div>
-              <p className='stat-value'>
-                <FaChartLine className='icon' /> $50M+
-              </p>
-              <p className='stat-label'>Total Value Locked</p>
-            </div>
-            <div>
-              <p className='stat-value'>
-                <FaCoins className='icon' /> 15%+
-              </p>
-              <p className='stat-label'>Average APY</p>
-            </div>
-            <div>
-              <p className='stat-value'>
-                <FaUsers className='icon' /> 10K+
-              </p>
-              <p className='stat-label'>Active Users</p>
-            </div>
-          </div>
-        </section>
+        </div>
       </section>
 
-      <section id='how-it-works' className='how-it-works-section'>
-        <h2 className='section-title'>How SuiSafe Works</h2>
-        <p className='section-description'>
-          Three simple steps to start earning with our decentralized saving vault.
+      <section
+        id='how-it-works'
+        className='mx-auto px-4 py-10 max-w-6xl text-center how-it-works-section'
+      >
+        <h2 className='mb-4 font-bold text-blue-900 text-xl md:text-2xl section-title'>
+          How sentra Works
+        </h2>
+        <p className='mb-6 md:mb-10 text-gray-600 section-description'>
+          Three simple steps to start earning with our decentralized saving
+          vault.
         </p>
-        <div className='steps-grid'>
+        <div className='gap-6 grid steps-grid grid-cols-1 md:grid-cols-3'>
           {steps.map(({ title, description, icon }, index) => (
             <div key={index} className='step'>
-              <div className='step-icon-container'>
-                {icon}
-                <div className='step-number'>{index + 1}</div>
+              <div className='relative flex justify-center items-center bg-[#F4F4F4] mx-auto mb-4 rounded-full w-16 h-16 step-icon-container'>
+                <img src={icon} alt='' />
+                <div className='top-0 right-0 absolute flex justify-center items-center bg-blue-900 rounded-full w-4 h-4 font-bold text-white text-xs step-number'>
+                  {index + 1}
+                </div>
               </div>
-              <p className='step-title'>{title}</p>
-              <p className='step-description'>{description}</p>
+              <p className='font-semibold text-lg step-title'>{title}</p>
+              <p className='text-gray-600 step-description'>{description}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <section id='features' className='features-section'>
-        <h2 className='section-title'>Powerful Features</h2>
-        <p className='section-description'>
-          Everything you need to maximize DeFi returns while maintaining security.
+      <section
+        id='features'
+        className='mx-auto px-4 py-2 max-w-6xl text-center'
+      >
+        <h2 className='mb-4 font-bold text-blue-900 text-xl md:text-2xl section-title'>
+          Powerful Features
+        </h2>
+        <p className='mb-6 md:mb-10 text-gray-600 section-description'>
+          Everything you need to maximize DeFi returns while maintaining
+          security.
         </p>
-        <div className='features-grid'>
+        <div className='flex flex-wrap justify-center gap-8'>
           {[
             {
               title: "Token Locking",
-              icon: <FaLock className='icon feature-icon-lock' />,
+              icon: lock,
               items: [
                 "Lock favorite tokens for predetermined periods and earn.",
                 "Flexible lock periods.",
@@ -112,7 +122,7 @@ const Home = () => {
             },
             {
               title: "NFT Locking",
-              icon: <FaKey className='icon feature-icon-lock' />,
+              icon: nft,
               items: [
                 "Safely store valuable NFTs while earning passive income.",
                 "NFT collateral",
@@ -122,7 +132,7 @@ const Home = () => {
             },
             {
               title: "Yield Generation",
-              icon: <FaCoins className='icon feature-icon-lock' />,
+              icon: yield_token,
               items: [
                 "Multiple yield strategies to maximize your returns across different risk profiles.",
                 "DeFi strategies.",
@@ -132,7 +142,7 @@ const Home = () => {
             },
             {
               title: "Smart Vesting",
-              icon: <FaShieldAlt className='icons feature-icon-locks' />,
+              icon: smart_vesting,
               items: [
                 "Automated vesting schedules with customizable unlock periods.",
                 "Custom schedules.",
@@ -141,110 +151,29 @@ const Home = () => {
               ],
             },
           ].map((feature, index) => (
-            <div key={index} className='feature-card'>
-              <div className='feature-icon'>{feature.icon}</div>
+            <div
+              key={index}
+              className='flex gap-4 bg-white shadow p-6 rounded-lg w-104'
+            >
+              <img src={feature.icon} alt='' className='w-12 h-12' />
               <div>
-                <div className='feature-title'>{feature.title}</div>
-                <ul className='feature-list'>
+                <div className='mb-3 font-semibold text-xl feature-title'>
+                  {feature.title}
+                </div>
+                <ul className='space-y-2 feature-list'>
                   {feature.items.map((item, i) => (
-                    <li className='feature-item' key={i}>
-                      <img src={mark} alt='mark' />
-                      <div>{item}</div>
+                    <li key={i} className='flex items-center gap-2'>
+                      {i === 0 ? (
+                        <div>{item}</div>
+                      ) : (
+                        <>
+                          <img src={mark} alt='mark' className='w-3 h-3' />
+                          <div>{item}</div>
+                        </>
+                      )}
                     </li>
                   ))}
-
                 </ul>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section id='security' className='security-section'>
-        <h2 className='section-title'>Security First</h2>
-        <p className='section-description'>
-          Your trust is our foundation. We've implemented industry-leading security measures to protect your assets.
-        </p>
-        <div className='security-grid'>
-          <div className='security-features'>
-            <ul className='security-list'>
-              {[
-                "Multi-signature smart contracts.",
-                "Auded by leading security firms.",
-                "Insurance coverage up to $10M.",
-                "Real-time monitoring & alerts",
-                "Emergency pause functionality.",
-                "Decentralized governance.",
-              ].map((item, i) => (
-                <li className='security-item' key={i}>
-                  <FaShieldAlt className='icon' />
-                  <p>{item}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className='security-info'>
-            {/* <div className='security-icon'></div> */}
-            <div className='security-details'>
-              <h3 className='security-title'>
-                <FaShieldAlt className='icon' /> Battle-Tested Security
-              </h3>
-              <p className='security-description'>
-                Our smart contracts have been audited by CertiK, OpenZeppelin, and ConsenSys Diligence. We maintain the highest security standards in the DeFi space.
-              </p>
-              <ul className='security-stats'>
-                {[
-                  ["99.9%", "Uptime"],
-                  ["0", "Exploits"],
-                  ["24/7", "Monitoring"],
-                ].map(([value, label], i) => (
-                  <li key={i} className='security-stat'>
-                    <p className='stat-value'>{value}</p>
-                    <p className='stat-label'>{label}</p>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id='testimonials' className='testimonials-section'>
-        <h2 className='section-title'>Trusted by Thousands</h2>
-        <p className='section-description'>
-          See what our community says about SuiSafe.
-        </p>
-        <div className='testimonials-grid'>
-          {[
-            {
-              quote:
-                "SuiSafe has been rock solid for my portfolio. The yields are consistent and I sleep well knowing my assets are secure.",
-              name: "Desmond",
-              role: "DeFi Investor",
-            },
-            {
-              quote:
-                "Finally, a platform that prioritizes security without sacrificing returns. The NFT locking feature is game-changing.",
-              name: "Eke",
-              role: "Portfolio Manager",
-            },
-            {
-              quote:
-                "We've moved 30% of our DeFi allocation to SuiSafe. The transparency and security measures are exactly what we needed.",
-              name: "Polaris",
-              role: "Crypto Enthusiast",
-            },
-          ].map((testimonial, index) => (
-            <div key={index} className='testimonial-card'>
-              <p className='testimonial-quote'>
-                <FaQuoteLeft className='icon quote-icon' /> "{testimonial.quote}"
-              </p>
-              <div className='testimonial-author'>
-                <div className='author-avatar'></div>
-                <div>
-                  <p className='author-name'>{testimonial.name}</p>
-                  <p className='author-role'>{testimonial.role}</p>
-                </div>
               </div>
             </div>
           ))}

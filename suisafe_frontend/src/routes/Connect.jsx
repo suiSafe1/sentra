@@ -1,197 +1,93 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import {
-  useWallets,
-  useConnectWallet,
-  useDisconnectWallet,
-  useCurrentAccount,
-} from "@mysten/dapp-kit";
-
-import logo from "../assets/logo.svg";
+import React, { useState } from "react";
 import ethos from "../assets/ethos.png";
 import slush from "../assets/slush.png";
 import phantom from "../assets/Metamask.png";
-import "../styles/connect.css";
-
-
+import logo from "../assets/logo.svg";
 
 const WalletConnect = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedWallet, setSelectedWallet] = useState(null); // Track selected wallet
 
-  // dapp-kit hooks
-  const wallets = useWallets();
-  const { mutate: connect } = useConnectWallet();
-  const { mutate: disconnect } = useDisconnectWallet();
-  const account = useCurrentAccount();
-
-  const [selectedWallet, setSelectedWallet] = useState(null);
-  const [connecting, setConnecting] = useState(false);
-  const [error, setError] = useState("");
-
-  // Wallet list for your UI
-  const walletOptions = [
-    { name: "Slush", icon: slush },
-    { name: "Suinet", icon: slush },
-    { name: "Ethos", icon: ethos },
-    { name: "Phantom", icon: phantom },
-  ];
-
-  // If user already has a stored session AND is not already on /dashboard, go there.
-  useEffect(() => {
-    try {
-      const existingSession = typeof window !== "undefined" && localStorage.getItem("sui_session");
-      if (existingSession && location.pathname !== "/dashboard") {
-        // replace to avoid stacking history; guard against repeated navigation by checking pathname
-        navigate("/dashboard", { replace: true });
-      }
-    } catch (e) {
-    }
-  }, []);
-
-
-  // When wallet connects via dapp-kit account, persist session and redirect once
-  useEffect(() => {
-    if (!account) return;
-
-    // Only redirect if not already on dashboard
-    if (location.pathname !== "/dashboard") {
-      const session = {
-        address: account.address,
-        connectedAt: new Date().toISOString(),
-      };
-      try {
-        localStorage.setItem("sui_session", JSON.stringify(session));
-      } catch (e) {
-        console.warn("Could not persist session:", e);
-      }
-      navigate("/dashboard", { replace: true });
-    }
-    // only react to account changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [account]);
-
-  // handle wallet connection
-  const handleWalletClick = async (walletName) => {
-    setError("");
-    setConnecting(true);
-    setSelectedWallet(walletName);
-
-    try {
-      const adapter = wallets.find((w) =>
-        w.name?.toLowerCase().includes(walletName.toLowerCase())
-      );
-
-      if (!adapter) {
-        setError(
-          `${walletName} not detected in the browser. Please install the wallet extension.`
-        );
-        setConnecting(false);
-        return;
-      }
-
-      // call the connect mutation (dapp-kit)
-      connect({ wallet: adapter });
-    } catch (err) {
-      console.error("Connect error:", err);
-      setError("Connection failed. Try again.");
-    } finally {
-      setConnecting(false);
-    }
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedWallet(null); // Reset selection when closing modal
   };
 
-  // optional: sign message proof (client-side placeholder)
-  const handleSignProof = async () => {
-    try {
-      if (!account) {
-        setError("Connect your wallet first.");
-        return;
-      }
-
-      const message = `Login to Metromelt at ${new Date().toISOString()}`;
-      const proof = {
-        address: account.address,
-        message,
-        signature: "demo-signature", // placeholder until wallet signing is implemented
-      };
-      try {
-        localStorage.setItem("sui_session_proof", JSON.stringify(proof));
-      } catch (e) {
-        console.warn("Could not persist proof:", e);
-      }
-      if (location.pathname !== "/dashboard") navigate("/dashboard", { replace: true });
-    } catch (err) {
-      console.error("Signing error:", err);
-      setError("Signing failed or was rejected.");
-    }
+  // Handle wallet selection and connect button click
+  const handleSelect = (wallet) => {
+    setSelectedWallet(wallet);
   };
 
-  // disconnect clears session and stays on /connect (or redirects here)
-  const handleDisconnect = async () => {
-    try {
-      disconnect();
-    } finally {
-      try {
-        localStorage.removeItem("sui_session");
-        localStorage.removeItem("sui_session_proof");
-      } catch (e) {}
-      if (location.pathname !== "/connect") navigate("/connect", { replace: true });
-    }
+  // Handle connect action
+  const handleConnect = (wallet) => {
+    console.log(`Connecting to ${wallet}...`); // Replace with actual connection logic
   };
 
   return (
-    <div className="wallet-connect">
-      <div className="content">
-        <img src={logo} alt="logo" className="logo" />
-        <p className="description">
-          Experience secure wallet connections with our <br /> intuitive UI
+    <div className='flex justify-center items-center bg-gray-50 min-h-screen'>
+      <div className='text-center'>
+          <img src={logo} alt='' className="mx-auto"/>
+        <p className='mb-6 text-gray-600'>
+          Experience secure wallet connections with our <br /> intuitive modal
+          interface
         </p>
-
-        {!account ? (
-          <>
-            <div className="wallet-list">
-              {walletOptions.map((w) => (
-                <div
-                  key={w.name}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => (e.key === "Enter" ? handleWalletClick(w.name) : null)}
-                  className={`wallet-item ${
-                    selectedWallet === w.name ? "wallet-item-selected" : ""
-                  }`}
-                  onClick={() => handleWalletClick(w.name)}
-                >
-                  <div className="wallet-info">
-                    <div className="wallet-icon">
-                      <img src={w.icon} alt={w.name} />
+        <button
+          className='bg-blue-900 hover:bg-blue-800 px-6 py-2 rounded text-white'
+          onClick={openModal}
+        >
+          Connect Wallet
+        </button>
+        {isModalOpen && (
+          <div className='z-50 fixed inset-0 flex justify-center items-center bg-gray-600 bg-opacity-50'>
+            <div className='bg-white shadow-lg p-6 rounded-lg w-96'>
+              <h2 className='mb-4 font-bold text-blue-900 text-2xl'>
+                Select a wallet
+              </h2>
+              <p className='mb-6 text-gray-600'>
+                By connecting your wallet, you agree to our Terms of Service and
+                our Privacy Policy
+              </p>
+              <div className='space-y-4'>
+                {[
+                  { name: "Slush", img: slush, bg: "bg-blue-200" },
+                  { name: "Suinet", img: slush, bg: "bg-blue-200" },
+                  { name: "Ethos", img: ethos, bg: "bg-purple-200" },
+                  { name: "Phantom", img: phantom, bg: "bg-gray-200" },
+                ].map((wallet) => (
+                  <div
+                    key={wallet.name}
+                    className={`flex justify-between items-center p-2 rounded cursor-pointer ${
+                      selectedWallet === wallet.name
+                        ? "border-l-4 border-blue-500"
+                        : ""
+                    }`} // Add blue left border when selected
+                    onClick={() => handleSelect(wallet.name)} // Select wallet on click
+                  >
+                    <div className='flex items-center'>
+                      <div
+                        className={`flex justify-center items-center ${wallet.bg} mr-3 rounded-full w-10 h-10`}
+                      >
+                        <img src={wallet.img} alt={wallet.name} />
+                      </div>
+                      <span className='text-blue-900'>{wallet.name}</span>
                     </div>
-                    <span className="wallet-name">{w.name}</span>
+                    {selectedWallet === wallet.name && (
+                      <button
+                        className='text-blue-900 hover:underline'
+                        onClick={() => handleConnect(wallet.name)}
+                      >
+                        Connect
+                      </button>
+                    )}
                   </div>
-                  {selectedWallet === w.name && connecting && (
-                    <span className="wallet-status">Connecting…</span>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            <div className="helper-row">
-              <button className="btn proof-btn" onClick={handleSignProof}>
-                (Optional) Sign a Proof & Continue
-              </button>
-            </div>
-
-            {error && <p className="error">{error}</p>}
-          </>
-        ) : (
-          <div className="connected-card">
-            <p>Connected as</p>
-            <strong className="mono">{account?.address || "Unknown address"}</strong>
-            <div className="connected-actions">
-              <button className="btn" onClick={handleSignProof}>
-                Sign proof
-              </button>
-              <button className="btn" onClick={handleDisconnect}>
-                Disconnect
+                ))}
+              </div>
+              <button
+                className='mt-6 text-gray-600 hover:underline'
+                onClick={closeModal}
+              >
+                Close
               </button>
             </div>
           </div>

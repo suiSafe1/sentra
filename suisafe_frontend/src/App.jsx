@@ -10,6 +10,9 @@ import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./authentication/ProtectedRoute";
+// main.jsx or App.jsx
+import "flowbite";
+
 
 function App() {
   const account = useCurrentAccount();

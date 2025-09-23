@@ -17,6 +17,7 @@ import smart_vesting from "../assets/smart_vesting.png";
 import deposit from "../assets/deposit.png";
 import earn_withdraw from "../assets/earn_withdraw.png";
 import lock_secure from "../assets/lock_secure.png";
+import StepsCarousel from "../components/StepCarousel";
 
 
 const Home = () => {
@@ -63,7 +64,7 @@ const Home = () => {
             >
               Connect Wallet
             </Link>
-            <button className='hover:bg-gray-100 px-6 py-2 border border-blue-900 rounded text-blue-900 learn-more-button'>
+            <button className='bg-white hover:bg-gray-100 px-6 py-2 border border-blue-900 rounded text-blue-900 learn-more-button'>
               Learn More
             </button>
           </div>
@@ -81,25 +82,12 @@ const Home = () => {
           Three simple steps to start earning with our decentralized saving
           vault.
         </p>
-        <div className='gap-6 grid steps-grid grid-cols-1 md:grid-cols-3'>
-          {steps.map(({ title, description, icon }, index) => (
-            <div key={index} className='step'>
-              <div className='relative flex justify-center items-center bg-[#F4F4F4] mx-auto mb-4 rounded-full w-16 h-16 step-icon-container'>
-                <img src={icon} alt='' />
-                <div className='top-0 right-0 absolute flex justify-center items-center bg-blue-900 rounded-full w-4 h-4 font-bold text-white text-xs step-number'>
-                  {index + 1}
-                </div>
-              </div>
-              <p className='font-semibold text-lg step-title'>{title}</p>
-              <p className='text-gray-600 step-description'>{description}</p>
-            </div>
-          ))}
-        </div>
+        <StepsCarousel steps={steps} />
       </section>
 
       <section
         id='features'
-        className='mx-auto px-4 py-2 max-w-6xl text-center'
+        className='mx-auto mb-12 px-4 py-2 max-w-6xl text-center'
       >
         <h2 className='mb-4 font-bold text-blue-900 text-xl md:text-2xl section-title'>
           Powerful Features
@@ -114,7 +102,7 @@ const Home = () => {
               title: "Token Locking",
               icon: lock,
               items: [
-                "Lock favorite tokens for predetermined periods and earn.",
+                "Lock favorite tokens for predetermined periods and earn competitive yields.",
                 "Flexible lock periods.",
                 "Competitive APY.",
                 "Auto compounding.",
@@ -153,16 +141,16 @@ const Home = () => {
           ].map((feature, index) => (
             <div
               key={index}
-              className='flex gap-4 bg-white shadow p-6 rounded-lg w-104'
+              className='flex gap-4 bg-white shadow p-6 rounded-lg min-w-90 max-w-120'
             >
               <img src={feature.icon} alt='' className='w-12 h-12' />
               <div>
-                <div className='mb-3 font-semibold text-xl feature-title'>
+                <div className='mb-3 font-semibold text-xl text-left'>
                   {feature.title}
                 </div>
-                <ul className='space-y-2 feature-list'>
+                <ul className='space-y-2'>
                   {feature.items.map((item, i) => (
-                    <li key={i} className='flex items-center gap-2'>
+                    <li key={i} className='flex items-center gap-2 text-left'>
                       {i === 0 ? (
                         <div>{item}</div>
                       ) : (

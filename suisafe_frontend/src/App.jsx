@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import CreatePage from "./routes/CreatePage";
 import Home from "./pages/Home";
@@ -10,66 +10,64 @@ import NotFound from "./pages/NotFound";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./authentication/ProtectedRoute";
-// main.jsx or App.jsx
 import "flowbite";
+import PublicDashboard from "./routes/PublicDashboard";
 
+const Layout = () => (
+  <>
+    <Header />
+    <Outlet />
+    <Footer />
+  </>
+);
 
 function App() {
   const account = useCurrentAccount();
 
   return (
-    <>
-      <Header />
-      <Routes>
-        {/* If connected, / goes to dashboard, else Home */}
+    <Routes>
+      <Route path='/public_dashboard' element={<PublicDashboard />} />
+      <Route element={<Layout />}>
         <Route
-          path="/"
-          element={account ? <Navigate to="/dashboard" /> : <Home />}
+          path='/'
+          element={account ? <Navigate to='/dashboard' /> : <Home />}
         />
-
-        <Route path="/*" element={<NotFound />} />
-        <Route path="/connect" element={<WalletConnect />} />
-
-        {/* Protected routes */}
+        <Route path='/*' element={<NotFound />} />
+        <Route path='/connect' element={<WalletConnect />} />
         <Route
-          path="/create"
+          path='/create'
           element={
             <ProtectedRoute>
               <CreatePage />
             </ProtectedRoute>
           }
         />
-
         <Route
-          path="/withdraw"
+          path='/withdraw'
           element={
             <ProtectedRoute>
               <WithdrawalPage />
             </ProtectedRoute>
           }
         />
-
         <Route
-          path="/dashboard"
+          path='/dashboard'
           element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>
           }
         />
-
         <Route
-          path="/lock"
+          path='/lock'
           element={
             <ProtectedRoute>
               <CreateLockToken />
             </ProtectedRoute>
           }
         />
-        
-      </Routes>
-      <Footer />
-    </>
+      </Route>
+    </Routes>
   );
 }
 

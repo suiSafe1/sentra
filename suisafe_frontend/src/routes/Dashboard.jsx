@@ -282,7 +282,7 @@ function Dashboard() {
             const Icon = data.icon;
             return (
               <div key={data.key}>
-                <h4 className="dashboard-title flex items-center gap-2">
+                <h4 className="flex items-center gap-2 dashboard-title">
                   {data.title}
                   {Icon && <Icon className="info-icon" />}
                 </h4>

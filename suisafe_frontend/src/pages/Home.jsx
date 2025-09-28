@@ -59,10 +59,10 @@ const Home = () => {
           </p>
           <div className='flex md:flex-row flex-col justify-center items-center gap-4 mb-10 hero-buttons'>
             <Link
-              to='/connect'
+              to='/public_dashboard'
               className='bg-blue-900 px-6 py-2 rounded text-white connect-button'
             >
-              Connect Wallet
+              Launch App
             </Link>
             <button className='bg-white hover:bg-gray-100 px-6 py-2 border border-blue-900 rounded text-blue-900 learn-more-button'>
               Learn More

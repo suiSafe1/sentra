@@ -1,100 +1,117 @@
 import React, { useState } from "react";
+import { useWallets } from "@mysten/dapp-kit";
 import ethos from "../assets/ethos.png";
 import slush from "../assets/slush.png";
 import phantom from "../assets/Metamask.png";
-import logo from "../assets/logo.svg";
 
-const WalletConnect = () => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedWallet, setSelectedWallet] = useState(null); // Track selected wallet
+const WalletModal = ({ onSelectWallet, onClose }) => {
+  const wallets = useWallets();
+  const [selectedWallet, setSelectedWallet] = useState(null);
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
 
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setSelectedWallet(null); // Reset selection when closing modal
-  };
+  const walletOptions = [
+    { name: "Slush", icon: slush },
+    { name: "Suinet", icon: slush },
+    { name: "Ethos", icon: ethos },
+    { name: "Phantom", icon: phantom },
+  ];
 
-  // Handle wallet selection and connect button click
-  const handleSelect = (wallet) => {
-    setSelectedWallet(wallet);
-  };
+  const handleWalletClick = async (walletName) => {
+    setError("");
+    setConnecting(true);
+    setSelectedWallet(walletName);
 
-  // Handle connect action
-  const handleConnect = (wallet) => {
-    console.log(`Connecting to ${wallet}...`); // Replace with actual connection logic
+    try {
+      const adapter = wallets.find((w) =>
+        w.name?.toLowerCase().includes(walletName.toLowerCase())
+      );
+
+      if (!adapter) {
+        setError(
+          `${walletName} not detected in the browser. Please install the wallet extension.`
+        );
+        setConnecting(false);
+        setSelectedWallet(null);
+        return;
+      }
+
+      onSelectWallet(adapter);
+    } catch (err) {
+      console.error("Connect error:", err);
+      setError("Connection failed. Try again.");
+    } finally {
+      setConnecting(false);
+    }
   };
 
   return (
-    <div className='flex justify-center items-center bg-gray-50 min-h-screen'>
-      <div className='text-center'>
-          <img src={logo} alt='' className="mx-auto"/>
-        <p className='mb-6 text-gray-600'>
-          Experience secure wallet connections with our <br /> intuitive modal
-          interface
-        </p>
+    <div
+      className='z-50 fixed inset-0 flex justify-center items-center bg-black/50 mx-4'
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className='relative bg-white shadow-2xl p-6 rounded-2xl w-full max-w-md max-h-[80vh] overflow-y-auto'>
         <button
-          className='bg-blue-900 hover:bg-blue-800 px-6 py-2 rounded text-white'
-          onClick={openModal}
+          className='top-4 right-4 absolute font-bold text-gray-500 hover:text-gray-700 text-2xl'
+          onClick={onClose}
         >
-          Connect Wallet
+          ×
         </button>
-        {isModalOpen && (
-          <div className='z-50 fixed inset-0 flex justify-center items-center bg-gray-600 bg-opacity-50'>
-            <div className='bg-white shadow-lg p-6 rounded-lg w-96'>
-              <h2 className='mb-4 font-bold text-blue-900 text-2xl'>
-                Select a wallet
-              </h2>
-              <p className='mb-6 text-gray-600'>
-                By connecting your wallet, you agree to our Terms of Service and
-                our Privacy Policy
-              </p>
-              <div className='space-y-4'>
-                {[
-                  { name: "Slush", img: slush, bg: "bg-blue-200" },
-                  { name: "Suinet", img: slush, bg: "bg-blue-200" },
-                  { name: "Ethos", img: ethos, bg: "bg-purple-200" },
-                  { name: "Phantom", img: phantom, bg: "bg-gray-200" },
-                ].map((wallet) => (
-                  <div
-                    key={wallet.name}
-                    className={`flex justify-between items-center p-2 rounded cursor-pointer ${
-                      selectedWallet === wallet.name
-                        ? "border-l-4 border-blue-500"
-                        : ""
-                    }`} // Add blue left border when selected
-                    onClick={() => handleSelect(wallet.name)} // Select wallet on click
-                  >
-                    <div className='flex items-center'>
-                      <div
-                        className={`flex justify-center items-center ${wallet.bg} mr-3 rounded-full w-10 h-10`}
-                      >
-                        <img src={wallet.img} alt={wallet.name} />
-                      </div>
-                      <span className='text-blue-900'>{wallet.name}</span>
-                    </div>
-                    {selectedWallet === wallet.name && (
-                      <button
-                        className='text-blue-900 hover:underline'
-                        onClick={() => handleConnect(wallet.name)}
-                      >
-                        Connect
-                      </button>
-                    )}
-                  </div>
-                ))}
+        <h2 className='mb-2 font-bold text-[#00076C] text-2xl'>
+          Select a wallet
+        </h2>
+        <p className='mb-6 text-gray-600 text-sm'>
+          By connecting your wallet, you agree to our{" "}
+          <a href='#' className='text-[#00076C] underline hover:no-underline'>
+            Terms of Service
+          </a>{" "}
+          and our{" "}
+          <a href='#' className='text-[#00076C] underline hover:no-underline'>
+            Privacy Policy
+          </a>
+        </p>
+        <div className='space-y-4'>
+          {walletOptions.map((w) => (
+            <div
+              key={w.name}
+              className={`flex items-center justify-between p-3 rounded-lg border ${
+                selectedWallet === w.name
+                  ? "border-[#00076C] bg-blue-50"
+                  : "border-gray-200 hover:bg-gray-50"
+              } cursor-pointer`}
+              onClick={() => handleWalletClick(w.name)}
+              role='button'
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && handleWalletClick(w.name)}
+            >
+              <div className='flex items-center space-x-3'>
+                <img
+                  src={w.icon}
+                  alt={w.name}
+                  className='rounded-full w-10 h-10 object-cover'
+                />
+                <span className='font-medium text-[#00076C]'>{w.name}</span>
               </div>
-              <button
-                className='mt-6 text-gray-600 hover:underline'
-                onClick={closeModal}
+              <span
+                className={`text-sm ${
+                  selectedWallet === w.name && connecting
+                    ? "text-gray-500"
+                    : "text-[#00076C]"
+                }`}
               >
-                Close
-              </button>
+                {selectedWallet === w.name && connecting
+                  ? "Connecting…"
+                  : "Connect"}
+              </span>
             </div>
-          </div>
-        )}
+          ))}
+        </div>
+        {error && <p className='mt-4 text-red-500 text-sm'>{error}</p>}
       </div>
     </div>
   );
 };
 
-export default WalletConnect;
+export default WalletModal;

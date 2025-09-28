@@ -74,7 +74,7 @@ function NoAuth() {
 
         {/* Launch App Button */}
         <Link
-          to='/connect'
+          to='/public_dashboard'
           className={`block bg-[#00076C] hover:bg-[#00076C]/90 md:p-2 px-3 py-2 rounded-sm text-white
             ${isMenuOpen ? "block" : "hidden"} md:block`}
         >

@@ -3,7 +3,7 @@ import { Menu, Search, X, Filter, Plus } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useConnectWallet, useCurrentAccount } from "@mysten/dapp-kit";
 import SearchBar from "../components/Search";
-import WalletModal from "./Connect"; // Import WalletModal
+import WalletModal from "./Connect";
 import sui from "../assets/sui.png";
 import trendup from "../assets/TrendUp.png";
 import vest from "../assets/vest.png";
@@ -14,7 +14,7 @@ import sentra from "../assets/sentra_dashboard.png";
 export default function PublicDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showTokens, setShowTokens] = useState(true);
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false); // State for modal visibility
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const { mutate: connect } = useConnectWallet();
@@ -52,8 +52,52 @@ export default function PublicDashboard() {
   // Handle wallet selection from WalletModal
   const handleSelectWallet = (adapter) => {
     connect({ wallet: adapter });
-    setIsWalletModalOpen(false); // Close modal after selection
+    setIsWalletModalOpen(false);
   };
+
+  // Handle Connect Wallet button click
+  const handleConnectWallet = () => {
+    if (!account) {
+      setIsWalletModalOpen(true);
+    }
+  };
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const tokens = [
+    {
+      tokenName: "SUI",
+      status: "Available",
+      amount: "2,000",
+      usdValue: "6,000+",
+      icon: sui,
+    },
+    {
+      tokenName: "WAL",
+      status: "Locked",
+      amount: "10,000",
+      usdValue: "30,000+",
+      icon: sui,
+    },
+    {
+      tokenName: "USDC",
+      status: "Available",
+      amount: "10,000",
+      usdValue: "9,999",
+      icon: sui,
+    },
+    {
+      tokenName: "sETH",
+      status: "Staked",
+      amount: "1",
+      usdValue: "4,000",
+      icon: sui,
+    },
+  ];
+
+  const filteredTokens = tokens.filter((t) =>
+    t.tokenName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className='flex bg-gray-50 min-h-screen'>
@@ -90,7 +134,7 @@ export default function PublicDashboard() {
             </div>
             <button
               className='md:hidden block bg-white px-3 py-1 rounded-md font-medium text-[#00076C]'
-              onClick={() => setIsWalletModalOpen(true)}
+              onClick={handleConnectWallet} // Updated to use handler
             >
               Connect Wallet
             </button>
@@ -111,14 +155,18 @@ export default function PublicDashboard() {
       )}
 
       {/* Main Content */}
-      <div className='flex flex-col flex-1'>
+      <div className='flex flex-col flex-1 h-[100vh] overflow-y-scroll'>
         {/* Navbar (content area header) */}
         <header className='flex justify-between items-center bg-white px-4 py-3 md:pl-8 text-[#00076C]'>
           <div className='flex justify-between space-x-3 w-full'>
-            <SearchBar />
+            <SearchBar
+              value={searchTerm}
+              onChange={setSearchTerm}
+              placeholder='Search tokens...'
+            />{" "}
             <button
               className='hidden md:block bg-[#00076C] px-3 py-1 rounded-md font-medium text-white'
-              onClick={() => setIsWalletModalOpen(true)}
+              onClick={handleConnectWallet} // Updated to use handler
             >
               Connect Wallet
             </button>
@@ -161,7 +209,6 @@ export default function PublicDashboard() {
                   className='sr-only peer'
                 />
                 <div class="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white dark:bg-gray-700 dark:peer-checked:bg-blue-600 peer-checked:bg-blue-600 after:border after:border-gray-300 dark:border-gray-600 peer-checked:after:border-white rounded-full after:rounded-full peer-focus:outline-none dark:peer-focus:ring-blue-800 peer-focus:ring-4 peer-focus:ring-blue-300 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all rtl:peer-checked:after:-translate-x-full peer-checked:after:translate-x-full after:start-[2px]"></div>
-
                 <span className='ml-8 text-gray-700'>NFTs</span>
               </label>
             </div>
@@ -176,41 +223,24 @@ export default function PublicDashboard() {
           </div>
           <div className=''>
             {showTokens ? (
-              <>
-                <SuiItem
-                  tokenName='SUI'
-                  tokenIcon={sui}
-                  status='Available'
-                  amount='2,000'
-                  usdValue='6,000+'
-                />
-
-                <SuiItem
-                  tokenName='WAL'
-                  tokenIcon={sui} // replace with actual WAL icon
-                  status='Locked'
-                  amount='10,000'
-                  usdValue='30,000+'
-                />
-
-                <SuiItem
-                  tokenName='USDC'
-                  tokenIcon={sui}
-                  status='Available'
-                  amount='10,000'
-                  usdValue='9,999'
-                />
-
-                <SuiItem
-                  tokenName='sETH'
-                  tokenIcon={sui}
-                  status='Staked'
-                  amount='1'
-                  usdValue='4,000'
-                />
-              </>
+              filteredTokens.length > 0 ? (
+                filteredTokens.map((t) => (
+                  <SuiItem
+                    key={t.tokenName}
+                    tokenName={t.tokenName}
+                    tokenIcon={t.icon}
+                    status={t.status}
+                    amount={t.amount}
+                    usdValue={t.usdValue}
+                  />
+                ))
+              ) : (
+                <div className='flex justify-center items-center bg-white shadow-md p-6 rounded-xl font-medium text-gray-500'>
+                  No tokens found.
+                </div>
+              )
             ) : (
-              <p className='text-gray-500'>NFTs content goes here.</p> // Placeholder for NFTs
+              <p className='text-gray-500'>NFTs content goes here.</p>
             )}
           </div>
         </div>
@@ -228,7 +258,6 @@ export default function PublicDashboard() {
 }
 
 const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
-  // Define color mapping for statuses
   const statusColors = {
     Available: "bg-green-100 text-green-700 border-green-700 border-2",
     Locked: "bg-yellow-100 text-yellow-700 border-yellow-700 border-2",
@@ -237,21 +266,17 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
 
   return (
     <div className='flex justify-between items-center bg-white p-2'>
-      {/* Token Info */}
       <div className='flex items-center space-x-2'>
         {tokenIcon && (
           <img src={tokenIcon} alt={`${tokenName} icon`} className='h-14' />
         )}
         <span className='font-medium text-gray-700'>{tokenName}</span>
       </div>
-
-      {/* Right Side */}
       <div className='space-y-2 text-right'>
         <div className='font-bold text-blue-800'>
           {amount} {tokenName}
         </div>
         <div className='flex justify-end items-center gap-2'>
-          {/* Status Badge */}
           <div
             className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}
           >
@@ -263,4 +288,3 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
     </div>
   );
 };
-

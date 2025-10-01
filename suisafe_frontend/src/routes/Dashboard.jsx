@@ -274,83 +274,84 @@ function Dashboard() {
   ];
 
   return (
-    <div className="dash-container">
-      <div className="dashboard-container">
+    <div className='h-[90vh] overflow-y-scroll dash-container'>
+      <div className='dashboard-container'>
         {/* Dashboard info section */}
-        <section className="dashboard-info">
+        <section className='dashboard-info'>
           {infos.map((data) => {
             const Icon = data.icon;
             return (
               <div key={data.key}>
-                <h4 className="flex items-center gap-2 dashboard-title">
+                <h4 className='flex items-center gap-2 dashboard-title'>
                   {data.title}
-                  {Icon && <Icon className="info-icon" />}
+                  {Icon && <Icon className='info-icon' />}
                 </h4>
-                <p className="dashboard-balance">{data.amount || data.count}</p>
-                <p className="dashboard-description">
+                <p className='dashboard-balance'>{data.amount || data.count}</p>
+                <p className='dashboard-description'>
                   {data.usdEquivalent || data.description}
                 </p>
-                <p className="dashboard-change">{data?.change}</p>
+                <p className='dashboard-change'>{data?.change}</p>
               </div>
             );
           })}
         </section>
 
         {/* Lock section */}
-        <section className="lock-section">
+        <section className='lock-section'>
           {/* USER LOCK/SWITCH */}
-          <div className="">
+          <div className=''>
             {/* title/create button */}
-            <div className="lock-subcontainer">
-              <h4 className="your-lock-title">Your Locks</h4>{" "}
-              <Link to="/lock" className="create-lock-btn">
-                <Plus size={20} className="plus" />
+            <div className='lock-subcontainer'>
+              <h4 className='your-lock-title'>Your Locks</h4>{" "}
+              <Link to='/lock' className='create-lock-btn'>
+                <Plus size={20} className='plus' />
                 Create New Lock
               </Link>
             </div>
 
             {/* title/create button */}
-            <div className="lock-subcontainer">
-              <div className="lock-btn-switch">
+            <div className='lock-subcontainer'>
+              <div className='lock-btn-switch'>
                 <button
                   className={`${!switchLock ? "lock-btn-on" : "lock-btn-off"} `}
                   disabled={!switchLock}
-                  id="tokenLock"
-                  onClick={handleSwitch}>
+                  id='tokenLock'
+                  onClick={handleSwitch}
+                >
                   Token Locks
                 </button>
                 <button
                   className={`${!switchLock ? "lock-btn-off" : "lock-btn-on"} `}
                   disabled={switchLock}
-                  id="nftLock"
-                  onClick={handleSwitch}>
+                  id='nftLock'
+                  onClick={handleSwitch}
+                >
                   NFT Locks
                 </button>
               </div>
 
-              <div className="lock-filter" onClick={() => setStatus(!status)}>
+              <div className='lock-filter' onClick={() => setStatus(!status)}>
                 All Statuses{" "}
-                <span className="arrow-filter">
+                <span className='arrow-filter'>
                   {status ? (
-                    <ChevronUp className="arrow-filter" size={16} />
+                    <ChevronUp className='arrow-filter' size={16} />
                   ) : (
-                    <ChevronDown className="arrow-filter" size={16} />
+                    <ChevronDown className='arrow-filter' size={16} />
                   )}
                 </span>
                 {status && (
-                  <div className="lock-filter-dropdown">
-                    <p className="dropdown-list-on">All</p>
-                    <p className="dropdown-list-off">Locked</p>
-                    <p className="dropdown-list-off">Withdraw</p>
+                  <div className='lock-filter-dropdown'>
+                    <p className='dropdown-list-on'>All</p>
+                    <p className='dropdown-list-off'>Locked</p>
+                    <p className='dropdown-list-off'>Withdraw</p>
                   </div>
                 )}
               </div>
-              
             </div>
           </div>
 
           {/* TOKEN/NFT */}
-          <div className="locked">
+          <div className='locked'>
             {!switchLock ? <TokenLock /> : <NftLock />}
           </div>
         </section>

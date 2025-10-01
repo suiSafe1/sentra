@@ -1,15 +1,17 @@
-import { Bell, Menu } from "lucide-react";
+import { Bell, Menu, X } from "lucide-react";
 import Badge from "../components/Badge";
-import logo from "../assets/suisafe-logo.svg";
 import Button from "../components/Button";
-import { Link } from "react-router-dom";
-import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 import { useNavigate } from "react-router-dom";
+import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
+import SearchBar from "../components/Search";
+import { useMenuStore } from "../store/useMenuStore"; // 👈 import store
 
 function HeadAuth() {
   const account = useCurrentAccount();
   const { mutate: disconnect } = useDisconnectWallet();
   const navigate = useNavigate();
+
+  const { menuOpen, toggleMenu } = useMenuStore(); // 👈 state from store
 
   // Helper: shorten wallet address
   const formatAddress = (address) => {
@@ -18,18 +20,15 @@ function HeadAuth() {
   };
 
   const handleLogout = () => {
-    disconnect(); // disconnect wallet
+    disconnect();
     localStorage.removeItem("sui_session");
     localStorage.removeItem("sui_session_proof");
-    navigate("/connect"); // go back to connect page
+    navigate("/connect");
   };
 
   return (
-    <header className='flex justify-between items-center bg-white shadow-md px-6 py-4'>
-      <Link to='/dashboard' className='flex items-center space-x-2'>
-        <img src={logo} alt='SuiSafe Logo' className='h-8' />
-        <span className='font-bold text-blue-900 text-xl'>suiSafe</span>
-      </Link>
+    <header className='flex justify-between items-center bg-white shadow-md px-6 py-4 w-full'>
+      <SearchBar />
 
       <div className='flex items-center space-x-4'>
         <Badge
@@ -49,9 +48,17 @@ function HeadAuth() {
           <div className='top-0 right-0 absolute bg-red-500 rounded-full w-2 h-2'></div>
         </div>
 
-        <Button variant='ghost' size='sm' className='md:hidden'>
-          <Menu className='w-6 h-6 text-gray-600' />
-        </Button>
+        {/* Mobile Hamburger Button */}
+        <button
+          onClick={toggleMenu} // 👈 toggle via store
+          className='md:hidden flex items-center p-2'
+        >
+          {menuOpen ? (
+            <X className='w-6 h-6 text-gray-600' />
+          ) : (
+            <Menu className='w-6 h-6 text-gray-600' />
+          )}
+        </button>
       </div>
     </header>
   );

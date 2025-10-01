@@ -26,13 +26,13 @@ const ProtectedRoute = ({ children }) => {
   if (stored) {
     // still redirect to dashboard if they try to access /connect while session exists
     if (location.pathname === "/connect") {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/public_dashboard" replace />;
     }
     return children;
   }
 
   // not authenticated → redirect to connect
-  return <Navigate to="/connect" replace />;
+  return <Navigate to="/public_dashboard" replace />;
 };
 
 export default ProtectedRoute;

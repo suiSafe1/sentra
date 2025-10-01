@@ -1,6 +1,8 @@
 import logo from "../assets/logo.svg";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import SearchBar from "../components/Search";
+SearchBar
 
 function NoAuth() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -10,12 +12,13 @@ function NoAuth() {
   };
 
   return (
-    <nav className='bg-white shadow-md border-gray-200'>
+    <nav className='bg-white shadow-md border-gray-200 w-full'>
       <div className='flex flex-wrap justify-between items-center p-4 w-full'>
         {/* Logo */}
-        <Link to='/' className='flex items-center space-x-3'>
+        {/* <Link to='/' className='flex items-center space-x-3'>
           <img src={logo} alt='SuiSafe Logo' className='h-8' />
-        </Link>
+        </Link> */}
+        <SearchBar />
 
         {/* Hamburger */}
         <div className='md:hidden flex items-center'>

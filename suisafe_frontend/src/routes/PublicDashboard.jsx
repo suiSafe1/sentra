@@ -265,7 +265,7 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
   };
 
   return (
-    <div className='flex justify-between items-center bg-white p-2'>
+    <div className='flex justify-between items-center bg-white p-2 py-4 border-b-2 border-black/50'>
       <div className='flex items-center space-x-2'>
         {tokenIcon && (
           <img src={tokenIcon} alt={`${tokenName} icon`} className='h-14' />

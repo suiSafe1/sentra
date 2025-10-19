@@ -1,33 +1,44 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Theme & Mobile Config -->
+    <meta name="theme-color" content="#E9EDFF" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="#E9EDFF" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/suisafe-logo.svg" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
 
-<head>
-  <meta charset="UTF-8" />
-  <!-- Theme & Mobile Config -->
-  <meta name="theme-color" content="#E9EDFF">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="#E9EDFF" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="icon" type="image/svg+xml" href="/suisafe-logo.svg" />
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Site Metadata -->
+    <title>suiSafe - Welcome</title>
+    <meta
+      name="description"
+      content="suiSafe is your secure and intuitive platform for locking, staking, and managing SUI and USDC tokens with ease."
+    />
+    <meta
+      name="keywords"
+      content="suiSafe, SUI, USDC, crypto, staking, token lock, secure staking, DeFi, blockchain"
+    />
+    <meta name="author" content="suiSafe Team" />
 
-  <!-- Site Metadata -->
-  <title>suiSafe - Welcome</title>
-  <meta name="description"
-    content="suiSafe is your secure and intuitive platform for locking, staking, and managing SUI and USDC tokens with ease.">
-  <meta name="keywords" content="suiSafe, SUI, USDC, crypto, staking, token lock, secure staking, DeFi, blockchain">
-  <meta name="author" content="suiSafe Team">
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-
-</head>
-
-<body style="background-color: #e9edff;">
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
-</body>
-
+  <body style="background-color: #e9edff">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx">
+          window.global = window;
+      window.Buffer = window.Buffer || require('buffer').Buffer;
+    </script>
+  </body>
 </html>

@@ -10,11 +10,14 @@ import suiIcon from "../assets/sui_swap.png";
 import usdcIcon from "../assets/usdc_swap.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
 
-const FEE_TREASURY_ID =
-  "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1";
+const TREASURY_IDS = {
+  SUI: "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1",
+  USDC: "0x989b2401f023c0b03ca22e23a0a8ab0d847af705018eab08594446a3a0d5c62a",
+};
+
 const FEE_MODULE_ADDRESS =
   "0xf6e33c23ef17c81796b8995b493e906a7446686a3dce763bb3259e2fe59df737";
-const GAS_BUDGET = 50_000_000; // 0.05 SUI
+const GAS_BUDGET = 50_000_000;
 
 const aggregatorClient = new AggregatorClient({
   network: "mainnet",
@@ -103,7 +106,6 @@ export default function SwapTokens() {
     useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
 
-  // Fetch user balances
   useEffect(() => {
     if (!currentAccount) {
       setBalances({ SUI: "0.00", USDC: "0.00" });

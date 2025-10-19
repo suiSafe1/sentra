@@ -99,6 +99,7 @@ export default function SwapTokens() {
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [balances, setBalances] = useState({ SUI: "0.00", USDC: "0.00" });
+  const [actualBalances, setActualBalances] = useState({ SUI: 0n, USDC: 0n });
   const [slippage] = useState(0.5);
 
   const currentAccount = useCurrentAccount();
@@ -133,6 +134,8 @@ export default function SwapTokens() {
           (sum, coin) => sum + BigInt(coin.balance),
           0n
         );
+
+        setActualBalances({ SUI: suiBalance, USDC: usdcBalance });
 
         setBalances({
           SUI: (Number(suiBalance) / 1e9).toFixed(2),
@@ -222,16 +225,6 @@ export default function SwapTokens() {
       const toTokenData = tokens.find((t) => t.symbol === toToken);
 
       let swapAmount = parseFloat(fromAmount);
-      const maxAllowed = (
-        parseFloat(balances[fromToken]) -
-        (fromToken === "SUI" ? GAS_BUDGET / 1e9 : 0)
-      ).toFixed(6);
-      const isUsingMax =
-        fromToken === "SUI" && swapAmount === parseFloat(maxAllowed);
-
-      if (isUsingMax) {
-        swapAmount = swapAmount - GAS_BUDGET / 1e9;
-      }
 
       const amountInRaw = BigInt(
         Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
@@ -268,8 +261,18 @@ export default function SwapTokens() {
               6
             )}`
           );
+        } else {
+          const actualSwapBalance = actualBalances[fromToken];
+          if (actualSwapBalance < amountInRaw) {
+            throw new Error(
+              `Insufficient ${fromToken} balance. Need ${(
+                Number(amountInRaw) / Math.pow(10, fromTokenData.decimals)
+              ).toFixed(6)}, have ${(
+                Number(actualSwapBalance) / Math.pow(10, fromTokenData.decimals)
+              ).toFixed(6)}`
+            );
+          }
         }
-
         const sortedCoins = [...suiCoins.data].sort((a, b) => {
           const balanceA = BigInt(a.balance);
           const balanceB = BigInt(b.balance);
@@ -469,23 +472,23 @@ export default function SwapTokens() {
 
   const handleMaxClick = () => {
     if (fromToken === "SUI") {
-      const maxAmount = Math.max(
-        0,
-        parseFloat(balances[fromToken]) - GAS_BUDGET / 1e9
-      );
+      const actualSuiBalance = Number(actualBalances.SUI) / 1e9;
+      const maxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
       setFromAmount(maxAmount.toFixed(6));
     } else {
-      setFromAmount(balances[fromToken]);
+      const actualUsdcBalance = Number(actualBalances.USDC) / 1e6;
+      setFromAmount(actualUsdcBalance.toFixed(6));
     }
   };
 
   const isMaxAmountEntered = () => {
     if (fromToken !== "SUI" || !fromAmount) return false;
-    const maxAllowed = (
-      parseFloat(balances[fromToken]) -
-      GAS_BUDGET / 1e9
-    ).toFixed(6);
-    return fromAmount === maxAllowed;
+
+    const actualSuiBalance = Number(actualBalances.SUI) / 1e9;
+    const actualMaxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
+    const actualMaxFormatted = actualMaxAmount.toFixed(6);
+
+    return fromAmount === actualMaxFormatted;
   };
 
   return (

@@ -10,13 +10,12 @@ import suiIcon from "../assets/sui_swap.png";
 import usdcIcon from "../assets/usdc_swap.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
 
-// Configuration
 const FEE_TREASURY_ID =
   "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1";
 const FEE_MODULE_ADDRESS =
   "0xf6e33c23ef17c81796b8995b493e906a7446686a3dce763bb3259e2fe59df737";
+const GAS_BUDGET = 50_000_000; // 0.05 SUI
 
-// Initialize Cetus Aggregator Client
 const aggregatorClient = new AggregatorClient({
   network: "mainnet",
 });
@@ -97,7 +96,7 @@ export default function SwapTokens() {
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState("");
   const [balances, setBalances] = useState({ SUI: "0.00", USDC: "0.00" });
-  const [slippage] = useState(0.5); // 0.5% slippage
+  const [slippage] = useState(0.5);
 
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } =
@@ -147,7 +146,6 @@ export default function SwapTokens() {
     return () => clearInterval(interval);
   }, [currentAccount, suiClient]);
 
-  // Fetch route and estimate output from Cetus
   useEffect(() => {
     if (!fromAmount || parseFloat(fromAmount) <= 0) {
       setToAmount("");
@@ -221,18 +219,27 @@ export default function SwapTokens() {
       const fromTokenData = tokens.find((t) => t.symbol === fromToken);
       const toTokenData = tokens.find((t) => t.symbol === toToken);
 
+      let swapAmount = parseFloat(fromAmount);
+      const maxAllowed = (
+        parseFloat(balances[fromToken]) -
+        (fromToken === "SUI" ? GAS_BUDGET / 1e9 : 0)
+      ).toFixed(6);
+      const isUsingMax =
+        fromToken === "SUI" && swapAmount === parseFloat(maxAllowed);
+
+      if (isUsingMax) {
+        swapAmount = swapAmount - GAS_BUDGET / 1e9;
+      }
+
       const amountInRaw = BigInt(
-        Math.floor(
-          parseFloat(fromAmount) * Math.pow(10, fromTokenData.decimals)
-        )
+        Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
       );
 
-      console.log(`💰 Swapping ${fromAmount} ${fromToken} to ${toToken}`);
+      console.log(
+        `💰 Swapping ${swapAmount.toFixed(6)} ${fromToken} to ${toToken}`
+      );
       console.log(`📊 Amount in raw: ${amountInRaw}`);
 
-      const GAS_BUDGET = 50_000_000; // 0.05 SUI
-
-      // Get SUI coins
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
         coinType: "0x2::sui::SUI",
@@ -247,26 +254,20 @@ export default function SwapTokens() {
         0n
       );
 
-      // Get swap input coins and gas strategy
       let swapCoinIds = [];
       let gasPayment = null;
 
-      // REPLACE THIS SECTION in your handleSwap function (around line 250-290)
-
       if (fromToken === "SUI") {
-        // For SUI swaps, check we have enough for swap + gas
-        if (totalSuiBalance < amountInRaw + BigInt(GAS_BUDGET)) {
+        if (totalSuiBalance < amountInRaw) {
           throw new Error(
             `Insufficient SUI balance. Need ${(
-              (Number(amountInRaw) + GAS_BUDGET) /
-              1e9
+              Number(amountInRaw) / 1e9
             ).toFixed(6)} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(
               6
             )}`
           );
         }
 
-        // Sort coins by balance (largest first)
         const sortedCoins = [...suiCoins.data].sort((a, b) => {
           const balanceA = BigInt(a.balance);
           const balanceB = BigInt(b.balance);
@@ -274,20 +275,15 @@ export default function SwapTokens() {
         });
 
         if (sortedCoins.length === 1) {
-          // Single coin: DON'T set gas payment, use tx.gas approach
           gasPayment = null;
           swapCoinIds = [sortedCoins[0].coinObjectId];
         } else {
-          // Multiple coins: Reserve gas from largest coin, use rest for swap
           const largestCoin = sortedCoins[0];
-          const largestBalance = BigInt(largestCoin.balance);
 
-          // Use the largest coin for BOTH gas and swap when possible
           gasPayment = null;
           swapCoinIds = [largestCoin.coinObjectId];
 
-          // If we need more coins for the swap amount, add smaller coins
-          let totalForSwap = largestBalance;
+          let totalForSwap = BigInt(largestCoin.balance);
           let coinIndex = 1;
 
           while (totalForSwap < amountInRaw && coinIndex < sortedCoins.length) {
@@ -303,7 +299,6 @@ export default function SwapTokens() {
           );
         }
       } else {
-        // For non-SUI swaps
         if (totalSuiBalance < BigInt(GAS_BUDGET)) {
           throw new Error(
             `Insufficient SUI for gas. Need at least ${(
@@ -314,7 +309,6 @@ export default function SwapTokens() {
           );
         }
 
-        // Get the swap token coins
         const swapTokenCoins = await suiClient.getCoins({
           owner: currentAccount.address,
           coinType: fromTokenData.type,
@@ -348,7 +342,6 @@ export default function SwapTokens() {
         );
       }
 
-      // Get swap route from Cetus
       console.log("🔍 Finding best swap route via Cetus...");
       const route = await aggregatorClient.findRouters({
         from: fromTokenData.type,
@@ -363,11 +356,9 @@ export default function SwapTokens() {
 
       console.log(`✅ Route found: ${route.paths.length} path(s)`);
 
-      // Build transaction
       const txb = new Transaction();
       txb.setGasBudget(GAS_BUDGET);
 
-      // Set gas payment if we have explicit gas coins (multi-coin SUI swap)
       if (gasPayment && gasPayment.length > 0) {
         txb.setGasPayment(gasPayment);
       }
@@ -375,12 +366,10 @@ export default function SwapTokens() {
       let coinForSwap;
 
       if (fromToken === "SUI" && !gasPayment) {
-        // Single SUI coin: use tx.gas approach
         console.log("🔧 Single SUI coin - using tx.gas...");
         const [swapCoin] = txb.splitCoins(txb.gas, [txb.pure.u64(amountInRaw)]);
         coinForSwap = swapCoin;
       } else {
-        // Multiple coins or non-SUI: merge and split
         const baseCoin = txb.object(swapCoinIds[0]);
         if (swapCoinIds.length > 1) {
           const otherCoins = swapCoinIds.slice(1).map((id) => txb.object(id));
@@ -393,7 +382,6 @@ export default function SwapTokens() {
         coinForSwap = swapCoin;
       }
 
-      // Take fee and return remaining coin
       console.log("💰 Taking platform fee...");
       const [coinAfterFee] = txb.moveCall({
         target: `${FEE_MODULE_ADDRESS}::fee_router::take_fee_and_return`,
@@ -401,7 +389,6 @@ export default function SwapTokens() {
         arguments: [txb.object(FEE_TREASURY_ID), coinForSwap],
       });
 
-      // Execute swap via Cetus aggregator
       const outputCoin = await aggregatorClient.routerSwap({
         router: route,
         txb: txb,
@@ -411,10 +398,8 @@ export default function SwapTokens() {
 
       console.log("🔄 Swap transaction built successfully");
 
-      // Transfer output coin back to user
       txb.transferObjects([outputCoin], currentAccount.address);
 
-      // Sign and execute transaction
       console.log("📝 Signing and executing transaction...");
       const result = await signAndExecuteTransaction({
         transaction: txb,
@@ -432,11 +417,9 @@ export default function SwapTokens() {
         }`
       );
 
-      // Reset form and refresh balances
       setFromAmount("");
       setToAmount("");
 
-      // Refresh balances after a short delay
       setTimeout(() => {
         window.location.reload();
       }, 2000);
@@ -474,6 +457,27 @@ export default function SwapTokens() {
     setToAmount(fromAmount);
   };
 
+  const handleMaxClick = () => {
+    if (fromToken === "SUI") {
+      const maxAmount = Math.max(
+        0,
+        parseFloat(balances[fromToken]) - GAS_BUDGET / 1e9
+      );
+      setFromAmount(maxAmount.toFixed(6));
+    } else {
+      setFromAmount(balances[fromToken]);
+    }
+  };
+
+  const isMaxAmountEntered = () => {
+    if (fromToken !== "SUI" || !fromAmount) return false;
+    const maxAllowed = (
+      parseFloat(balances[fromToken]) -
+      GAS_BUDGET / 1e9
+    ).toFixed(6);
+    return fromAmount === maxAllowed;
+  };
+
   return (
     <div className="bg-white shadow-md mx-auto p-6 rounded-lg w-full h-full">
       <div className="m-auto w-[fit-content]">
@@ -506,13 +510,18 @@ export default function SwapTokens() {
                 />
                 <button
                   className="px-2 font-semibold text-indigo-600 text-sm text-right"
-                  onClick={() => setFromAmount(balances[fromToken])}
+                  onClick={handleMaxClick}
                   disabled={isSwapping}
                 >
                   MAX
                 </button>
               </div>
             </div>
+            {fromToken === "SUI" && isMaxAmountEntered() && (
+              <p className="mt-2 text-gray-500 text-xs">
+                0.05 SUI is reserved to cover gas fees
+              </p>
+            )}
           </div>
 
           {/* Flip */}

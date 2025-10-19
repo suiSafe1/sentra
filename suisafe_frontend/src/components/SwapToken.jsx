@@ -385,10 +385,18 @@ export default function SwapTokens() {
       }
 
       console.log("💰 Taking platform fee...");
+      const treasuryId = TREASURY_IDS[fromToken];
+
+      if (!treasuryId) {
+        throw new Error(
+          `Treasury not initialized for ${fromToken}. Please initialize it first.`
+        );
+      }
+
       const [coinAfterFee] = txb.moveCall({
         target: `${FEE_MODULE_ADDRESS}::fee_router::take_fee_and_return`,
         typeArguments: [fromTokenData.type],
-        arguments: [txb.object(FEE_TREASURY_ID), coinForSwap],
+        arguments: [txb.object(treasuryId), coinForSwap],
       });
 
       const outputCoin = await aggregatorClient.routerSwap({

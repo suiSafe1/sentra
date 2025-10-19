@@ -510,9 +510,7 @@ export default function SwapTokens() {
             <label className="block font-medium text-gray-700 text-sm">
               To{" "}
               {isFetchingRoute && (
-                <span className="text-xs text-gray-400">
-                  (fetching route...)
-                </span>
+                <span className="text-xs text-gray-400">(Calculating...)</span>
               )}
               {routeError && (
                 <span className="text-xs text-red-500 ml-2">

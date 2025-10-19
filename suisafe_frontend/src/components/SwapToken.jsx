@@ -171,7 +171,7 @@ export default function SwapTokens() {
           )
         );
 
-        console.log("🔍 Finding best swap route via Cetus...");
+        console.log("Finding best swap route via Cetus...");
         const route = await aggregatorClient.findRouters({
           from: fromTokenData.type,
           target: toTokenData.type,
@@ -179,7 +179,7 @@ export default function SwapTokens() {
           byAmountIn: true,
         });
 
-        console.log("🧭 Route raw result:", route);
+        console.log("Route raw result:", route);
 
         if (route && route.amountOut && !route.insufficientLiquidity) {
           const estimatedOut =
@@ -187,12 +187,12 @@ export default function SwapTokens() {
             Math.pow(10, toTokenData.decimals);
           setToAmount(estimatedOut.toFixed(6));
           setRouteError("");
-          console.log(`✅ Route found: ${route.paths?.length || 1} path(s)`);
-          console.log(`📊 Estimated output: ${estimatedOut} ${toToken}`);
+          console.log(`Route found: ${route.paths?.length || 1} path(s)`);
+          console.log(`Estimated output: ${estimatedOut} ${toToken}`);
         } else {
           setToAmount("");
           setRouteError("No route available");
-          console.log("❌ No swap route found");
+          console.log("No swap route found");
         }
       } catch (error) {
         console.error("Failed to fetch route:", error);
@@ -231,9 +231,9 @@ export default function SwapTokens() {
       );
 
       console.log(
-        `💰 Swapping ${swapAmount.toFixed(6)} ${fromToken} to ${toToken}`
+        `Swapping ${swapAmount.toFixed(6)} ${fromToken} to ${toToken}`
       );
-      console.log(`📊 Amount in raw: ${amountInRaw}`);
+      console.log(`Amount in raw: ${amountInRaw}`);
 
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
@@ -298,7 +298,7 @@ export default function SwapTokens() {
           }
 
           console.log(
-            `💳 Using ${swapCoinIds.length} SUI coin(s) for swap+gas, total: ${(
+            `Using ${swapCoinIds.length} SUI coin(s) for swap+gas, total: ${(
               totalForSwap / BigInt(1e9)
             ).toString()} SUI`
           );
@@ -341,13 +341,13 @@ export default function SwapTokens() {
         swapCoinIds = swapTokenCoins.data.map((c) => c.coinObjectId);
 
         console.log(
-          `💳 Found ${swapCoinIds.length} ${fromToken} coin(s), total: ${(
+          `Found ${swapCoinIds.length} ${fromToken} coin(s), total: ${(
             Number(totalSwapBalance) / Math.pow(10, fromTokenData.decimals)
           ).toFixed(4)}`
         );
       }
 
-      console.log("🔍 Finding best swap route via Cetus...");
+      console.log("Finding best swap route via Cetus...");
       const route = await aggregatorClient.findRouters({
         from: fromTokenData.type,
         target: toTokenData.type,
@@ -359,7 +359,7 @@ export default function SwapTokens() {
         throw new Error("No swap route found via Cetus aggregator");
       }
 
-      console.log(`✅ Route found: ${route.paths.length} path(s)`);
+      console.log(`Route found: ${route.paths.length} path(s)`);
 
       const txb = new Transaction();
       txb.setGasBudget(GAS_BUDGET);
@@ -371,7 +371,7 @@ export default function SwapTokens() {
       let coinForSwap;
 
       if (fromToken === "SUI" && !gasPayment) {
-        console.log("🔧 Single SUI coin - using tx.gas...");
+        console.log("Single SUI coin - using tx.gas...");
         const [swapCoin] = txb.splitCoins(txb.gas, [txb.pure.u64(amountInRaw)]);
         coinForSwap = swapCoin;
       } else {
@@ -387,7 +387,7 @@ export default function SwapTokens() {
         coinForSwap = swapCoin;
       }
 
-      console.log("💰 Taking platform fee...");
+      console.log("Taking platform fee...");
       const treasuryId = TREASURY_IDS[fromToken];
 
       if (!treasuryId) {
@@ -409,16 +409,16 @@ export default function SwapTokens() {
         slippage: slippage,
       });
 
-      console.log("🔄 Swap transaction built successfully");
+      console.log("Swap transaction built successfully");
 
       txb.transferObjects([outputCoin], currentAccount.address);
 
-      console.log("📝 Signing and executing transaction...");
+      console.log("Signing and executing transaction...");
       const result = await signAndExecuteTransaction({
         transaction: txb,
       });
 
-      console.log("✅ Swap completed successfully!");
+      console.log("Swap completed successfully!");
       console.log("Transaction digest:", result.digest);
 
       alert(
@@ -437,7 +437,7 @@ export default function SwapTokens() {
         window.location.reload();
       }, 2000);
     } catch (error) {
-      console.error("❌ Swap failed:", error);
+      console.error("Swap failed:", error);
 
       let errorMessage = "Swap failed: ";
 

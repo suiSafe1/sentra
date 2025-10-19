@@ -230,7 +230,9 @@ export default function SwapTokens() {
       console.log(`💰 Swapping ${fromAmount} ${fromToken} to ${toToken}`);
       console.log(`📊 Amount in raw: ${amountInRaw}`);
 
-      // Get SUI coins for gas and swap
+      const GAS_BUDGET = 50_000_000; // 0.05 SUI
+
+      // Get SUI coins
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
         coinType: "0x2::sui::SUI",
@@ -245,58 +247,72 @@ export default function SwapTokens() {
         0n
       );
 
-      const GAS_BUDGET = 50_000_000; // 0.05 SUI
-      if (totalSuiBalance < BigInt(GAS_BUDGET)) {
-        throw new Error(
-          `Insufficient SUI for gas. Need at least ${(GAS_BUDGET / 1e9).toFixed(
-            2
-          )} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(2)}`
-        );
-      }
-
-      // Get swap input coins
+      // Get swap input coins and gas strategy
       let swapCoinIds = [];
-      let gasCoin = null;
+      let gasPayment = null;
+
+      // REPLACE THIS SECTION in your handleSwap function (around line 250-290)
 
       if (fromToken === "SUI") {
-        // For SUI swaps, separate gas coin from swap coins
+        // For SUI swaps, check we have enough for swap + gas
+        if (totalSuiBalance < amountInRaw + BigInt(GAS_BUDGET)) {
+          throw new Error(
+            `Insufficient SUI balance. Need ${(
+              (Number(amountInRaw) + GAS_BUDGET) /
+              1e9
+            ).toFixed(6)} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(
+              6
+            )}`
+          );
+        }
+
+        // Sort coins by balance (largest first)
         const sortedCoins = [...suiCoins.data].sort((a, b) => {
           const balanceA = BigInt(a.balance);
           const balanceB = BigInt(b.balance);
           return balanceA > balanceB ? -1 : balanceA < balanceB ? 1 : 0;
         });
 
-        // Use largest coin for gas
-        gasCoin = sortedCoins[0].coinObjectId;
+        if (sortedCoins.length === 1) {
+          // Single coin: DON'T set gas payment, use tx.gas approach
+          gasPayment = null;
+          swapCoinIds = [sortedCoins[0].coinObjectId];
+        } else {
+          // Multiple coins: Reserve gas from largest coin, use rest for swap
+          const largestCoin = sortedCoins[0];
+          const largestBalance = BigInt(largestCoin.balance);
 
-        // Combine remaining coins for swap
-        swapCoinIds = sortedCoins.slice(1).map((c) => c.coinObjectId);
-        if (swapCoinIds.length === 0) {
-          swapCoinIds = [gasCoin];
+          // Use the largest coin for BOTH gas and swap when possible
+          gasPayment = null;
+          swapCoinIds = [largestCoin.coinObjectId];
+
+          // If we need more coins for the swap amount, add smaller coins
+          let totalForSwap = largestBalance;
+          let coinIndex = 1;
+
+          while (totalForSwap < amountInRaw && coinIndex < sortedCoins.length) {
+            swapCoinIds.push(sortedCoins[coinIndex].coinObjectId);
+            totalForSwap += BigInt(sortedCoins[coinIndex].balance);
+            coinIndex++;
+          }
+
+          console.log(
+            `💳 Using ${swapCoinIds.length} SUI coin(s) for swap+gas, total: ${(
+              totalForSwap / BigInt(1e9)
+            ).toString()} SUI`
+          );
         }
-
-        const totalSwapBalance = suiCoins.data.reduce(
-          (sum, coin) => sum + BigInt(coin.balance),
-          0n
-        );
-
-        if (totalSwapBalance < amountInRaw + BigInt(GAS_BUDGET)) {
+      } else {
+        // For non-SUI swaps
+        if (totalSuiBalance < BigInt(GAS_BUDGET)) {
           throw new Error(
-            `Insufficient SUI balance. Need ${(
-              (Number(amountInRaw) + GAS_BUDGET) /
-              1e9
-            ).toFixed(6)} SUI, have ${(Number(totalSwapBalance) / 1e9).toFixed(
-              6
+            `Insufficient SUI for gas. Need at least ${(
+              GAS_BUDGET / 1e9
+            ).toFixed(2)} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(
+              2
             )}`
           );
         }
-
-        console.log(
-          `💳 Found ${suiCoins.data.length} SUI coin(s), total: ${totalSwapBalance}`
-        );
-      } else {
-        // For non-SUI swaps, use any SUI coin for gas
-        gasCoin = suiCoins.data[0].coinObjectId;
 
         // Get the swap token coins
         const swapTokenCoins = await suiClient.getCoins({
@@ -307,8 +323,6 @@ export default function SwapTokens() {
         if (swapTokenCoins.data.length === 0) {
           throw new Error(`No ${fromToken} coins found in wallet`);
         }
-
-        swapCoinIds = swapTokenCoins.data.map((c) => c.coinObjectId);
 
         const totalSwapBalance = swapTokenCoins.data.reduce(
           (sum, coin) => sum + BigInt(coin.balance),
@@ -325,12 +339,16 @@ export default function SwapTokens() {
           );
         }
 
+        swapCoinIds = swapTokenCoins.data.map((c) => c.coinObjectId);
+
         console.log(
-          `💳 Found ${swapCoinIds.length} ${fromToken} coin(s), total: ${totalSwapBalance}`
+          `💳 Found ${swapCoinIds.length} ${fromToken} coin(s), total: ${(
+            Number(totalSwapBalance) / Math.pow(10, fromTokenData.decimals)
+          ).toFixed(4)}`
         );
       }
 
-      // Get swap route from Cetus BEFORE building transaction
+      // Get swap route from Cetus
       console.log("🔍 Finding best swap route via Cetus...");
       const route = await aggregatorClient.findRouters({
         from: fromTokenData.type,
@@ -349,35 +367,38 @@ export default function SwapTokens() {
       const txb = new Transaction();
       txb.setGasBudget(GAS_BUDGET);
 
-      // Get gas coin details
-      const gasCoinObject = await suiClient.getObject({ id: gasCoin });
-      const gasCoinData = gasCoinObject.data;
-      txb.setGasPayment([
-        {
-          objectId: gasCoin,
-          digest: gasCoinData.digest,
-          version: gasCoinData.version,
-        },
-      ]);
-
-      // Merge swap coins if needed
-      let coinForSwap = txb.object(swapCoinIds[0]);
-      if (swapCoinIds.length > 1) {
-        const otherCoins = swapCoinIds.slice(1).map((id) => txb.object(id));
-        txb.mergeCoins(coinForSwap, otherCoins);
+      // Set gas payment if we have explicit gas coins (multi-coin SUI swap)
+      if (gasPayment && gasPayment.length > 0) {
+        txb.setGasPayment(gasPayment);
       }
 
-      // Split the amount we need for swap
-      const [splitCoin] = txb.splitCoins(coinForSwap, [
-        txb.pure.u64(amountInRaw),
-      ]);
+      let coinForSwap;
+
+      if (fromToken === "SUI" && !gasPayment) {
+        // Single SUI coin: use tx.gas approach
+        console.log("🔧 Single SUI coin - using tx.gas...");
+        const [swapCoin] = txb.splitCoins(txb.gas, [txb.pure.u64(amountInRaw)]);
+        coinForSwap = swapCoin;
+      } else {
+        // Multiple coins or non-SUI: merge and split
+        const baseCoin = txb.object(swapCoinIds[0]);
+        if (swapCoinIds.length > 1) {
+          const otherCoins = swapCoinIds.slice(1).map((id) => txb.object(id));
+          txb.mergeCoins(baseCoin, otherCoins);
+        }
+
+        const [swapCoin] = txb.splitCoins(baseCoin, [
+          txb.pure.u64(amountInRaw),
+        ]);
+        coinForSwap = swapCoin;
+      }
 
       // Take fee and return remaining coin
       console.log("💰 Taking platform fee...");
       const [coinAfterFee] = txb.moveCall({
         target: `${FEE_MODULE_ADDRESS}::fee_router::take_fee_and_return`,
         typeArguments: [fromTokenData.type],
-        arguments: [txb.object(FEE_TREASURY_ID), splitCoin],
+        arguments: [txb.object(FEE_TREASURY_ID), coinForSwap],
       });
 
       // Execute swap via Cetus aggregator

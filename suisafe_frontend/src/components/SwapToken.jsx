@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
@@ -9,6 +9,8 @@ import swap_swap from "../assets/swap_swap.png";
 import suiIcon from "../assets/sui_swap.png";
 import usdcIcon from "../assets/usdc_swap.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
+
+// --- Constants ---
 
 const TREASURY_IDS = {
   SUI: "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1",
@@ -38,49 +40,51 @@ const tokens = [
   },
 ];
 
+// --- Components ---
+
 function TokenSelect({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const selectedToken = tokens.find((t) => t.symbol === value);
 
   return (
-    <div className="relative w-full">
+    <div className='relative min-w-28'>
       <button
-        type="button"
+        type='button'
         onClick={() => setOpen(!open)}
-        className="flex justify-between items-center bg-white hover:bg-gray-50 shadow-sm px-3 py-2 border rounded-md w-full"
+        className='flex justify-between items-center bg-white hover:bg-gray-50 shadow-sm px-3 py-2 border rounded-md w-full'
       >
-        <div className="flex items-center gap-2">
-          <img src={selectedToken.icon} alt="" className="w-5 h-5" />
+        <div className='flex items-center gap-2'>
+          <img src={selectedToken.icon} alt='' className='w-5 h-5' />
           <span>{selectedToken.symbol}</span>
         </div>
         <svg
-          className="ml-2 w-4 h-4 text-gray-400"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
+          className='ml-2 w-4 h-4 text-gray-400'
+          xmlns='http://www.w3.org/2000/svg'
+          fill='none'
+          viewBox='0 0 24 24'
+          stroke='currentColor'
         >
           <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
+            strokeLinecap='round'
+            strokeLinejoin='round'
             strokeWidth={2}
-            d="M19 9l-7 7-7-7"
+            d='M19 9l-7 7-7-7'
           />
         </svg>
       </button>
 
       {open && (
-        <div className="z-10 absolute bg-white shadow-lg mt-1 border rounded-md w-full">
+        <div className='z-10 absolute bg-white shadow-lg mt-1 border rounded-md w-full'>
           {tokens.map((token) => (
             <div
               key={token.symbol}
-              className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer"
+              className='flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer'
               onClick={() => {
                 onChange(token.symbol);
                 setOpen(false);
               }}
             >
-              <img src={token.icon} alt="" className="w-5 h-5" />
+              <img src={token.icon} alt='' className='w-5 h-5' />
               <span>{token.symbol}</span>
             </div>
           ))}
@@ -89,6 +93,65 @@ function TokenSelect({ value, onChange }) {
     </div>
   );
 }
+
+function TxOverlay({ outcome, onClose }) {
+  if (!outcome) return null;
+
+  const isSuccess = outcome.status === "success";
+  const title = isSuccess ? "Transaction Successful! 🎉" : "Swap Failed 😔";
+  const titleColor = isSuccess ? "text-green-600" : "text-red-600";
+  const buttonColor = isSuccess
+    ? "bg-indigo-600 hover:bg-indigo-700"
+    : "bg-red-500 hover:bg-red-600";
+  const digest = outcome.digest;
+  const explorerUrl = digest
+    ? `https://suiscan.xyz/mainnet/tx/${digest}`
+    : null;
+  const displayDigest = digest
+    ? `${digest.slice(0, 8)}...${digest.slice(-8)}`
+    : "N/A";
+
+  return (
+    <div className='z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 p-4'>
+      <div className='bg-white shadow-2xl p-6 rounded-lg w-full max-w-sm'>
+        <h3 className={`text-xl font-bold mb-4 text-center ${titleColor}`}>
+          {title}
+        </h3>
+        <div className='mb-4 text-gray-700 text-sm'>
+          <p className='mb-1 font-semibold'>
+            {isSuccess ? "Swap Complete" : "Error Details:"}
+          </p>
+          <p className='bg-gray-50 p-2 rounded max-h-32 overflow-y-auto font-mono break-words'>
+            {isSuccess
+              ? `Swapped successfully. Digest: ${displayDigest}`
+              : outcome.message}
+          </p>
+        </div>
+
+        <div className='flex flex-col space-y-3 mt-4'>
+          {isSuccess && explorerUrl && (
+            <a
+              href={explorerUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className={`text-white py-2 px-4 rounded-md text-center transition duration-150 ${buttonColor}`}
+            >
+              View on Explorer
+            </a>
+          )}
+          <button
+            onClick={onClose}
+            className='bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-gray-800 transition duration-150'
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- Main Component ---
 
 export default function SwapTokens() {
   const [fromAmount, setFromAmount] = useState("");
@@ -101,11 +164,50 @@ export default function SwapTokens() {
   const [balances, setBalances] = useState({ SUI: "0.00", USDC: "0.00" });
   const [actualBalances, setActualBalances] = useState({ SUI: 0n, USDC: 0n });
   const [slippage] = useState(0.5);
+  // { status: 'success' | 'failure', digest?: string, message?: string } or null
+  const [txOutcome, setTxOutcome] = useState(null);
+  const [showConnectBanner, setShowConnectBanner] = useState(false);
 
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } =
     useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
+
+  // --- Effects (Balance & Route) ---
+
+  const fetchBalances = useCallback(async () => {
+    if (!currentAccount) return;
+    try {
+      const suiCoins = await suiClient.getCoins({
+        owner: currentAccount.address,
+        coinType: "0x2::sui::SUI",
+      });
+
+      const usdcCoins = await suiClient.getCoins({
+        owner: currentAccount.address,
+        coinType:
+          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+      });
+
+      const suiBalance = suiCoins.data.reduce(
+        (sum, coin) => sum + BigInt(coin.balance),
+        0n
+      );
+      const usdcBalance = usdcCoins.data.reduce(
+        (sum, coin) => sum + BigInt(coin.balance),
+        0n
+      );
+
+      setActualBalances({ SUI: suiBalance, USDC: usdcBalance });
+
+      setBalances({
+        SUI: (Number(suiBalance) / 1e9).toFixed(2),
+        USDC: (Number(usdcBalance) / 1e6).toFixed(2),
+      });
+    } catch (error) {
+      console.error("Failed to fetch balances:", error);
+    }
+  }, [currentAccount, suiClient]);
 
   useEffect(() => {
     if (!currentAccount) {
@@ -113,43 +215,10 @@ export default function SwapTokens() {
       return;
     }
 
-    const fetchBalances = async () => {
-      try {
-        const suiCoins = await suiClient.getCoins({
-          owner: currentAccount.address,
-          coinType: "0x2::sui::SUI",
-        });
-
-        const usdcCoins = await suiClient.getCoins({
-          owner: currentAccount.address,
-          coinType:
-            "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
-        });
-
-        const suiBalance = suiCoins.data.reduce(
-          (sum, coin) => sum + BigInt(coin.balance),
-          0n
-        );
-        const usdcBalance = usdcCoins.data.reduce(
-          (sum, coin) => sum + BigInt(coin.balance),
-          0n
-        );
-
-        setActualBalances({ SUI: suiBalance, USDC: usdcBalance });
-
-        setBalances({
-          SUI: (Number(suiBalance) / 1e9).toFixed(2),
-          USDC: (Number(usdcBalance) / 1e6).toFixed(2),
-        });
-      } catch (error) {
-        console.error("Failed to fetch balances:", error);
-      }
-    };
-
     fetchBalances();
     const interval = setInterval(fetchBalances, 10000);
     return () => clearInterval(interval);
-  }, [currentAccount, suiClient]);
+  }, [currentAccount, fetchBalances]);
 
   useEffect(() => {
     if (!fromAmount || parseFloat(fromAmount) <= 0) {
@@ -171,7 +240,6 @@ export default function SwapTokens() {
           )
         );
 
-        console.log("Finding best swap route via Cetus...");
         const route = await aggregatorClient.findRouters({
           from: fromTokenData.type,
           target: toTokenData.type,
@@ -179,20 +247,15 @@ export default function SwapTokens() {
           byAmountIn: true,
         });
 
-        console.log("Route raw result:", route);
-
         if (route && route.amountOut && !route.insufficientLiquidity) {
           const estimatedOut =
             Number(route.amountOut.toString()) /
             Math.pow(10, toTokenData.decimals);
           setToAmount(estimatedOut.toFixed(6));
           setRouteError("");
-          console.log(`Route found: ${route.paths?.length || 1} path(s)`);
-          console.log(`Estimated output: ${estimatedOut} ${toToken}`);
         } else {
           setToAmount("");
           setRouteError("No route available");
-          console.log("No swap route found");
         }
       } catch (error) {
         console.error("Failed to fetch route:", error);
@@ -207,14 +270,19 @@ export default function SwapTokens() {
     return () => clearTimeout(debounce);
   }, [fromAmount, fromToken, toToken]);
 
+  // --- Handlers ---
+
   const handleSwap = async () => {
     if (!currentAccount) {
-      alert("Please connect your wallet first");
+      setShowConnectBanner(true); // Show banner instead of alert
       return;
     }
 
     if (!fromAmount || parseFloat(fromAmount) <= 0) {
-      alert("Please enter a valid amount");
+      setTxOutcome({
+        status: "failure",
+        message: "Please enter a valid amount for the swap.",
+      });
       return;
     }
 
@@ -229,11 +297,6 @@ export default function SwapTokens() {
       const amountInRaw = BigInt(
         Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
       );
-
-      console.log(
-        `Swapping ${swapAmount.toFixed(6)} ${fromToken} to ${toToken}`
-      );
-      console.log(`Amount in raw: ${amountInRaw}`);
 
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
@@ -296,12 +359,6 @@ export default function SwapTokens() {
             totalForSwap += BigInt(sortedCoins[coinIndex].balance);
             coinIndex++;
           }
-
-          console.log(
-            `Using ${swapCoinIds.length} SUI coin(s) for swap+gas, total: ${(
-              totalForSwap / BigInt(1e9)
-            ).toString()} SUI`
-          );
         }
       } else {
         if (totalSuiBalance < BigInt(GAS_BUDGET)) {
@@ -339,15 +396,8 @@ export default function SwapTokens() {
         }
 
         swapCoinIds = swapTokenCoins.data.map((c) => c.coinObjectId);
-
-        console.log(
-          `Found ${swapCoinIds.length} ${fromToken} coin(s), total: ${(
-            Number(totalSwapBalance) / Math.pow(10, fromTokenData.decimals)
-          ).toFixed(4)}`
-        );
       }
 
-      console.log("Finding best swap route via Cetus...");
       const route = await aggregatorClient.findRouters({
         from: fromTokenData.type,
         target: toTokenData.type,
@@ -359,8 +409,6 @@ export default function SwapTokens() {
         throw new Error("No swap route found via Cetus aggregator");
       }
 
-      console.log(`Route found: ${route.paths.length} path(s)`);
-
       const txb = new Transaction();
       txb.setGasBudget(GAS_BUDGET);
 
@@ -371,7 +419,6 @@ export default function SwapTokens() {
       let coinForSwap;
 
       if (fromToken === "SUI" && !gasPayment) {
-        console.log("Single SUI coin - using tx.gas...");
         const [swapCoin] = txb.splitCoins(txb.gas, [txb.pure.u64(amountInRaw)]);
         coinForSwap = swapCoin;
       } else {
@@ -387,7 +434,6 @@ export default function SwapTokens() {
         coinForSwap = swapCoin;
       }
 
-      console.log("Taking platform fee...");
       const treasuryId = TREASURY_IDS[fromToken];
 
       if (!treasuryId) {
@@ -409,38 +455,22 @@ export default function SwapTokens() {
         slippage: slippage,
       });
 
-      console.log("Swap transaction built successfully");
-
       txb.transferObjects([outputCoin], currentAccount.address);
 
-      console.log("Signing and executing transaction...");
+      // Execute transaction
       const result = await signAndExecuteTransaction({
         transaction: txb,
       });
 
-      console.log("Swap completed successfully!");
-      console.log("Transaction digest:", result.digest);
-
-      alert(
-        `Swap successful!\n\nTX: ${result.digest.slice(
-          0,
-          16
-        )}...\n\nView on explorer:\nhttps://suiscan.xyz/mainnet/tx/${
-          result.digest
-        }`
-      );
-
+      // Show success overlay
+      setTxOutcome({ status: "success", digest: result.digest });
       setFromAmount("");
       setToAmount("");
-
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      await fetchBalances(); // Update balances immediately
     } catch (error) {
       console.error("Swap failed:", error);
 
       let errorMessage = "Swap failed: ";
-
       if (error.message?.includes("Insufficient")) {
         errorMessage += error.message;
       } else if (
@@ -457,9 +487,18 @@ export default function SwapTokens() {
         errorMessage += error.message || String(error);
       }
 
-      alert(errorMessage);
+      // Show failure overlay
+      setTxOutcome({ status: "failure", message: errorMessage });
     } finally {
       setIsSwapping(false);
+    }
+  };
+
+  const handleFromAmountChange = (e) => {
+    const value = e.target.value;
+    // Allow empty string or valid numeric input
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setFromAmount(value);
     }
   };
 
@@ -473,6 +512,7 @@ export default function SwapTokens() {
   const handleMaxClick = () => {
     if (fromToken === "SUI") {
       const actualSuiBalance = Number(actualBalances.SUI) / 1e9;
+      // Reserve GAS_BUDGET (50M / 1e9 = 0.05 SUI)
       const maxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
       setFromAmount(maxAmount.toFixed(6));
     } else {
@@ -491,101 +531,135 @@ export default function SwapTokens() {
     return fromAmount === actualMaxFormatted;
   };
 
+  const handleCloseTxOverlay = async () => {
+    setTxOutcome(null);
+    // Optional: Re-fetch balances after a transaction outcome is closed
+    if (currentAccount) {
+      await fetchBalances();
+    }
+  };
+
+  // --- Render ---
+
   return (
-    <div className="bg-white shadow-md mx-auto p-6 rounded-lg w-full h-full">
-      <div className="m-auto w-[fit-content]">
-        <h2 className="mb-4 font-bold text-xl text-center">Swap Tokens</h2>
-        <p className="mb-4 text-gray-500 text-sm text-center">
+    <div className='relative bg-white shadow-md mx-auto p-6 rounded-lg w-full h-full'>
+      <div className='m-auto w-[fit-content]'>
+        <h2 className='mb-4 font-bold text-xl text-center'>Swap Tokens</h2>
+        <p className='mb-4 text-gray-500 text-sm text-center'>
           Exchange your tokens instantly with the best rates
         </p>
-        <div className="space-y-4 p-4 rounded-md ring-2 ring-gray-500">
+
+        {/* Connect Wallet Banner */}
+        {showConnectBanner && !currentAccount && (
+          <div
+            className='relative bg-yellow-100 mb-4 px-4 py-3 border border-yellow-400 rounded text-yellow-700'
+            role='alert'
+          >
+            <span className='block sm:inline'>
+              Please connect your wallet to start swapping.
+            </span>
+            <span className='top-0 right-0 bottom-0 absolute px-4 py-3'>
+              <svg
+                onClick={() => setShowConnectBanner(false)}
+                className='fill-current w-6 h-6 text-yellow-500 cursor-pointer'
+                role='button'
+                xmlns='http://www.w3.org/2000/svg'
+                viewBox='0 0 20 20'
+              >
+                <title>Close</title>
+                <path d='M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.854l-2.651 2.65a1.2 1.2 0 1 1-1.697-1.697l2.65-2.651-2.65-2.651a1.2 1.2 0 1 1 1.697-1.697l2.651 2.65 2.651-2.65a1.2 1.2 0 0 1 1.697 1.697l-2.65 2.651 2.65 2.651a1.2 1.2 0 0 1 0 1.697z' />
+              </svg>
+            </span>
+          </div>
+        )}
+
+        <div className='space-y-4 p-4 rounded-md ring-2 ring-gray-500'>
           {/* From */}
           <div>
-            <label className="block font-medium text-gray-700 text-sm">
+            <label className='block font-medium text-gray-700 text-sm'>
               From
             </label>
-            <div className="flex gap-2 mt-1">
-              <div>
-                <TokenSelect value={fromToken} onChange={setFromToken} />
-                <p className="mt-1 text-gray-500 text-xs">
-                  Balance: {balances[fromToken]}
-                </p>
-              </div>
-
-              <div className="flex flex-col">
-                <input
-                  type="number"
-                  className="px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500"
-                  value={fromAmount}
-                  onChange={(e) => setFromAmount(e.target.value)}
-                  placeholder="0.00"
-                  disabled={isSwapping}
-                />
-                <button
-                  className="px-2 font-semibold text-indigo-600 text-sm text-right"
-                  onClick={handleMaxClick}
-                  disabled={isSwapping}
-                >
-                  MAX
-                </button>
-              </div>
+            <div className='flex gap-2 mt-1'>
+              <TokenSelect value={fromToken} onChange={setFromToken} />
+              <input
+                type='text'
+                className='px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right appearance-none'
+                value={fromAmount}
+                onChange={handleFromAmountChange}
+                placeholder='0.00'
+                disabled={isSwapping}
+              />
+            </div>
+            <div className='flex justify-between mt-1'>
+              <p className='text-gray-500 text-xs'>
+                Balance: {balances[fromToken]}
+              </p>
+              <button
+                className='disabled:opacity-50 font-semibold text-indigo-600 hover:text-indigo-800 text-sm'
+                onClick={handleMaxClick}
+                disabled={isSwapping}
+              >
+                MAX
+              </button>
             </div>
             {fromToken === "SUI" && isMaxAmountEntered() && (
-              <p className="mt-2 text-gray-500 text-xs">
-                0.05 SUI is reserved to cover gas fees
+              <p className='mt-2 text-gray-500 text-xs'>
+                ~{(GAS_BUDGET / 1e9).toFixed(2)} SUI is reserved to cover gas
+                fees
               </p>
             )}
           </div>
 
           {/* Flip */}
-          <div className="flex justify-center">
+          <div className='flex justify-center'>
             <button
-              className="rounded-full"
+              className='rounded-full'
               onClick={handleFlip}
               disabled={isSwapping}
             >
-              <img src={swap_swap} alt="swap coins" className="h-16" />
+              <img src={swap_swap} alt='swap coins' className='h-16' />
             </button>
           </div>
 
           {/* To */}
           <div>
-            <label className="block font-medium text-gray-700 text-sm">
+            <label className='block font-medium text-gray-700 text-sm'>
               To{" "}
               {isFetchingRoute && (
-                <span className="text-xs text-gray-400">(Calculating...)</span>
+                <span className='text-gray-400 text-xs'>(Calculating...)</span>
               )}
               {routeError && (
-                <span className="text-xs text-red-500 ml-2">
+                <span className='ml-2 text-red-500 text-xs'>
                   ({routeError})
                 </span>
               )}
             </label>
-            <div className="flex gap-2 mt-1">
+            <div className='flex gap-2 mt-1'>
               <TokenSelect value={toToken} onChange={setToToken} />
               <input
-                type="number"
-                className="px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500"
+                type='text'
+                className='px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right'
                 value={toAmount}
                 readOnly
-                placeholder="0.00"
+                placeholder='0.00'
               />
             </div>
-            <p className="mt-1 text-gray-500 text-xs">
+            <p className='mt-1 text-gray-500 text-xs'>
               Balance: {balances[toToken]}
             </p>
           </div>
 
           {/* Swap Button */}
           <button
-            className="bg-[#00076C] hover:bg-indigo-700 px-4 py-2 rounded-md w-full text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className='bg-[#00076C] hover:bg-indigo-700 disabled:opacity-50 px-4 py-2 rounded-md w-full text-white disabled:cursor-not-allowed'
             onClick={handleSwap}
             disabled={
               isSwapping ||
               !currentAccount ||
               !fromAmount ||
               isFetchingRoute ||
-              routeError !== ""
+              routeError !== "" ||
+              parseFloat(fromAmount) <= 0
             }
           >
             {isSwapping
@@ -598,6 +672,9 @@ export default function SwapTokens() {
           </button>
         </div>
       </div>
+
+      {/* Transaction Outcome Overlay (Success or Failure) */}
+      <TxOverlay outcome={txOutcome} onClose={handleCloseTxOverlay} />
     </div>
   );
 }

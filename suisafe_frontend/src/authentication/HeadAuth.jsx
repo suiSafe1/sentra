@@ -31,17 +31,17 @@ function HeadAuth() {
       <SearchBar />
 
       <div className='flex items-center space-x-4'>
-        <Badge
-          className='cursor-pointer network-badge'
+        <div
+          className='bg-[#F3F4F6] hover:bg-red-500 px-4 py-2 rounded-md font-black text-black/60 hover:text-white transition-colors duration-200 ease-in-out hover:cursor-pointer'
           onClick={handleLogout}
           title='Click to logout'
         >
-          <div className='bg-green-500 mr-2 rounded-full w-2 h-2'></div>Sui
-        </Badge>
+          Disconnect
+        </div>
 
-        <span className='text-gray-600'>
+        {/* <span className='text-gray-600'>
           {account ? formatAddress(account.address) : "Not connected"}
-        </span>
+        </span> */}
 
         <div className='relative'>
           <Bell className='w-6 h-6 text-gray-600' />

@@ -5,7 +5,8 @@ import { useConnectWallet, useCurrentAccount } from "@mysten/dapp-kit";
 import SearchBar from "../components/Search";
 import WalletModal from "./Connect";
 import sui from "../assets/sui.png";
-import trendup from "../assets/TrendUp.png";
+// import trendup from "../assets/TrendUp.png";
+import trendupblue from "../assets/TrendUpBlue.png";
 import vest from "../assets/vest.png";
 import swap from "../assets/swap.png";
 import question from "../assets/Question.png";
@@ -43,7 +44,7 @@ export default function PublicDashboard() {
     };
     try {
       localStorage.setItem("sui_session", JSON.stringify(session));
-      navigate("/dashboard", { replace: true });
+      navigate("/tvl", { replace: true });
     } catch (e) {
       console.warn("Could not persist session:", e);
     }
@@ -116,14 +117,14 @@ export default function PublicDashboard() {
         </div>
         <nav className='flex flex-col justify-between space-y-6 h-[calc(80%-30px)]'>
           <div className='flex flex-col gap-8'>
-            <button className='flex items-center space-x-2 bg-white px-3 py-2 rounded-xl w-full text-blue-900'>
+            <div className='flex items-center space-x-2 bg-white px-3 py-2 rounded-xl text-blue-900 cursor-pointer'>
+              <img src={trendupblue} alt='The trend going up' />
+              <span>TVL & APY</span>
+            </div>
+            <button className='flex items-center space-x-2 rounded-xl w-full text-white'>
               <Menu className='w-5 h-5' />
               <span>Dashboard</span>
             </button>
-            <div className='flex items-center space-x-2 cursor-pointer'>
-              <img src={trendup} alt='The trend going up' />
-              <span>TVL & APY</span>
-            </div>
             <div className='flex items-center space-x-2 cursor-pointer'>
               <img src={vest} alt='Lock icon' />
               <span>Vest Tokens</span>

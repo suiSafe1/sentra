@@ -50,17 +50,17 @@ function CreateLockToken() {
 
   return (
     <div
-      className='flex flex-wrap items-stretch gap-8 mx-auto my-[10px] p-[10px] w-fit'
+      className='flex lg:flex-row flex-col gap-8 rounded-2xl'
       aria-live='polite'
     >
       {/* Left side - form */}
-      <div className='flex-1 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-2xl w-[898px] overflow-auto'>
-        <div className='flex items-center gap-2 bg-[#00076C] p-5 font-extrabold text-[20.87px] text-white'>
+      <div className='flex-1 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-2xl'>
+        <div className='flex items-center gap-2 bg-[#00076C] p-5 rounded-t-2xl font-extrabold text-[20.87px] text-white'>
           <MdOutlineLock className='inline-block w-fit text-[30px]' />
           <h3 className='w-fit'>Create Lock</h3>
         </div>
 
-        <section className='bg-white p-5'>
+        <section className='bg-white p-[20px]'>
           <div className='flex bg-[#F2F5F9] mb-[1.2rem] p-[5px] rounded-lg'>
             <button
               id='token'
@@ -236,8 +236,8 @@ function CreateLockToken() {
       </div>
 
       {/* Right side - Preview */}
-      <section className='flex flex-col justify-between gap-5 w-[432px]'>
-        <div className='bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-xl w-[432px] overflow-hidden'>
+      <section className='flex flex-col justify-between gap-5'>
+        <div className='bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden'>
           <div className='flex items-center gap-2 bg-[#00076C] p-5 font-extrabold text-[20.87px] text-white'>
             <MdErrorOutline className='inline-block text-[30px]' />
             <h3 className='font-bold text-[20px]'>Lock Summary</h3>
@@ -314,7 +314,7 @@ function CreateLockToken() {
               )}
             </div>
           ) : (
-            <div className='flex flex-col justify-center items-center gap-[20px] p-[2rem] w-auto h-full font-semibold text-[#99A5B7] text-[15.53px] text-center'>
+            <div className='flex flex-col justify-center items-center gap-5 p-8 ring-2 w-full font-semibold text-[#99A5B7] text-center'>
               <MdErrorOutline className='text-[#99A5B7] text-[42px]' />
               <p>Complete the form to see your lock preview</p>
             </div>

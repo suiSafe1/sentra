@@ -9,6 +9,8 @@ import swap_swap from "../assets/swap_swap.png";
 import suiIcon from "../assets/sui_swap.png";
 import usdcIcon from "../assets/usdc_swap.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
+import confetti from "canvas-confetti";
+
 
 // --- Constants ---
 
@@ -94,6 +96,7 @@ function TokenSelect({ value, onChange }) {
   );
 }
 
+
 function TxOverlay({ outcome, onClose }) {
   if (!outcome) return null;
 
@@ -110,6 +113,46 @@ function TxOverlay({ outcome, onClose }) {
   const displayDigest = digest
     ? `${digest.slice(0, 8)}...${digest.slice(-8)}`
     : "N/A";
+
+  // 🎊 Trigger confetti once on success
+  useEffect(() => {
+    if (isSuccess) {
+      // Fire bursts for a few seconds
+      const duration = 2 * 1000;
+      const animationEnd = Date.now() + duration;
+
+      const defaults = {
+        startVelocity: 30,
+        spread: 360,
+        ticks: 60,
+        zIndex: 9999,
+      };
+
+      const randomInRange = (min, max) => Math.random() * (max - min) + min;
+
+      const interval = setInterval(() => {
+        const timeLeft = animationEnd - Date.now();
+
+        if (timeLeft <= 0) {
+          return clearInterval(interval);
+        }
+
+        const particleCount = 50 * (timeLeft / duration);
+
+        // Emit from random edges
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: {
+            x: randomInRange(0.1, 0.9),
+            y: Math.random() - 0.2,
+          },
+        });
+      }, 250);
+
+      return () => clearInterval(interval);
+    }
+  }, [isSuccess]);
 
   return (
     <div className='z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 p-4'>
@@ -150,6 +193,7 @@ function TxOverlay({ outcome, onClose }) {
     </div>
   );
 }
+
 
 // --- Main Component ---
 

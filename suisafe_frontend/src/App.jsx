@@ -31,6 +31,7 @@ import CreateLockToken from "./routes/CreateLockToken";
 import WalletConnect from "./routes/Connect";
 import PublicDashboard from "./routes/PublicDashboard";
 
+
 // Components
 import Header from "./components/Header";
 import ProtectedRoute from "./authentication/ProtectedRoute";
@@ -45,6 +46,10 @@ import { useMenuStore } from "./store/useMenuStore";
 
 // Styles
 import "flowbite";
+import TVL from "./routes/TVL";
+import { VestingCreator } from "./components/VestingCreator";
+import { VestingTable } from "./components/VestingTable";
+import { VestLock } from "./routes/VestLock";
 
 // ===============================
 // Layout Component
@@ -111,7 +116,7 @@ const Layout = () => {
 
             {/* Vest Tokens (Lock Icon) */}
             <NavLink
-              to='/lock'
+              to='/vest'
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -188,7 +193,6 @@ function App() {
       {/* Layout-protected routes */}
       <Route element={<Layout />}>
         <Route path='/connect' element={<WalletConnect />} />
-
         <Route
           path='/dashboard'
           element={
@@ -196,23 +200,40 @@ function App() {
               <Dashboard />
             </ProtectedRoute>
           }
-        />
+        >
+          {/* Nested route inherits protection */}
+          <Route path='lock' element={<CreateLockToken />} />
+        </Route>
         <Route
           path='/tvl'
           element={
             <ProtectedRoute>
-              <div>TVL & APY Page</div>
+              <TVL />
+            </ProtectedRoute>
+          }
+        >
+          {/* Nested /tvl/lock route */}
+          <Route path='lock' element={<CreateLockToken />} />
+        </Route>
+
+        <Route
+          path='/vest'
+          element={
+            <ProtectedRoute>
+              {/* <CreateLockToken /> */}
+              <VestLock />
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path='/lock'
           element={
             <ProtectedRoute>
               <CreateLockToken />
+              // <VestLock />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path='/swap'
           element={
@@ -245,7 +266,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-
         {/* Catch-all */}
         <Route path='/*' element={<NotFound />} />
       </Route>

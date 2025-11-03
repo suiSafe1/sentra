@@ -1,43 +1,18 @@
 import React, { useState } from "react";
-import {
-  ConnectButton,
-  useCurrentAccount,
-  useSignAndExecuteTransaction,
-} from "@mysten/dapp-kit";
-import { Transaction } from "@mysten/sui/transactions";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
-import "../styles/Createlock.css";
-import CreateLockNft from "../pages/CreateLockNft";
+import { Link } from "react-router";
 import {
   MdOutlineLock,
-  MdErrorOutline,
   MdOutlineDateRange,
+  MdErrorOutline,
 } from "react-icons/md";
-import { IoIosArrowDown, IoIosTrendingUp } from "react-icons/io";
+import { IoIosArrowDown } from "react-icons/io";
 import { GoUnlock } from "react-icons/go";
 import { PiGasPump, PiCheckSquareOffsetBold } from "react-icons/pi";
 import { IoWarningOutline } from "react-icons/io5";
-import { Link } from "react-router";
-
-// Blockchain constants
-const PACKAGE_ID =
-  "0x690cc8f7277cbb2622de286387fc3bec5b6de4bdbb155d0ae2a0852d154ab194";
-const REGISTRY_ID =
-  "0xa92e808ecf2e5a129b7a801719d8299528c644ae0f609054fa17f902610aa93a";
-const PLATFORM_ID =
-  "0x07a716a59b9a44fa761e417ef568367cb2ed3a9cf7cfcf1c281c1ad257d806bc";
-const CLOCK_ID = "0x6";
-
-const SCALLOP_MAINNET_MARKET_ID =
-  "0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9";
-const SCALLOP_MAINNET_VERSION_ID =
-  "0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7";
-
-// Initialize Sui client
-const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
+import { useCreateLockToken } from "../hooks/useCreateLockToken";
+import CreateLockNft from "../pages/CreateLockNft";
 
 function CreateLockToken() {
-  // UI state
   const [nftLock, setNftLock] = useState(false);
   const [selectToken, setSelectToken] = useState(false);
   const [confirmLock, setConfirmLock] = useState(false);
@@ -49,226 +24,59 @@ function CreateLockToken() {
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [memo, setMemo] = useState("");
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [lockerId, setLockerId] = useState("");
-  const [txHash, setTxHash] = useState("");
-
-  // Sui dApp Kit hooks
-  const currentAccount = useCurrentAccount();
-  const { mutateAsync: signAndExecuteTransaction } =
-    useSignAndExecuteTransaction();
+  const {
+    currentAccount,
+    isLoading,
+    lockerId,
+    txHash,
+    createLock,
+    getUnlockDate,
+  } = useCreateLockToken();
 
   const handleSwitch = (e) => {
-    e.preventDefault();
     const targetId = e.target.id;
-    if (targetId === "token") setNftLock(false);
-    else if (targetId === "nft") setNftLock(true);
+    setNftLock(targetId === "nft");
   };
 
   const handleDateChange = (e) => setSelectedDate(e.target.value);
 
-  const handleDurationSelect = (days) => {
-    setSelectedDuration(days);
-    setSelectedDate("");
+  const handleConfirmLock = async () => {
+    const res = await createLock(amount, selectedDuration, selectedDate);
+    if (res?.success) setLockSuccess(true);
+    setConfirmLock(false);
   };
 
-  const getDurationInMs = () => {
-    if (selectedDate) {
-      const now = new Date();
-      const unlockDate = new Date(selectedDate);
-      return unlockDate.getTime() - now.getTime();
-    }
-    return selectedDuration * 24 * 60 * 60 * 1000;
-  };
-
-  const getUnlockDate = () => {
-    if (selectedDate) return selectedDate;
-    const now = new Date();
-    const unlockDate = new Date(
-      now.getTime() + selectedDuration * 24 * 60 * 60 * 1000
-    );
-    return unlockDate.toLocaleDateString();
-  };
-
-  const createLock = async () => {
-    if (!currentAccount || !amount) {
-      alert("Please connect wallet and enter amount");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-
-      const tx = new Transaction();
-      tx.setGasBudget(10000000);
-
-      const suiAmount = BigInt(Math.floor(parseFloat(amount) * 1_000_000_000)); // mist
-
-      const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(suiAmount)]);
-
-      const [marketCoinHandle] = tx.moveCall({
-        target: `0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41::mint::mint`,
-        arguments: [
-          tx.object(SCALLOP_MAINNET_VERSION_ID),
-          tx.object(SCALLOP_MAINNET_MARKET_ID),
-          coin,
-          tx.object(CLOCK_ID),
-        ],
-        typeArguments: ["0x2::sui::SUI"],
-      });
-
-      tx.moveCall({
-        target: `${PACKAGE_ID}::sui_safe::create_yield_lock`,
-        arguments: [
-          tx.object(PLATFORM_ID),
-          tx.object(REGISTRY_ID),
-          marketCoinHandle,
-          tx.pure.u64(getDurationInMs()),
-          tx.object(CLOCK_ID),
-        ],
-        typeArguments: [
-          "0x2::sui::SUI",
-          "0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf::reserve::MarketCoin<0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI>",
-        ],
-      });
-
-      const result = await signAndExecuteTransaction({ transaction: tx });
-      console.log("✅ Combined tx result:", result);
-
-      const digest = result?.digest || result?.effects?.transactionDigest;
-      const txBlock = await client.getTransactionBlock({
-        digest,
-        options: { showObjectChanges: true },
-      });
-
-      const createdObjects = txBlock.objectChanges?.filter(
-        (c) => c.type === "created"
-      );
-      const lockObj = createdObjects?.find(
-        (c) =>
-          c.objectType.includes("Lock") ||
-          c.objectType.includes("Locker") ||
-          c.objectType.includes("YieldLock")
-      );
-
-      if (lockObj) setLockerId(lockObj.objectId);
-      setTxHash(digest);
-      setConfirmLock(false);
-      setLockSuccess(true);
-    } catch (error) {
-      console.error("Lock creation failed:", error);
-      alert(`Lock creation failed: ${error?.message || error}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const formFields = [
-    {
-      type: "token",
-      label: "Select Token",
-      icon: <MdErrorOutline className='icons-small' />,
-      content: (
-        <button type='button' onClick={() => setSelectToken(!selectToken)}>
-          SUI Token <IoIosArrowDown className='icons-small' />
-        </button>
-      ),
-      dropdown: selectToken && (
-        <div className='token-dropdown'>
-          <p>SUI - Sui Network Token</p>
-        </div>
-      ),
-    },
-    {
-      type: "amount",
-      label: "Amount",
-      content: (
-        <div className='amount-field'>
-          <input
-            type='text'
-            inputMode='decimal'
-            placeholder='0.00'
-            value={amount}
-            onChange={(e) => {
-              // Only allow digits and up to one decimal point
-              const val = e.target.value;
-              if (/^\d*\.?\d*$/.test(val)) {
-                setAmount(val);
-              }
-            }}
-            onWheel={(e) => e.target.blur()} // disables scroll increment/decrement
-            onKeyDown={(e) => {
-              // Block keys like e, +, -, etc.
-              if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
-            }}
-            className='no-spinner'
-          />
-          <span className='max-btn'>Max</span>
-        </div>
-      ),
-    },
-    {
-      type: "customDate",
-      label: "",
-      content: (
-        <button type='button' onClick={() => setSelectDate(!selectDate)}>
-          <MdOutlineDateRange className='icons-small' />{" "}
-          {selectedDate || "Pick a custom date"}
-        </button>
-      ),
-      dateInput: selectDate && (
-        <input
-          type='date'
-          className='select-date'
-          onChange={handleDateChange}
-          min={new Date().toISOString().split("T")[0]}
-        />
-      ),
-    },
-    {
-      type: "memo",
-      label: "Memo (Optional)",
-      content: (
-        <textarea
-          className='memo'
-          placeholder='Reason for lock (e.g., Long-term holding, Yield farming...)'
-          value={memo}
-          onChange={(e) => setMemo(e.target.value)}
-        ></textarea>
-      ),
-    },
-  ];
+  const unlockDate = getUnlockDate(selectedDuration, selectedDate);
 
   return (
-    <div className='lock-container'>
-      {/* Left Side */}
-      <div className='lock-form'>
-        <div className='form-header'>
-          <MdOutlineLock className='icons-big' />
-          <h3>Create Lock</h3>
+    <div
+      className='flex flex-wrap items-stretch gap-8 mx-auto my-[10px] p-[10px] w-fit'
+      aria-live='polite'
+    >
+      {/* Left side - form */}
+      <div className='flex-1 bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-2xl w-[898px] overflow-auto'>
+        <div className='flex items-center gap-2 bg-[#00076C] p-5 font-extrabold text-[20.87px] text-white'>
+          <MdOutlineLock className='inline-block w-fit text-[30px]' />
+          <h3 className='w-fit'>Create Lock</h3>
         </div>
 
-        {/* Wallet Connection */}
-        {/* <div className="wallet-connection">
-          <ConnectButton />
-          {!currentAccount && (
-            <p className="connection-status">Please connect your wallet to continue</p>
-          )}
-        </div> */}
-
-        <section className='lock-subform'>
-          <div className='lock-tabs'>
+        <section className='bg-white p-5'>
+          <div className='flex bg-[#F2F5F9] mb-[1.2rem] p-[5px] rounded-lg'>
             <button
-              className={`${!nftLock ? "tab active" : "tab"}`}
               id='token'
               onClick={handleSwitch}
+              className={`flex-1 p-[0.75rem] border-none  text-[16.05px] font-semibold rounded-lg cursor-pointer transition-all duration-300 ${
+                !nftLock ? "bg-[#080d4b] text-white" : ""
+              }`}
             >
               Token Lock
             </button>
             <button
-              className={`${nftLock ? "tab active" : "tab"}`}
               id='nft'
               onClick={handleSwitch}
+              className={`flex-1 p-3 border-none  text-[16.05px] font-semibold rounded-[8px] cursor-pointer transition-all duration-300 ${
+                nftLock ? "bg-[#00076C] text-white" : ""
+              }`}
             >
               NFT Lock
             </button>
@@ -277,75 +85,202 @@ function CreateLockToken() {
           {nftLock ? (
             <CreateLockNft />
           ) : (
-            <div>
-              {formFields.map((field, idx) => (
-                <div className='form-label' key={idx}>
-                  {field.label && (
-                    <span>
-                      {field.label} {field.icon && field.icon}
-                    </span>
-                  )}
-                  {field.content}
-                  {field.dropdown}
-                  {field.dateInput}
-                </div>
-              ))}
+            <>
+              {/* Token field */}
+              <div className='relative flex flex-col gap-[10px] mb-4 font-bold text-[#505A6B] text-[16.05px]'>
+                <span className='flex items-center gap-2'>
+                  <span>Select Token</span>
+                  <MdErrorOutline className='inline-block w-fit text-[18px] text-inherit' />
+                </span>
 
-              <div className='action-buttons'>
                 <button
-                  className='confirm'
-                  onClick={() => setConfirmLock(true)}
                   type='button'
+                  onClick={() => setSelectToken(!selectToken)}
+                  className='flex justify-between items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] w-full h-[48px] font-semibold text-[#4D5562] text-[16.05px]'
+                >
+                  <span className='truncate'>SUI Token</span>
+                  <IoIosArrowDown className='inline-block text-[18px]' />
+                </button>
+
+                {selectToken && (
+                  <div className='mt-2 token-dropdown'>
+                    <p className='text-[#4D5562]'>SUI - Sui Network Token</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Amount field */}
+              <div className='relative flex flex-col gap-[10px] mb-4 font-bold text-[#505A6B] text-[16.05px]'>
+                <span>Amount</span>
+                <div className='relative flex justify-between items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] h-[48px] font-semibold text-[#4D5562] text-[16.05px]'>
+                  <input
+                    type='text'
+                    placeholder='0.00'
+                    value={amount}
+                    onChange={(e) =>
+                      /^\d*\.?\d*$/.test(e.target.value) &&
+                      setAmount(e.target.value)
+                    }
+                    className='bg-transparent border-none outline-none font-semibold text-[16.05px]'
+                    onWheel={(e) => e.currentTarget.blur()}
+                    onKeyDown={(e) => {
+                      if (["e", "E", "+", "-"].includes(e.key))
+                        e.preventDefault();
+                    }}
+                    inputMode='decimal'
+                  />
+                  <span
+                    className='w-fit font-semibold text-[#00076C] cursor-pointer'
+                    role='button'
+                    tabIndex={0}
+                    onClick={() => {
+                      /* TODO: implement max behaviour */
+                    }}
+                  >
+                    Max
+                  </span>
+                </div>
+              </div>
+
+              {/* Date picker */}
+              {/* Date picker + Quick durations */}
+              <div className='relative flex flex-col gap-[10px] mb-4 font-bold text-[#505A6B] text-[16.05px]'>
+                <span>Lock Duration</span>
+
+                {/* Quick duration buttons */}
+                <div className='flex flex-wrap gap-2 mb-2'>
+                  {[30, 60, 90, 120].map((days) => (
+                    <button
+                      key={days}
+                      onClick={() => {
+                        setSelectedDuration(days);
+                        const targetDate = new Date();
+                        targetDate.setDate(targetDate.getDate() + days);
+                        setSelectedDate(targetDate.toISOString().split("T")[0]);
+                      }}
+                      className={`px-3 py-2 rounded-[8px] border font-semibold text-[15px] transition-all duration-200 ${
+                        selectedDuration === days
+                          ? "bg-[#00076C] text-white border-[#00076C]"
+                          : "bg-white text-[#4D5562] border-[#4D5562]"
+                      }`}
+                    >
+                      {days} days
+                    </button>
+                  ))}
+                </div>
+
+                {/* Custom date picker */}
+                <button
+                  type='button'
+                  onClick={() => setSelectDate(!selectDate)}
+                  className='flex justify-start items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] w-full h-[48px] font-semibold text-[#4D5562] text-[16.05px]'
+                >
+                  <MdOutlineDateRange className='inline-block mr-2 text-[18px]' />
+                  <span className='truncate'>
+                    {selectedDate ? selectedDate : "Pick a custom date"}
+                  </span>
+                </button>
+
+                {selectDate && (
+                  <input
+                    type='date'
+                    value={selectedDate}
+                    onChange={(e) => {
+                      setSelectedDate(e.target.value);
+                      const diffDays = Math.ceil(
+                        (new Date(e.target.value).getTime() -
+                          new Date().getTime()) /
+                          (24 * 60 * 60 * 1000)
+                      );
+                      setSelectedDuration(diffDays);
+                    }}
+                    min={new Date().toISOString().split("T")[0]}
+                    className='top-[50px] left-0 z-[10] absolute bg-white p-[10px] border-[#00076C] border-2 rounded-[8px] text-[16.05px]'
+                  />
+                )}
+              </div>
+
+              {/* Memo */}
+              <div className='relative flex flex-col gap-[10px] mb-4 font-bold text-[#505A6B] text-[16.05px]'>
+                <span>Memo (Optional)</span>
+                <textarea
+                  className='bg-white p-[10px] border border-[#4D5562] rounded-[8px] outline-none w-full h-[85px] font-semibold text-[16.05px] resize-y'
+                  placeholder='Reason for lock...'
+                  value={memo}
+                  onChange={(e) => setMemo(e.target.value)}
+                />
+              </div>
+
+              {/* Actions */}
+              <div className='flex gap-4 mt-[1.5rem]'>
+                <button
+                  className='flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] border-none rounded-[6px] font-semibold text-[20px] text-white cursor-pointer'
+                  onClick={() => setConfirmLock(true)}
                   disabled={
                     !currentAccount || !amount || parseFloat(amount) <= 0
                   }
                 >
                   {isLoading ? "Processing..." : "Confirm Lock"}
                 </button>
-                <Link to='/dashboard' className='cancel'>
+
+                <Link
+                  to='/dashboard'
+                  className='flex justify-center items-center bg-white py-[0.8rem] border border-[#4D5562] rounded-[6px] w-[144px] font-semibold text-[#4D5562] text-[20px] no-underline'
+                >
                   Cancel
                 </Link>
               </div>
-            </div>
+            </>
           )}
         </section>
       </div>
 
-      {/* Right Side */}
-      <section className='lock-preview-container'>
-        <div className='lock-preview'>
-          <div className='form-header'>
-            <MdErrorOutline className='icons-big' />
-            <h3 className='lock-preview-h3'>Lock Summary</h3>
+      {/* Right side - Preview */}
+      <section className='flex flex-col justify-between gap-5 w-[432px]'>
+        <div className='bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-xl w-[432px] overflow-hidden'>
+          <div className='flex items-center gap-2 bg-[#00076C] p-5 font-extrabold text-[20.87px] text-white'>
+            <MdErrorOutline className='inline-block text-[30px]' />
+            <h3 className='font-bold text-[20px]'>Lock Summary</h3>
           </div>
 
           {preview && amount ? (
-            <div className='modal-staking-card'>
-              <div className='modal-staking-nft-info'>
-                <div className='modal-staking-nft-icon'>🪙</div>
+            <div className='bg-white p-[20px]'>
+              <div className='flex items-center gap-[12px] bg-[#F9FAFC] p-[12px] rounded-[8px]'>
+                <div className='bg-[#F9FAFC] w-fit text-[24px]'>🪙</div>
                 <div>
-                  <h2 className='modal-staking-nft-title'>{amount} SUI</h2>
-                  <p className='modal-staking-nft-subtitle'>SUI Token</p>
+                  <h2 className='m-0 font-extrabold text-[#101729] text-[16.88px]'>
+                    {amount} SUI
+                  </h2>
+                  <p className='m-0 font-semibold text-[#4D5562] text-[14.47px]'>
+                    SUI Token
+                  </p>
                 </div>
               </div>
-              <hr className='modal-staking-divider' />
-              <div className='modal-staking-info-row'>
-                <div className='modal-staking-label'>
-                  <MdOutlineDateRange className='icons-small' /> Lock Start
+
+              <hr className='my-[16px] border-[#e2e2e2] border-t' />
+
+              <div className='flex justify-between items-center my-2'>
+                <div className='flex items-center gap-1 font-semibold text-[#4D5562] text-[16.02px]'>
+                  <MdOutlineDateRange className='inline-block text-[16px]' />{" "}
+                  <span>Lock Start</span>
                 </div>
-                <div className='modal-staking-value'>Today</div>
+                <div className='font-semibold text-[16.02px]'>Today</div>
               </div>
-              <div className='modal-staking-info-row'>
-                <div className='modal-staking-label'>
-                  <GoUnlock className='icons-small' /> Unlock Date
+
+              <div className='flex justify-between items-center my-2'>
+                <div className='flex items-center gap-1 font-semibold text-[#4D5562] text-[16.02px]'>
+                  <GoUnlock className='inline-block text-[16px]' />{" "}
+                  <span>Unlock Date</span>
                 </div>
-                <div className='modal-staking-value'>{getUnlockDate()}</div>
+                <div className='font-semibold text-[16.02px]'>{unlockDate}</div>
               </div>
-              <div className='modal-staking-info-row'>
-                <div className='modal-staking-label'>
-                  <MdErrorOutline className='icons-small' /> Duration
+
+              <div className='flex justify-between items-center my-2'>
+                <div className='flex items-center gap-1 font-semibold text-[#4D5562] text-[16.02px]'>
+                  <MdErrorOutline className='inline-block text-[16px]' />{" "}
+                  <span>Duration</span>
                 </div>
-                <div className='modal-staking-value'>
+                <div className='font-semibold text-[16.02px]'>
                   {selectedDate
                     ? `${Math.ceil(
                         (new Date(selectedDate).getTime() -
@@ -355,42 +290,54 @@ function CreateLockToken() {
                     : `${selectedDuration} days`}
                 </div>
               </div>
-              <hr className='modal-staking-divider' />
-              <div className='modal-staking-info-row'>
-                <div className='modal-staking-label'>
-                  <PiGasPump className='icons-small' /> Gas Fee
+
+              <hr className='my-[16px] border-[#e2e2e2] border-t' />
+
+              <div className='flex justify-between items-center my-2'>
+                <div className='flex items-center gap-1 font-semibold text-[#4D5562] text-[16.02px]'>
+                  <PiGasPump className='inline-block text-[16px]' />{" "}
+                  <span>Gas Fee</span>
                 </div>
-                <div className='modal-staking-value'>~0.05 SUI</div>
+                <div className='font-semibold text-[16.02px]'>~0.05 SUI</div>
               </div>
+
               {memo && (
                 <>
-                  <hr className='modal-staking-divider' />
-                  <div className='modal-staking-info-row'>
-                    <div className='modal-staking-label'>Memo</div>
-                    <div className='modal-staking-value'>{memo}</div>
+                  <hr className='my-[16px] border-[#e2e2e2] border-t' />
+                  <div className='flex justify-between items-center my-2'>
+                    <div className='font-semibold text-[#4D5562] text-[16.02px]'>
+                      Memo
+                    </div>
+                    <div className='font-semibold text-[16.02px]'>{memo}</div>
                   </div>
                 </>
               )}
             </div>
           ) : (
-            <div className='preview-placeholder'>
-              <MdErrorOutline className='icons-large' />
+            <div className='flex flex-col justify-center items-center gap-[20px] p-[2rem] w-auto h-full font-semibold text-[#99A5B7] text-[15.53px] text-center'>
+              <MdErrorOutline className='text-[#99A5B7] text-[42px]' />
               <p>Complete the form to see your lock preview</p>
             </div>
           )}
         </div>
 
         {lockSuccess && (
-          <div className='lock-confirmed'>
-            <h4>Lock Created Successfully!</h4>
-            <p>Your assets have been locked and will start earning yield.</p>
+          <div className='flex flex-col justify-center gap-1 bg-white px-[20px] rounded-[16px] w-auto h-[126px]'>
+            <h4 className='font-semibold text-[#000000] text-[16.75px]'>
+              ✅ Lock Created Successfully!
+            </h4>
+            <p className='font-medium text-[#4D5562] text-[14.62px]'>
+              Your assets have been locked and will start earning yield.
+            </p>
             {lockerId && (
-              <div className='lock-details'>
-                <p>
-                  <strong>Lock ID:</strong> {lockerId}
+              <div className='mt-2'>
+                <p className='text-[#4D5562] text-[14.62px]'>
+                  <strong className='font-bold text-black'>Lock ID:</strong>{" "}
+                  {lockerId}
                 </p>
-                <p>
-                  <strong>Transaction:</strong> {txHash}
+                <p className='text-[#4D5562] text-[14.62px]'>
+                  <strong className='font-bold text-black'>Transaction:</strong>{" "}
+                  {txHash}
                 </p>
               </div>
             )}
@@ -398,36 +345,29 @@ function CreateLockToken() {
         )}
       </section>
 
+      {/* Confirm Modal */}
       {confirmLock && (
-        <div className='confirm-lock-modal'>
-          <div className='confirm-lock-container'>
-            <div className='confirm-lock-header'>
-              <h2>
-                <PiCheckSquareOffsetBold className='icons-small' />
-                Confirm Lock Creation
+        <div className='z-[1000] fixed inset-0 flex justify-center items-center bg-black/50 font-sans'>
+          <div className='relative bg-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] p-[21px_29px] rounded-[12px] w-[400px]'>
+            <div className='flex flex-col gap-2 mb-[30px]'>
+              <h2 className='flex items-center gap-1 font-extrabold text-[#00076C] text-[21.27px]'>
+                <PiCheckSquareOffsetBold className='inline-block text-[18px]' />{" "}
+                Confirm Lock
               </h2>
-              <p>
+              <p className='text-[#4D5562] text-[16.55px]'>
                 Please review your lock details before confirming. This action
                 cannot be undone.
               </p>
-              <button
-                className='confirm-lock-close'
-                type='button'
-                onClick={() => setConfirmLock(false)}
-                disabled={isLoading}
-              >
-                &times;
-              </button>
             </div>
 
-            <div className='confirm-lock-details'>
-              <div className='confirm-lock-row'>
+            <div className='bg-[#F9FAFC] mb-4 p-4 rounded-[0.5rem]'>
+              <div className='flex justify-between mb-2 font-semibold text-[#4D5562] text-[16.02px]'>
                 <span>Asset</span>
-                <span className='confirm-lock-value'>{amount} SUI</span>
+                <span className='font-extrabold text-black'>{amount} SUI</span>
               </div>
-              <div className='confirm-lock-row'>
+              <div className='flex justify-between mb-2 font-semibold text-[#4D5562] text-[16.02px]'>
                 <span>Lock Duration</span>
-                <span className='confirm-lock-value'>
+                <span className='font-extrabold text-black'>
                   {selectedDate
                     ? `${Math.ceil(
                         (new Date(selectedDate).getTime() -
@@ -437,51 +377,56 @@ function CreateLockToken() {
                     : `${selectedDuration} days`}
                 </span>
               </div>
-              <div className='confirm-lock-row'>
+              <div className='flex justify-between mb-2 font-semibold text-[#4D5562] text-[16.02px]'>
                 <span>Unlock Date</span>
-                <span className='confirm-lock-value'>{getUnlockDate()}</span>
+                <span className='font-extrabold text-black'>{unlockDate}</span>
               </div>
-              <div className='confirm-lock-row'>
+              <div className='flex justify-between mb-2 font-semibold text-[#4D5562] text-[16.02px]'>
                 <span>Est. Yield</span>
-                <span className='confirm-lock-yield'>
+                <span className='font-bold text-[#16a34a] text-[16.02px]'>
                   +{(parseFloat(amount || "0") * 0.08).toFixed(2)} SUI
                 </span>
               </div>
-              <div className='confirm-lock-row'>
+              <div className='flex justify-between font-semibold text-[#4D5562] text-[16.02px]'>
                 <span>Wallet</span>
-                <span className='confirm-lock-value'>
-                  {currentAccount?.address.slice(0, 6)}...
-                  {currentAccount?.address.slice(-4)}
+                <span className='font-extrabold text-black'>
+                  {currentAccount?.address
+                    ? `${currentAccount.address.slice(
+                        0,
+                        6
+                      )}...${currentAccount.address.slice(-4)}`
+                    : ""}
                 </span>
               </div>
             </div>
-            <hr className='modal-staking-divider' />
 
-            <div className='confirm-lock-warning'>
-              <IoWarningOutline className='icons-small' />
-              <div>
-                <span>Important Notice</span>
-                <p>
+            <div className='flex items-start gap-3 bg-[#FEFCEA] mb-4 p-5 border border-[#B05900] rounded-lg text-[#7E4F1F]'>
+              <IoWarningOutline className='text-[20px]' />
+              <div className='flex flex-col gap-2'>
+                <span className='font-bold text-[16.68px]'>
+                  Important Notice
+                </span>
+                <p className='font-medium text-[17.05px]'>
                   Once locked, your assets cannot be accessed until unlock date.
                   Make sure you're comfortable with the lock duration.
                 </p>
               </div>
             </div>
 
-            <div className='confirm-lock-actions'>
+            <div className='flex justify-end gap-2 mt-[50px]'>
               <button
-                className='confirm-lock-cancel'
                 onClick={() => setConfirmLock(false)}
                 disabled={isLoading}
+                className='bg-white border border-[#4D5562] rounded-[6px] w-[97px] h-[53px] font-semibold text-[#4D5562] text-[20px]'
               >
                 Cancel
               </button>
               <button
-                className='confirm-lock-confirm'
-                onClick={createLock}
+                onClick={handleConfirmLock}
                 disabled={isLoading || !currentAccount}
+                className='bg-[#00076C] border border-[#00076C] rounded-[6px] w-[168px] h-[53px] font-semibold text-[20px] text-white'
               >
-                {isLoading ? "Creating Lock..." : "Confirm Lock"}
+                {isLoading ? "Creating..." : "Confirm Lock"}
               </button>
             </div>
           </div>

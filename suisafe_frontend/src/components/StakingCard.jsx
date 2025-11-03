@@ -2,8 +2,6 @@ import React from "react";
 import { useModalStore } from "../store/useModalStore";
 import sui_logo from "../assets/sui_logo.png";
 
-
-
 // Placeholder for Icons (replace with actual SVGs or a proper Icon component)
 const Icons = {
   // Icons are rendered in a light blue color to match the image's aesthetic
@@ -102,25 +100,29 @@ export function StakingCard({
   withdrawLock,
   isWithdrawing,
 }) {
-    const { toggleModal } = useModalStore();
+  const { toggleModal } = useModalStore();
   const timeRemainingDays = `${timeLeft} days left`;
 
   // Logic to determine button state and content
-  const actionButton = isLocked ? (
+  // Logic to determine button state and label
+  const actionButton = (
     <button
-      className='bg-white disabled:opacity-80 px-4 py-2 border border-blue-600 rounded-lg focus:outline-none h-10 font-medium text-blue-600 text-sm'
-      disabled={!isExpired || isWithdrawing}
-      onClick={() => isExpired && withdrawLock()} // Only allow click if expired
+      className={`${
+        isExpired
+          ? "bg-blue-600 hover:bg-blue-700 text-white"
+          : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-400"
+      } px-4 py-2 rounded-lg focus:outline-none font-medium text-sm disabled:opacity-60`}
+      onClick={(e) => {
+        e.stopPropagation(); // prevent modal open
+        withdrawLock();
+      }}
+      disabled={isWithdrawing}
     >
-      {isExpired ? (isWithdrawing ? "Withdrawing..." : "Withdraw") : "Locked"}
-    </button>
-  ) : (
-    <button
-      className='bg-blue-600 hover:bg-blue-700 disabled:opacity-50 px-4 py-2 border border-blue-600 rounded-lg focus:outline-none h-10 font-medium text-white text-sm'
-      onClick={() => withdrawLock()}
-      disabled={isWithdrawing || !isExpired}
-    >
-      {isWithdrawing ? "Withdrawing..." : "Withdraw"}
+      {isWithdrawing
+        ? "Withdrawing..."
+        : isExpired
+        ? "Withdraw"
+        : "Withdraw (Penalty Applies)"}
     </button>
   );
 
@@ -129,12 +131,12 @@ export function StakingCard({
     // Mobile (<md): flex-wrap allows elements to stack/wrap with defined mobile widths.
     // Desktop (>=md): md:flex-nowrap sets the 5-column horizontal layout using md:w-*
     <div
-      className='flex md:flex-nowrap justify-between items-center gap-8 bg-white shadow-lg mb-3 p-4 border-2 border-blue-700/50 rounded-xl'
+      className='flex md:flex-nowrap justify-between items-center gap-8 bg-white shadow-md hover:shadow-xl mb-3 p-4 border-2 border-blue-700/50 rounded-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer transform'
       onClick={toggleModal}
     >
       {/* 1. Token Info Block (SUI, 1,000 tokens) */}
       <div className='flex items-center space-x-3 gap'>
-        <img src={sui_logo} alt="Sui Logo" className="h-8"/>
+        <img src={sui_logo} alt='Sui Logo' className='h-8' />
         <div className='flex flex-col min-w-0'>
           <h3 className='font-semibold text-blue-900 text-base truncate'>
             {tokenName}
@@ -162,14 +164,14 @@ export function StakingCard({
       </div>
 
       {/* 3. Time Remaining & Progress Block - HIDDEN ON MOBILE */}
-      <div className='hidden lg:flex flex-col flex-shrink-0 justify-center md:w-1/5'>
+      <div className='hidden lg:flex flex-col justify-center md:w-1/5 shrink-0'>
         <p className='flex items-center space-x-1 mb-1 text-gray-500 text-xs'>
           <span className='w-3 h-3 text-gray-400'>{Icons.clock}</span>
           <span>Time Remaining</span>
         </p>
 
         {/* Progress Bar */}
-        <div className='flex-grow bg-gray-200 rounded-full h-1.5 overflow-hidden'>
+        <div className='bg-gray-200 rounded-full h-1.5 overflow-hidden grow'>
           <div
             className={`h-full ${isExpired ? "bg-red-500" : "bg-blue-700"}`}
             style={{ width: `${isExpired ? 100 : percentElapsed}%` }}

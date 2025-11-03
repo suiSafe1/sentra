@@ -203,7 +203,7 @@ export default function PublicDashboard() {
                 <span className='mr-8 text-gray-700'>Tokens</span>
                 <input
                   checked={!showTokens}
-                  onChange={() => setShowTokens(!showTokens)}
+                  // onChange={() => setShowTokens(!showTokens)}
                   type='checkbox'
                   value=''
                   className='sr-only peer'
@@ -265,7 +265,7 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
   };
 
   return (
-    <div className='flex justify-between items-center bg-white p-2 py-4 border-b-2 border-black/50'>
+    <div className='flex justify-between items-center bg-white p-2 py-4 border-black/50 border-b-2'>
       <div className='flex items-center space-x-2'>
         {tokenIcon && (
           <img src={tokenIcon} alt={`${tokenName} icon`} className='h-14' />
@@ -277,11 +277,11 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
           {amount} {tokenName}
         </div>
         <div className='flex justify-end items-center gap-2'>
-          <div
+          {/* <div
             className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${statusColors[status]}`}
           >
             {status}
-          </div>
+          </div> */}
           <div className='text-gray-500 text-sm'>${usdValue}</div>
         </div>
       </div>

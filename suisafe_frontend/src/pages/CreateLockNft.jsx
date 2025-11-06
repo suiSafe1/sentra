@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { FaCheck } from "react-icons/fa";
 import { MdOutlineDateRange } from "react-icons/md";
+import ComingSoon from "./ComingSoon";
+
 
 function CreateLockNft() {
   const [selectDate, setSelectDate] = useState(false);
@@ -154,4 +156,4 @@ function CreateLockNft() {
   );
 }
 
-export default CreateLockNft;
+export default ComingSoon;

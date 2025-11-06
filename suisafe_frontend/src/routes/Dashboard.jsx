@@ -15,6 +15,7 @@ import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 import TokenLock from "../dashboard/TokenLock.jsx";
 import NftLock from "../dashboard/NftLock.jsx";
 import Modal from "../components/LockModal.jsx";
+import ComingSoon from "../pages/ComingSoon.jsx";
 
 const PACKAGE_ID =
   "0x690cc8f7277cbb2622de286387fc3bec5b6de4bdbb155d0ae2a0852d154ab194";
@@ -242,7 +243,7 @@ function Dashboard() {
 
               {/* Token/NFT Lock List */}
               <div className='bg-white shadow-lg p-4 border border-gray-200 rounded-xl'>
-                {!switchLock ? <TokenLock /> : <NftLock />}
+                {!switchLock ? <TokenLock /> : <ComingSoon/>}
               </div>
             </section>
           </>

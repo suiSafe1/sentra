@@ -128,9 +128,9 @@ function Dashboard() {
     <div className='flex flex-col gap-2 bg-white shadow-md p-6 border border-gray-200 rounded-xl text-gray-900'>
       <div className='flex justify-between items-start'>
         <h4 className='font-medium text-gray-500 text-sm'>{title}</h4>
-        {Icon && <Icon className='w-5 h-5 text-blue-600' />}
+        {Icon && <Icon className='w-5 h-5 text-blue-900' />}
       </div>
-      <p className='font-black text-gray-900 text-2xl md:text-3xl'>
+      <p className='font-blue-900 text-gray-900 text-2xl md:text-3xl'>
         {primaryText}
       </p>
       <p className='font-medium text-green-600 text-sm'>{secondaryText}</p>
@@ -140,8 +140,8 @@ function Dashboard() {
   const getSwitchButtonClasses = (isActive) =>
     `px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ease-in-out border rounded-md ${
       isActive
-        ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-        : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-500 hover:text-blue-600"
+        ? "bg-[#00076C] text-white border-blue-900 shadow-sm"
+        : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900"
     }`;
 
   // 🧭 Detect if user is in /dashboard/lock
@@ -202,7 +202,7 @@ function Dashboard() {
                   {/* Status Filter */}
                   <div className='relative'>
                     <button
-                      className='flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-blue-600 text-sm transition-colors'
+                      className='flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-00 text-sm transition-colors'
                       onClick={() => setStatus(!status)}
                     >
                       All Statuses{" "}
@@ -232,7 +232,7 @@ function Dashboard() {
                   {/* Create New Lock */}
                   <Link
                     to='/dashboard/lock'
-                    className='flex items-center space-x-1 bg-blue-600 hover:bg-blue-700 shadow-md px-3 py-1.5 rounded-md font-medium text-white text-sm transition-colors duration-200'
+                    className='flex items-center space-x-1 bg-[#00076C] hover:bg-[#00076C] shadow-md px-3 py-1.5 rounded-md font-medium text-white text-sm transition-colors duration-200'
                   >
                     <Plus size={16} />
                     <span>Create New Lock</span>

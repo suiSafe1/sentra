@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import {
   MdOutlineLock,
   MdOutlineDateRange,
@@ -38,7 +38,7 @@ function CreateLockToken() {
   } = useCreateLockToken();
 
   /* --------------------------------------------------------------
-     Confetti control – fire once when lock succeeds
+     Confetti control
   -------------------------------------------------------------- */
   useEffect(() => {
     if (lockSuccess) {
@@ -48,13 +48,16 @@ function CreateLockToken() {
     }
   }, [lockSuccess]);
 
+  /* --------------------------------------------------------------
+     Event Handlers
+  -------------------------------------------------------------- */
   const handleSwitch = (e) => setNftLock(e.target.id === "nft");
 
   const handleConfirmLock = async () => {
     const res = await createLock(amount, selectedDuration, selectedDate);
     if (res?.success) {
       setConfirmLock(false);
-      setLockSuccess(true); // triggers confetti via useEffect
+      setLockSuccess(true);
     } else {
       setConfirmLock(false);
     }
@@ -65,10 +68,25 @@ function CreateLockToken() {
     setShowConfetti(false);
   };
 
+  const handleDurationClick = (days) => {
+    setSelectedDuration(days);
+    const target = new Date();
+    target.setDate(target.getDate() + days);
+    setSelectedDate(target.toISOString().split("T")[0]);
+  };
+
+  const handleDateChange = (dateValue) => {
+    setSelectedDate(dateValue);
+    const diffDays = Math.ceil(
+      (new Date(dateValue).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+    );
+    setSelectedDuration(diffDays);
+  };
+
   const unlockDate = getUnlockDate(selectedDuration, selectedDate);
 
   /* --------------------------------------------------------------
-     Confetti portal – rendered at the end of <body>
+     Confetti portal
   -------------------------------------------------------------- */
   const confettiPortal = showConfetti
     ? createPortal(
@@ -88,7 +106,7 @@ function CreateLockToken() {
 
   return (
     <div
-      className='flex lg:flex-row flex-col gap-8 rounded-2xl'
+      className='flex lg:flex-row flex-col gap-8 m-4 rounded-2xl'
       aria-live='polite'
     >
       {/* ==================== LEFT – FORM ==================== */}
@@ -98,22 +116,24 @@ function CreateLockToken() {
           <h3>Create Lock</h3>
         </div>
 
-        <section className='bg-white p-[20px]'>
+        <section className='bg-white p-5'>
           {/* Token/NFT Switch */}
           <div className='flex bg-[#F2F5F9] mb-[1.2rem] p-[5px] rounded-lg'>
             <button
               id='token'
+              type='button'
               onClick={handleSwitch}
-              className={`flex-1 p-[0.75rem] text-[16.05px] font-semibold rounded-lg transition-all ${
-                !nftLock ? "bg-[#080d4b] text-white" : "text-[#4D5562]"
+              className={`flex-1 p-3 text-[16.05px] font-semibold rounded-lg transition-all ${
+                !nftLock ? "bg-[#00076C] text-white" : "text-[#4D5562]"
               }`}
             >
               Token Lock
             </button>
             <button
               id='nft'
+              type='button'
               onClick={handleSwitch}
-              className={`flex-1 p-[0.75rem] text-[16.05px] font-semibold rounded-lg transition-all ${
+              className={`flex-1 p-3 text-[16.05px] font-semibold rounded-lg transition-all ${
                 nftLock ? "bg-[#00076C] text-white" : "text-[#4D5562]"
               }`}
             >
@@ -131,8 +151,9 @@ function CreateLockToken() {
                   Select Token <MdErrorOutline />
                 </span>
                 <button
+                  type='button'
                   onClick={() => setSelectToken(!selectToken)}
-                  className='flex justify-between items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] h-[48px] font-semibold text-[#4D5562]'
+                  className='flex justify-between items-center bg-white px-2.5 border border-[#4D5562] rounded-lg h-12 font-semibold text-[#4D5562]'
                 >
                   <span>SUI Token</span>
                   <IoIosArrowDown />
@@ -147,7 +168,7 @@ function CreateLockToken() {
               {/* Amount */}
               <div className='flex flex-col gap-2 mb-4 font-bold text-[#505A6B]'>
                 <span>Amount</span>
-                <div className='flex justify-between items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] h-[48px]'>
+                <div className='flex justify-between items-center bg-white px-2.5 border border-[#4D5562] rounded-lg h-12'>
                   <input
                     type='text'
                     placeholder='0.00'
@@ -171,13 +192,9 @@ function CreateLockToken() {
                   {[30, 60, 90, 120].map((days) => (
                     <button
                       key={days}
-                      onClick={() => {
-                        setSelectedDuration(days);
-                        const target = new Date();
-                        target.setDate(target.getDate() + days);
-                        setSelectedDate(target.toISOString().split("T")[0]);
-                      }}
-                      className={`px-3 py-2 rounded-[8px] border font-semibold transition-all ${
+                      type='button'
+                      onClick={() => handleDurationClick(days)}
+                      className={`px-3 py-2 rounded-lg border font-semibold transition-all ${
                         selectedDuration === days
                           ? "bg-[#00076C] text-white border-[#00076C]"
                           : "bg-white text-[#4D5562] border-[#4D5562]"
@@ -189,29 +206,25 @@ function CreateLockToken() {
                 </div>
 
                 {/* Custom Date Picker */}
-                <button
-                  onClick={() => setSelectDate(!selectDate)}
-                  className='flex items-center bg-white px-[10px] border border-[#4D5562] rounded-[8px] h-[48px] font-semibold text-[#4D5562]'
-                >
-                  <MdOutlineDateRange className='mr-2' />
-                  {selectedDate || "Pick a custom date"}
-                </button>
-                {selectDate && (
-                  <input
-                    type='date'
-                    value={selectedDate}
-                    onChange={(e) => {
-                      setSelectedDate(e.target.value);
-                      const diffDays = Math.ceil(
-                        (new Date(e.target.value).getTime() - Date.now()) /
-                          (24 * 60 * 60 * 1000)
-                      );
-                      setSelectedDuration(diffDays);
-                    }}
-                    min={new Date().toISOString().split("T")[0]}
-                    className='z-10 absolute bg-white mt-[52px] p-2 border-[#00076C] border-2 rounded-[8px]'
-                  />
-                )}
+                <div className='relative'>
+                  <button
+                    type='button'
+                    onClick={() => setSelectDate(!selectDate)}
+                    className='flex items-center bg-white px-2.5 border border-[#4D5562] rounded-lg w-full h-12 font-semibold text-[#4D5562]'
+                  >
+                    <MdOutlineDateRange className='mr-2' />
+                    {selectedDate || "Pick a custom date"}
+                  </button>
+                  {selectDate && (
+                    <input
+                      type='date'
+                      value={selectedDate}
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      className='top-full left-0 z-10 absolute bg-white shadow-lg mt-1 p-2 border-[#00076C] border-2 rounded-lg'
+                    />
+                  )}
+                </div>
               </div>
 
               {/* Memo */}
@@ -221,14 +234,15 @@ function CreateLockToken() {
                   placeholder='Reason for lock...'
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
-                  className='bg-white p-[10px] border border-[#4D5562] rounded-[8px] outline-none h-[85px] font-semibold resize-y'
+                  className='bg-white p-2.5 border border-[#4D5562] rounded-lg outline-none h-[85px] font-semibold resize-y'
                 />
               </div>
 
               {/* Action Buttons */}
-              <div className='flex gap-4 mt-[1.5rem]'>
+              <div className='flex gap-4 mt-6'>
                 <button
-                  className='flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] rounded-[6px] font-semibold text-[20px] text-white'
+                  type='button'
+                  className='flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] rounded-md font-semibold text-[20px] text-white'
                   onClick={() => setConfirmLock(true)}
                   disabled={
                     !currentAccount || !amount || parseFloat(amount) <= 0
@@ -238,7 +252,7 @@ function CreateLockToken() {
                 </button>
                 <Link
                   to='/dashboard'
-                  className='flex justify-center items-center bg-white py-[0.8rem] border border-[#4D5562] rounded-[6px] w-[144px] font-semibold text-[#4D5562] text-[20px]'
+                  className='flex justify-center items-center bg-white py-[0.8rem] border border-[#4D5562] rounded-md w-36 font-semibold text-[#4D5562] text-[20px]'
                 >
                   Cancel
                 </Link>
@@ -257,8 +271,8 @@ function CreateLockToken() {
           </div>
 
           {amount ? (
-            <div className='bg-white p-[20px]'>
-              <div className='flex items-center gap-[12px] bg-[#F9FAFC] p-[12px] rounded-[8px]'>
+            <div className='bg-white p-5'>
+              <div className='flex items-center gap-3 bg-[#F9FAFC] p-3 rounded-lg'>
                 <div className='text-[24px]'>Coin</div>
                 <div>
                   <h2 className='font-extrabold text-[#101729] text-[16.88px]'>
@@ -270,7 +284,7 @@ function CreateLockToken() {
                 </div>
               </div>
 
-              <hr className='my-[16px] border-[#e2e2e2]' />
+              <hr className='my-4 border-[#e2e2e2]' />
               <div className='flex justify-between items-center'>
                 <span className='flex items-center gap-1 font-semibold text-[#4D5562]'>
                   <MdOutlineDateRange /> Lock Start
@@ -292,7 +306,7 @@ function CreateLockToken() {
                 <span className='font-semibold'>{selectedDuration} days</span>
               </div>
 
-              <hr className='my-[16px] border-[#e2e2e2]' />
+              <hr className='my-4 border-[#e2e2e2]' />
               <div className='flex justify-between items-center my-2'>
                 <span className='flex items-center gap-1 font-semibold text-[#4D5562]'>
                   <PiGasPump /> Gas Fee
@@ -302,7 +316,7 @@ function CreateLockToken() {
 
               {memo && (
                 <>
-                  <hr className='my-[16px] border-[#e2e2e2]' />
+                  <hr className='my-4 border-[#e2e2e2]' />
                   <div className='flex justify-between items-center'>
                     <span className='font-semibold text-[#4D5562]'>Memo</span>
                     <span className='font-semibold'>{memo}</span>
@@ -321,8 +335,8 @@ function CreateLockToken() {
 
       {/* ==================== CONFIRM MODAL ==================== */}
       {confirmLock && (
-        <div className='z-[1000] fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans'>
-          <div className='relative bg-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] p-[21px_29px] rounded-[12px] w-full max-w-md'>
+        <div className='z-1000 fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans'>
+          <div className='relative bg-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] p-[21px_29px] rounded-xl w-full max-w-md'>
             <div className='flex flex-col gap-2 mb-[30px]'>
               <h2 className='flex items-center gap-1 font-extrabold text-[#00076C] text-[21.27px]'>
                 <PiCheckSquareOffsetBold /> Confirm Lock
@@ -335,15 +349,17 @@ function CreateLockToken() {
 
             <div className='flex justify-end gap-2 mt-[50px]'>
               <button
+                type='button'
                 onClick={() => setConfirmLock(false)}
-                className='bg-white border border-[#4D5562] rounded-[6px] w-[97px] h-[53px] font-semibold text-[#4D5562]'
+                className='bg-white border border-[#4D5562] rounded-md w-[97px] h-[53px] font-semibold text-[#4D5562]'
               >
                 Cancel
               </button>
               <button
+                type='button'
                 onClick={handleConfirmLock}
                 disabled={isLoading || !currentAccount}
-                className='bg-[#00076C] disabled:opacity-60 rounded-[6px] w-[168px] h-[53px] font-semibold text-[20px] text-white'
+                className='bg-[#00076C] disabled:opacity-60 rounded-md w-[168px] h-[53px] font-semibold text-[20px] text-white'
               >
                 {isLoading ? "Creating..." : "Confirm Lock"}
               </button>
@@ -354,7 +370,7 @@ function CreateLockToken() {
 
       {/* ==================== SUCCESS MODAL ==================== */}
       {lockSuccess && (
-        <div className='z-[1100] fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans'>
+        <div className='z-1100 fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans'>
           <div className='relative bg-white shadow-lg mx-auto p-8 rounded-lg w-full max-w-md text-center'>
             <div className='flex flex-col items-center'>
               <div className='bg-green-100 p-3 rounded-full'>
@@ -363,12 +379,19 @@ function CreateLockToken() {
               <h2 className='mt-4 font-extrabold text-[#00076C] text-2xl'>
                 Lock Created Successfully!
               </h2>
+              {/* ======================================================== */}
+              {/* ================== HERE IS THE FIX =================== */}
+              {/* ======================================================== */}
               <p className='mt-2 text-[#4D5562] text-base'>
                 Your assets have been locked and will start earning yield.
               </p>
+              {/* ======================================================== */}
+              {/* ================== END OF FIX ========================== */}
+              {/* ======================================================== */}
             </div>
 
             <button
+              type='button'
               onClick={closeSuccess}
               className='bg-[#00076C] hover:opacity-90 mt-6 py-3 rounded-lg w-full font-semibold text-white text-lg transition-opacity'
             >

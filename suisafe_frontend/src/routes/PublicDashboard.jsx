@@ -209,15 +209,15 @@ export default function PublicDashboard() {
                   value=''
                   className='sr-only peer'
                 />
-                <div class="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white dark:bg-gray-700 dark:peer-checked:bg-blue-600 peer-checked:bg-blue-600 after:border after:border-gray-300 dark:border-gray-600 peer-checked:after:border-white rounded-full after:rounded-full peer-focus:outline-none dark:peer-focus:ring-blue-800 peer-focus:ring-4 peer-focus:ring-blue-300 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all rtl:peer-checked:after:-translate-x-full peer-checked:after:translate-x-full after:start-[2px]"></div>
+                <div class="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white dark:bg-gray-700 dark:peer-checked:bg-[#00076C] peer-checked:bg-[#00076C] after:border after:border-gray-300 dark:border-gray-600 peer-checked:after:border-white rounded-full after:rounded-full peer-focus:outline-none dark:peer-focus:ring-blue-800 peer-focus:ring-4 peer-focus:ring-blue-300 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all rtl:peer-checked:after:-translate-x-full peer-checked:after:translate-x-full after:start-[2px]"></div>
                 <span className='ml-8 text-gray-700'>NFTs</span>
               </label>
             </div>
             <div className='flex space-x-2'>
-              <button className='flex items-center bg-white px-3 py-1 border border-blue-600 rounded-md text-blue-600 text-sm'>
+              <button className='flex items-center bg-white px-3 py-1 border border-blue-900 rounded-md text-blue-900 text-sm'>
                 <Filter className='mr-1 w-4 h-4' /> Filter
               </button>
-              <button className='flex items-center bg-blue-600 px-3 py-1 rounded-md text-white text-sm'>
+              <button className='flex items-center bg-[#00076C] px-3 py-1 rounded-md text-white text-sm'>
                 <Plus className='mr-1 w-4 h-4' /> Create Lock
               </button>
             </div>

@@ -24,13 +24,13 @@ import {
 // Pages & Routes
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import ComingSoon from "./pages/ComingSoon";
 import CreatePage from "./routes/CreatePage";
 import WithdrawalPage from "./routes/WithdrawalPage";
 import Dashboard from "./routes/Dashboard";
 import CreateLockToken from "./routes/CreateLockToken";
 import WalletConnect from "./routes/Connect";
 import PublicDashboard from "./routes/PublicDashboard";
-
 
 // Components
 import Header from "./components/Header";
@@ -91,7 +91,7 @@ const Layout = () => {
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
                     ? "bg-white text-blue-900" // Active: Icon becomes Blue
-                    : "text-white hover:bg-blue-200/20" // Inactive: Icon remains White
+                    : "text-white hover:bg-[#00076C]/20" // Inactive: Icon remains White
                 }`
               }
             >
@@ -106,27 +106,12 @@ const Layout = () => {
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
                     ? "bg-white text-blue-900"
-                    : "text-white hover:bg-blue-200/20"
+                    : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
               <LayoutDashboard className='w-5 h-5' />
               <span>Dashboard</span>
-            </NavLink>
-
-            {/* Vest Tokens (Lock Icon) */}
-            <NavLink
-              to='/vest'
-              className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                  isActive
-                    ? "bg-white text-blue-900"
-                    : "text-white hover:bg-blue-200/20"
-                }`
-              }
-            >
-              <Lock className='w-5 h-5' />
-              <span>Vest Tokens</span>
             </NavLink>
 
             {/* Swap (GitCompareArrows Icon) */}
@@ -136,12 +121,27 @@ const Layout = () => {
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
                     ? "bg-white text-blue-900"
-                    : "text-white hover:bg-blue-200/20"
+                    : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
               <GitCompareArrows className='w-5 h-5' />
               <span>Swap</span>
+            </NavLink>
+
+            {/* Vest Tokens (Lock Icon) */}
+            <NavLink
+              to='/vest'
+              className={({ isActive }) =>
+                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
+                  isActive
+                    ? "bg-white text-blue-900"
+                    : "text-white hover:bg-[#00076C]/20"
+                }`
+              }
+            >
+              <Lock className='w-5 h-5' />
+              <span>Vest Tokens</span>
             </NavLink>
           </div>
 
@@ -152,7 +152,7 @@ const Layout = () => {
               `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                 isActive
                   ? "bg-white text-blue-900"
-                  : "text-white hover:bg-blue-200/20"
+                  : "text-white hover:bg-[#00076C]/20"
               }`
             }
           >
@@ -185,10 +185,7 @@ function App() {
     <Routes>
       {/* Public */}
       <Route path='/public_dashboard' element={<PublicDashboard />} />
-      <Route
-        path='/'
-        element={account ? <Navigate to='/dashboard' /> : <Home />}
-      />
+      <Route path='/' element={account ? <Navigate to='/tvl' /> : <Home />} />
 
       {/* Layout-protected routes */}
       <Route element={<Layout />}>
@@ -221,7 +218,8 @@ function App() {
           element={
             <ProtectedRoute>
               {/* <CreateLockToken /> */}
-              <VestLock />
+              {/* <VestLock /> */}
+              <ComingSoon />
             </ProtectedRoute>
           }
         />

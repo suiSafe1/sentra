@@ -53,7 +53,7 @@ const VestingRow = ({
       {/* Actions */}
       <div className='flex flex-shrink-0 space-x-2 min-w-[160px]'>
         <button
-          className='bg-blue-700 hover:bg-blue-600 disabled:opacity-50 px-3 py-1 rounded-md font-semibold text-white text-sm transition-colors'
+          className='bg-[#00076C] hover:bg-blue-800 disabled:opacity-50 px-3 py-1 rounded-md font-semibold text-white text-sm transition-colors'
           disabled={!isClaimable}
         >
           Claim

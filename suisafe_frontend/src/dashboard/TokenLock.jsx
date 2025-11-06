@@ -39,7 +39,7 @@ function TokenLock() {
           No locks found. Create your first lock to get started!
         </p>
         <button
-          className='bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md font-medium text-white'
+          className='bg-blue-900 hover:bg-blue-700 px-4 py-2 rounded-md font-medium text-white'
           onClick={fetchUserLocks}
           disabled={isLoading}
         >

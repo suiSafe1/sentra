@@ -146,7 +146,7 @@ const Home = () => {
             <div className='flex md:flex-row flex-col justify-center items-center gap-4 mb-10 hero-buttons'>
               <Link
                 to='/public_dashboard'
-                className='bg-blue-900 px-6 py-2 rounded text-white connect-button'
+                className='bg-[#00076C] px-6 py-2 rounded text-white connect-button'
               >
                 Launch App
               </Link>

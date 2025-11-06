@@ -66,7 +66,7 @@ export default function TVL() {
   );
 
   return (
-    <div className='flex bg-gray-50 min-h-screen'>
+    <div className='flex bg-gray-50 h-[90vh]'>
       {/* Overlay for mobile */}
       {menuOpen && (
         <div
@@ -76,20 +76,21 @@ export default function TVL() {
       )}
 
       {/* Main Content */}
-      <div className='flex flex-col flex-1 h-[100vh] overflow-y-scroll'>
+      <div className='flex flex-col flex-1 overflow-y-scroll'>
         {isLockPage ? (
           // ✅ Only show nested lock page when at /tvl/lock
           <Outlet />
         ) : (
           <>
             {/* Page Content */}
-            <main className='space-y-8 p-4 md:p-8 h-[80vh]'>
-              <div className='gap-6 grid md:grid-cols-3'>
+            <main className='p-4 md:p-8'>
+              <div className='gap-6 grid grid-cols-1 sm:grid-cols-3'>
                 <div className='flex flex-col gap-4 bg-white shadow-md p-6 rounded-xl text-center'>
                   <p className='text-gray-500'>TVL</p>
                   <p className='font-black text-blue-900 text-3xl'>$2.4M</p>
                   <p className='text-gray-400'>Total Value Locked</p>
                 </div>
+
                 <div className='flex flex-col gap-4 bg-white shadow-md p-6 rounded-xl text-center'>
                   <p className='text-gray-500'>Total Assets</p>
                   <p className='font-black text-blue-900 text-3xl'>156</p>
@@ -103,7 +104,7 @@ export default function TVL() {
             </main>
 
             {/* Tokens / NFTs Section */}
-            <div className='bg-gray-100 bg-white mx-6 p-6'>
+            <div className='bg-white mx-6 p-6'>
               <div className='flex lg:flex-row flex-col justify-between items-center mb-4'>
                 <div className='flex lg:flex-row flex-col mb-2 lg:mb-0 text-gray-500 text-sm'>
                   <div className='mb-2 lg:mb-0'>Toggle for tokens and NFTs</div>
@@ -115,23 +116,24 @@ export default function TVL() {
                       type='checkbox'
                       className='sr-only peer'
                     />
-                    <div className="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white peer-checked:bg-blue-600 after:border after:border-gray-300 rounded-full after:rounded-full peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all peer-checked:after:translate-x-full after:start-[2px]"></div>
+                    <div className="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white peer-checked:bg-blue-900 after:border after:border-gray-300 rounded-full after:rounded-full peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-900 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all peer-checked:after:translate-x-full after:start-[2px]"></div>
                     <span className='ml-8 text-gray-700'>NFTs</span>
                   </label>
                 </div>
 
                 {/* Filter + Create Lock Buttons */}
                 <div className='flex space-x-2'>
-                  <button className='flex items-center bg-white px-3 py-1 border border-blue-600 rounded-md text-blue-600 text-sm'>
+                  {/* ✅ Go to /tvl/lock */}
+                  <button className='flex items-center bg-white px-3 py-1 border border-blue-900 rounded-md text-blue-900 text-sm'>
                     <Filter className='mr-1 w-4 h-4' /> Filter
                   </button>
 
                   {/* ✅ Go to /tvl/lock */}
                   <Link
                     to='lock'
-                    className='flex items-center bg-blue-600 px-3 py-1 rounded-md text-white text-sm'
+                    className='flex items-center bg-blue-900 px-3 py-1 rounded-md text-md text-white'
                   >
-                    <Plus className='mr-1 w-4 h-4' /> Create Lock
+                    <Plus className='mr-1 w-6 h-6' /> Create Lock
                   </Link>
                 </div>
               </div>
@@ -140,14 +142,15 @@ export default function TVL() {
                 {showTokens ? (
                   filteredTokens.length > 0 ? (
                     filteredTokens.map((t) => (
-                      <SuiItem
-                        key={t.tokenName}
-                        tokenName={t.tokenName}
-                        tokenIcon={t.icon}
-                        status={t.status}
-                        amount={t.amount}
-                        usdValue={t.usdValue}
-                      />
+                      <Link key={t.tokenName} to='/tvl/lock'>
+                        <SuiItem
+                          tokenName={t.tokenName}
+                          tokenIcon={t.icon}
+                          status={t.status}
+                          amount={t.amount}
+                          usdValue={t.usdValue}
+                        />
+                      </Link>
                     ))
                   ) : (
                     <div className='flex justify-center items-center bg-white shadow-md p-6 rounded-xl font-medium text-gray-500'>
@@ -193,7 +196,7 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
         <span className='font-medium text-gray-700'>{tokenName}</span>
       </div>
       <div className='space-y-2 text-right'>
-        <div className='font-bold text-blue-800'>
+        <div className='font-bold text-blue-900'>
           {amount} {tokenName}
         </div>
         <div className='flex justify-end items-center gap-2'>

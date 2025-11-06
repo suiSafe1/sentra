@@ -12,18 +12,18 @@ function CreateLockNft() {
   };
 
   return (
-    <div className='flex justify-center items-center py-10 w-full'>
-      <form className='flex flex-col gap-6 bg-white shadow-lg p-8 border border-[#E3E6ED] rounded-2xl w-full max-w-2xl'>
+    <div className='flex justify-center items-center px-3 sm:px-6 py-6 w-full'>
+      <form className='flex flex-col gap-6 bg-white shadow-lg p-6 sm:p-8 border border-[#E3E6ED] rounded-2xl w-full max-w-2xl'>
         {/* Select NFT */}
         <section>
           <h2 className='mb-4 font-bold text-[#2D2F34] text-lg'>Select NFT</h2>
-          <div className='gap-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4'>
+          <div className='flex flex-wrap gap-4'>
             {Array(4)
               .fill(0)
               .map((_, i) => (
                 <div
                   key={i}
-                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 ${
+                  className={`relative p-4 rounded-xl border-2 cursor-pointer transition-all duration-300 flex-1 min-w-[250px] max-w-[300px] ${
                     i === 0
                       ? "border-[#00076C] bg-[#F7F9FF] shadow-md"
                       : "border-gray-200 hover:border-[#00076C]/50"
@@ -102,14 +102,14 @@ function CreateLockNft() {
               <input
                 onChange={handleDateChange}
                 type='date'
-                className='top-[52px] left-0 z-10 absolute bg-white shadow-md p-2 border-[#00076C] border-2 rounded-lg text-[16px]'
+                className='top-[52px] left-0 z-10 absolute bg-white shadow-md p-2 border-[#00076C] border-2 rounded-lg w-full sm:w-auto text-[16px]'
               />
             )}
           </div>
         </section>
 
         {/* Yield */}
-        <div className='flex justify-between items-center bg-[#F7F9FF] p-4 border border-[#E3E6ED] rounded-xl'>
+        <div className='flex sm:flex-row flex-col sm:justify-between sm:items-center gap-3 bg-[#F7F9FF] p-4 border border-[#E3E6ED] rounded-xl'>
           <div>
             <h3 className='font-semibold text-[#2D2F34] text-[15px]'>
               Estimated Yield (Annual)
@@ -118,7 +118,9 @@ function CreateLockNft() {
               Based on current market conditions and lock duration
             </p>
           </div>
-          <div className='font-bold text-[#00076C] text-[18px]'>+98.76 SUI</div>
+          <div className='font-bold text-[#00076C] text-[18px] sm:text-left text-right'>
+            +98.76 SUI
+          </div>
         </div>
 
         {/* Memo */}
@@ -133,16 +135,16 @@ function CreateLockNft() {
         </div>
 
         {/* Action Buttons */}
-        <div className='flex justify-end gap-4 mt-4'>
+        <div className='flex sm:flex-row flex-col justify-end gap-3 sm:gap-4 mt-4'>
           <button
             type='button'
-            className='bg-[#00076C] hover:bg-[#00076C]/90 px-6 py-2 rounded-lg font-semibold text-white transition-all duration-200'
+            className='bg-[#00076C] hover:bg-[#00076C]/90 px-6 py-2 rounded-lg w-full sm:w-auto font-semibold text-white transition-all duration-200'
           >
             Confirm Lock
           </button>
           <button
             type='button'
-            className='hover:bg-gray-100 px-6 py-2 border border-[#4D5562] rounded-lg font-semibold text-[#4D5562] transition-all duration-200'
+            className='hover:bg-gray-100 px-6 py-2 border border-[#4D5562] rounded-lg w-full sm:w-auto font-semibold text-[#4D5562] transition-all duration-200'
           >
             Cancel
           </button>

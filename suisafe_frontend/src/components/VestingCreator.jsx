@@ -64,7 +64,7 @@ export const VestingCreator = () => {
 
         {/* Button - Full Width */}
         <div className='col-span-1 sm:col-span-2 pt-2'>
-          <button className='bg-blue-700 hover:bg-blue-500 py-3 rounded-lg w-full font-bold text-white text-lg transition-colors'>
+          <button className='bg-[#00076C] hover:bg-blue-700 py-3 rounded-lg w-full font-bold text-white text-lg transition-colors'>
             Create Vesting Schedule
           </button>
         </div>

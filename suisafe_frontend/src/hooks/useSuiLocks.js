@@ -23,7 +23,6 @@ import {
   prettyTokenNameFromType,
 } from "../utils/SuiUtils";
 
-// Placeholder for an SVG icon (SUI) - In a real app, this would be a separate image/icon component
 const suiIcon = "SUI_ICON_SVG_JSX";
 
 export function useSuiLocks() {
@@ -42,7 +41,7 @@ export function useSuiLocks() {
     try {
       const ownedObjects = await client.getOwnedObjects({
         owner: currentAccount.address,
-        filter: { StructType: `${PACKAGE_ID}::sui_safe::YieldLock` },
+        filter: { StructType: `${PACKAGE_ID}::sentra::YieldLock` },
         options: { showContent: true, showType: true },
       });
 
@@ -168,7 +167,7 @@ export function useSuiLocks() {
 
       // 1. Unlock Market Coin from YieldLock
       const marketCoinHandle = tx.moveCall({
-        target: `${PACKAGE_ID}::sui_safe::unlock_yield_lock_market_coin`,
+        target: `${PACKAGE_ID}::sentra::unlock_yield_lock_market_coin`,
         arguments: [tx.object(asset.yieldLockId), tx.object(PLATFORM_ID)],
         typeArguments: [MARKET_COIN_TYPE],
       });
@@ -187,7 +186,7 @@ export function useSuiLocks() {
 
       // 3. Complete withdrawal and transfer SUI to user
       tx.moveCall({
-        target: `${PACKAGE_ID}::sui_safe::complete_yield_withdrawal_with_redeemed_coin`,
+        target: `${PACKAGE_ID}::sentra::complete_yield_withdrawal_with_redeemed_coin`,
         arguments: [
           tx.object(asset.yieldLockId),
           redeemedCoinHandle,

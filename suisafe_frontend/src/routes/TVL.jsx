@@ -4,6 +4,10 @@ import { Link, Outlet, useLocation } from "react-router-dom";
 import { useConnectWallet, useCurrentAccount } from "@mysten/dapp-kit";
 import WalletModal from "./Connect";
 import sui from "../assets/sui.png";
+import wal from "../assets/wal.png";
+import deep from "../assets/deep.png";
+import usdc from "../assets/usdc.png";
+import scal from "../assets/scal.png";
 
 export default function TVL() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -43,21 +47,28 @@ export default function TVL() {
       status: "Locked",
       amount: "10,000",
       usdValue: "30,000+",
-      icon: sui,
+      icon: wal,
     },
     {
       tokenName: "USDC",
       status: "Available",
       amount: "10,000",
       usdValue: "9,999",
-      icon: sui,
+      icon: usdc,
     },
     {
-      tokenName: "sETH",
+      tokenName: "DEEP",
       status: "Staked",
       amount: "1",
       usdValue: "4,000",
-      icon: sui,
+      icon: deep,
+    },
+    {
+      tokenName: "SCA",
+      status: "Staked",
+      amount: "1",
+      usdValue: "2,500",
+      icon: scal,
     },
   ];
 
@@ -105,37 +116,11 @@ export default function TVL() {
 
             {/* Tokens / NFTs Section */}
             <div className='bg-white mx-6 p-6'>
-              <div className='flex lg:flex-row flex-col justify-between items-center mb-4'>
-                <div className='flex lg:flex-row flex-col mb-2 lg:mb-0 text-gray-500 text-sm'>
-                  <div className='mb-2 lg:mb-0'>Toggle for tokens and NFTs</div>
-                  <label className='flex items-center lg:ml-12 cursor-pointer'>
-                    <span className='mr-8 text-gray-700'>Tokens</span>
-                    <input
-                      checked={!showTokens}
-                      onChange={() => setShowTokens(!showTokens)}
-                      type='checkbox'
-                      className='sr-only peer'
-                    />
-                    <div className="peer after:top-[2px] after:absolute relative bg-gray-200 after:bg-white peer-checked:bg-blue-900 after:border after:border-gray-300 rounded-full after:rounded-full peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-900 w-11 after:w-5 h-6 after:h-5 after:content-[''] after:transition-all peer-checked:after:translate-x-full after:start-[2px]"></div>
-                    <span className='ml-8 text-gray-700'>NFTs</span>
-                  </label>
-                </div>
-
-                {/* Filter + Create Lock Buttons */}
-                <div className='flex space-x-2'>
-                  {/* ✅ Go to /tvl/lock */}
-                  <button className='flex items-center bg-white px-3 py-1 border border-blue-900 rounded-md text-blue-900 text-sm'>
-                    <Filter className='mr-1 w-4 h-4' /> Filter
-                  </button>
-
-                  {/* ✅ Go to /tvl/lock */}
-                  <Link
-                    to='lock'
-                    className='flex items-center bg-blue-900 px-3 py-1 rounded-md text-md text-white'
-                  >
-                    <Plus className='mr-1 w-6 h-6' /> Create Lock
-                  </Link>
-                </div>
+              {/* Header Row */}
+              <div className='flex justify-around items-center mb-2 pb-2 font-semibold text-blue-900 text-sm'>
+                <span className='w-32'>TOKEN</span>
+                <span className='w-24 text-center'>APY</span>
+                <span className='w-24 text-right'>TVL</span>
               </div>
 
               <div>
@@ -189,13 +174,14 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
 
   return (
     <div className='flex justify-between items-center bg-white m-2 p-4 border-2 border-black/10 rounded-xl'>
-      <div className='flex items-center space-x-2'>
+      <div className='flex items-center space-x-2 w-32'>
         {tokenIcon && (
           <img src={tokenIcon} alt={`${tokenName} icon`} className='h-14' />
         )}
         <span className='font-medium text-gray-700'>{tokenName}</span>
       </div>
-      <div className='space-y-2 text-right'>
+      <p className="font-bold text-blue-900">12.5%</p>
+      <div className='space-y-2 w-24 text-right'>
         <div className='font-bold text-blue-900'>
           {amount} {tokenName}
         </div>

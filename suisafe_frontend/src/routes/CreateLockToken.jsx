@@ -14,6 +14,12 @@ import { useCreateLockToken } from "../hooks/useCreateLockToken";
 import CreateLockNft from "../pages/CreateLockNft";
 import ConfettiExplosion from "react-confetti-explosion";
 import { useWindowSize } from "react-use";
+import sui from "../assets/sui.png";
+import wal from "../assets/wal.png";
+import deep from "../assets/deep.png";
+import usdc from "../assets/usdc.png";
+import scal from "../assets/scal.png";
+
 
 function CreateLockToken() {
   const [nftLock, setNftLock] = useState(false);
@@ -26,6 +32,7 @@ function CreateLockToken() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [memo, setMemo] = useState("");
+  const [lockDescription, setLockDescription] = useState("");
   const { width, height } = useWindowSize();
 
   const {
@@ -104,6 +111,43 @@ function CreateLockToken() {
       )
     : null;
 
+    const tokens = [
+      {
+        symbol: "SUI",
+        icon: sui, // Assumes 'sui' is an imported image
+        type: "0x2::sui::SUI",
+        decimals: 9,
+      },
+      {
+        symbol: "USDC",
+        icon: usdc, // Assumes 'usdc' is an imported image
+        type: "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+        decimals: 6,
+      },
+      {
+        symbol: "WAL",
+        icon: wal, // Assumes 'wal' is an imported image
+        type: null,
+        decimals: null,
+      },
+      {
+        symbol: "DEEP",
+        icon: deep, // Assumes 'deep' is an imported image
+        type: null,
+        decimals: null,
+      },
+      {
+        symbol: "SCA",
+        icon: scal, // Assumes 'scal' is an imported image
+        type: null,
+        decimals: null,
+      },
+    ];
+
+    // ... Inside your component
+    // Store the whole selected token object, defaulting to SUI
+    const [selectedToken, setSelectedToken] = useState(tokens[0]);
+
   return (
     <div
       className='flex lg:flex-row flex-col gap-8 m-4 rounded-2xl'
@@ -146,7 +190,7 @@ function CreateLockToken() {
           ) : (
             <>
               {/* Select Token */}
-              <div className='flex flex-col gap-2 mb-4 font-bold text-[#505A6B]'>
+              <div className='relative flex flex-col gap-2 mb-4 font-bold text-[#505A6B]'>
                 <span className='flex items-center gap-2'>
                   Select Token <MdErrorOutline />
                 </span>
@@ -155,12 +199,38 @@ function CreateLockToken() {
                   onClick={() => setSelectToken(!selectToken)}
                   className='flex justify-between items-center bg-white px-2.5 border border-[#4D5562] rounded-lg h-12 font-semibold text-[#4D5562]'
                 >
-                  <span>SUI Token</span>
+                  {/* Dynamic content for the selected token */}
+                  <span className='flex items-center gap-2'>
+                    <img
+                      src={selectedToken.icon}
+                      alt={selectedToken.symbol}
+                      className='h-8'
+                    />
+                    <span>{selectedToken.symbol} Token</span>
+                  </span>
                   <IoIosArrowDown />
                 </button>
+
+                {/* The scrollable dropdown menu */}
                 {selectToken && (
-                  <div className='mt-2 text-[#4D5562]'>
-                    SUI - Sui Network Token
+                  <div className='top-full z-10 absolute bg-white shadow-lg mt-1 border rounded-md w-full max-h-60 overflow-y-auto'>
+                    {tokens.map((token) => (
+                      <div
+                        key={token.symbol} // Assumes symbols are unique
+                        className='flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer'
+                        onClick={() => {
+                          setSelectedToken(token); // Set the clicked token as selected
+                          setSelectToken(false); // Close the dropdown
+                        }}
+                      >
+                        <img
+                          src={token.icon}
+                          alt={token.symbol}
+                          className='h-8'
+                        />
+                        <span>{token.symbol}</span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
@@ -227,6 +297,17 @@ function CreateLockToken() {
                 </div>
               </div>
 
+              <div className='flex flex-col gap-2 mb-4 font-bold text-[#505A6B]'>
+                <span>Lock Description (30 Chars Max)</span>
+                <textarea
+                  placeholder='Example... House Rent'
+                  value={lockDescription}
+                  onChange={(e) => setLockDescription(e.target.value)}
+                  maxLength={"30"}
+                  className='bg-white p-2.5 border border-[#4D5562] rounded-lg outline-none h-[85px] font-semibold resize-y'
+                />
+              </div>
+
               {/* Memo */}
               <div className='flex flex-col gap-2 mb-4 font-bold text-[#505A6B]'>
                 <span>Memo (Optional)</span>
@@ -242,7 +323,7 @@ function CreateLockToken() {
               <div className='flex gap-4 mt-6'>
                 <button
                   type='button'
-                  className='flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] rounded-md font-semibold text-[20px] text-white'
+                  className='flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] rounded-md font-semibold text-white text-sm md:text-lg'
                   onClick={() => setConfirmLock(true)}
                   disabled={
                     !currentAccount || !amount || parseFloat(amount) <= 0
@@ -252,7 +333,7 @@ function CreateLockToken() {
                 </button>
                 <Link
                   to='/dashboard'
-                  className='flex justify-center items-center bg-white py-[0.8rem] border border-[#4D5562] rounded-md w-36 font-semibold text-[#4D5562] text-[20px]'
+                  className='flex justify-center items-center bg-white py-[0.8rem] border border-[#4D5562] rounded-md w-36 font-semibold text-[#4D5562] text-sm md:text-lg'
                 >
                   Cancel
                 </Link>
@@ -338,7 +419,7 @@ function CreateLockToken() {
         <div className='z-1000 fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans'>
           <div className='relative bg-white shadow-[0_4px_15px_rgba(0,0,0,0.2)] p-[21px_29px] rounded-xl w-full max-w-md'>
             <div className='flex flex-col gap-2 mb-[30px]'>
-              <h2 className='flex items-center gap-1 font-extrabold text-[#00076C] text-[21.27px]'>
+              <h2 className='flex items-center gap-1 font-extrabold text-[#00076C] text-md sm:text-[21.27px]'>
                 <PiCheckSquareOffsetBold /> Confirm Lock
               </h2>
               <p className='text-[#4D5562] text-[16.55px]'>
@@ -359,7 +440,7 @@ function CreateLockToken() {
                 type='button'
                 onClick={handleConfirmLock}
                 disabled={isLoading || !currentAccount}
-                className='bg-[#00076C] disabled:opacity-60 rounded-md w-[168px] h-[53px] font-semibold text-[20px] text-white'
+                className='bg-[#00076C] disabled:opacity-60 rounded-md w-[168px] h-[53px] font-semibold text-white md:text-[20px] text-sm'
               >
                 {isLoading ? "Creating..." : "Confirm Lock"}
               </button>

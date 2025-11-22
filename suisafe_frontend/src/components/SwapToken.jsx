@@ -6,11 +6,13 @@ import {
 } from "@mysten/dapp-kit";
 import { Transaction } from "@mysten/sui/transactions";
 import swap_swap from "../assets/swap_swap.png";
-import suiIcon from "../assets/sui_swap.png";
-import usdcIcon from "../assets/usdc_swap.png";
+import sui from "../assets/sui.png";
+import wal from "../assets/wal.png";
+import deep from "../assets/deep.png";
+import usdc from "../assets/usdc.png";
+import scal from "../assets/scal.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
 import confetti from "canvas-confetti";
-
 
 // --- Constants ---
 
@@ -30,15 +32,33 @@ const aggregatorClient = new AggregatorClient({
 const tokens = [
   {
     symbol: "SUI",
-    icon: suiIcon,
+    icon: sui,
     type: "0x2::sui::SUI",
     decimals: 9,
   },
   {
     symbol: "USDC",
-    icon: usdcIcon,
+    icon: usdc,
     type: "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
     decimals: 6,
+  },
+  {
+    symbol: "WAL",
+    icon: wal,
+    type: null, // You would need to add the type for WAL
+    decimals: null, // You would need to add the decimals for WAL
+  },
+  {
+    symbol: "DEEP",
+    icon: deep,
+    type: null, // You would need to add the type for DEEP
+    decimals: null, // You would need to add the decimals for DEEP
+  },
+  {
+    symbol: "SCA",
+    icon: scal,
+    type: null, // You would need to add the type for DEEP
+    decimals: null, // You would need to add the decimals for DEEP
   },
 ];
 
@@ -49,14 +69,14 @@ function TokenSelect({ value, onChange }) {
   const selectedToken = tokens.find((t) => t.symbol === value);
 
   return (
-    <div className='relative min-w-28'>
+    <div className='relative min-w-32'>
       <button
         type='button'
         onClick={() => setOpen(!open)}
         className='flex justify-between items-center bg-white hover:bg-gray-50 shadow-sm px-3 py-2 border rounded-md w-full'
       >
         <div className='flex items-center gap-2'>
-          <img src={selectedToken.icon} alt='' className='w-5 h-5' />
+          <img src={selectedToken.icon} alt='' className='h-8' />
           <span>{selectedToken.symbol}</span>
         </div>
         <svg
@@ -76,7 +96,8 @@ function TokenSelect({ value, onChange }) {
       </button>
 
       {open && (
-        <div className='z-10 absolute bg-white shadow-lg mt-1 border rounded-md w-full'>
+        <div className='z-10 absolute bg-white shadow-lg mt-1 border rounded-md max-h-40 overflow-y-auto'>
+          {" "}
           {tokens.map((token) => (
             <div
               key={token.symbol}
@@ -86,7 +107,7 @@ function TokenSelect({ value, onChange }) {
                 setOpen(false);
               }}
             >
-              <img src={token.icon} alt='' className='w-5 h-5' />
+              <img src={token.icon} alt='' className='h-8' />
               <span>{token.symbol}</span>
             </div>
           ))}
@@ -95,7 +116,6 @@ function TokenSelect({ value, onChange }) {
     </div>
   );
 }
-
 
 function TxOverlay({ outcome, onClose }) {
   if (!outcome) return null;
@@ -193,7 +213,6 @@ function TxOverlay({ outcome, onClose }) {
     </div>
   );
 }
-
 
 // --- Main Component ---
 

@@ -27,21 +27,15 @@ const RocketIcon = () => (
  */
 const ComingSoon = () => {
   return (
-    <div className='flex justify-center items-center bg-[#F7F9FF] px-3 sm:px-6 py-6 w-full min-h-screen font-sans'>
-      <div className='flex flex-col items-center gap-6 bg-white shadow-lg p-8 sm:p-12 border border-[#E3E6ED] rounded-2xl w-full max-w-md text-center'>
-        {/* Icon */}
-        <div className='bg-[#F7F9FF] p-4 border border-[#E3E6ED] rounded-full'>
-          <RocketIcon />
-        </div>
+    <div className='flex justify-center items-center px-3 sm:px-6 py-6 w-full font-sans'>
+      <div className='flex flex-col items-center gap-6 p-8 sm:p-12 rounded-2xl w-full max-w-md text-center'>
 
         {/* Heading */}
         <div className='flex flex-col gap-2'>
           <h1 className='font-bold text-[#00076C] text-4xl sm:text-5xl'>
             COMING SOON
           </h1>
-          <h2 className='mb-2 font-bold text-[#2D2F34] text-xl sm:text-2xl'>
-            Something Big is Launching
-          </h2>
+
         </div>
 
         {/* Message */}

@@ -2,9 +2,25 @@ import React from "react";
 import { useModalStore } from "../store/useModalStore";
 import sui_logo from "../assets/sui_logo.png";
 
-// Placeholder for Icons (replace with actual SVGs or a proper Icon component)
+// Reusable SVG for the arrow icon
+const arrowIcon = (
+  <svg
+    width='13'
+    height='13'
+    viewBox='0 0 13 13'
+    fill='none'
+    xmlns='http://www.w3.org/2000/svg'
+    className='inline-block'
+  >
+    <path
+      d='M9.92722 3.17676V8.33899C9.92722 8.44431 9.88539 8.54531 9.81092 8.61978C9.73645 8.69425 9.63544 8.73608 9.53013 8.73608C9.42481 8.73608 9.32381 8.69425 9.24934 8.61978C9.17487 8.54531 9.13303 8.44431 9.13303 8.33899V4.13525L3.45756 9.81122C3.38305 9.88573 3.28199 9.92759 3.17661 9.92759C3.07124 9.92759 2.97018 9.88573 2.89567 9.81122C2.82116 9.73671 2.7793 9.63565 2.7793 9.53027C2.7793 9.4249 2.82116 9.32384 2.89567 9.24933L8.57164 3.57385H4.3679C4.26258 3.57385 4.16158 3.53202 4.08711 3.45755C4.01264 3.38308 3.9708 3.28207 3.9708 3.17676C3.9708 3.07144 4.01264 2.97044 4.08711 2.89597C4.16158 2.8215 4.26258 2.77966 4.3679 2.77966H9.53013C9.63544 2.77966 9.73645 2.8215 9.81092 2.89597C9.88539 2.97044 9.92722 3.07144 9.92722 3.17676Z'
+      fill='currentColor'
+    />
+  </svg>
+);
+
+// Placeholder for Icons
 const Icons = {
-  // Icons are rendered in a light blue color to match the image's aesthetic
   calendar: (
     <svg
       width='1em'
@@ -69,18 +85,48 @@ const Icons = {
 };
 
 // Component that displays the status badge
-const StatusPill = ({ isExpired }) => {
+export const StatusPill = ({ isExpired }) => {
   const statusColor = isExpired
-    ? "bg-red-100 text-red-700"
-    : "bg-green-200 text-green-700";
+    ? "bg-[#EFECEC] text-[#505A6B]"
+    : "bg-[#CEFFD4] ring-[#3C7E44]";
   const statusLabel = isExpired ? "Expired" : "Active";
 
   return (
     <span
-      className={`px-3 hidden sm:block py-1 text-xs font-semibold rounded-full text-center ${statusColor}`}
+      className={`px-2 rounded-2xl ring-2 w-fit h-fit text-xs py ${statusColor}`}
     >
       {statusLabel}
     </span>
+  );
+};
+
+// WithdrawButton component
+export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
+  return (
+    <div className='flex flex-col items-start gap-1'>
+      <button
+        className={`${
+          isExpired
+            ? "bg-blue-600 hover:bg-blue-700 text-white"
+            : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-400"
+        } px-4 py-2 rounded-lg focus:outline-none font-medium text-sm disabled:opacity-60`}
+        onClick={(e) => {
+          e.stopPropagation();
+          // Safety check before calling the function
+          //if (withdrawLock) 
+            withdrawLock();
+        }}
+        disabled={isWithdrawing}
+      >
+        {isWithdrawing ? "Withdrawing..." : "Withdraw"}
+      </button>
+
+      {!isExpired && (
+        <p className='mx-auto font-medium text-black/70 text-xs'>
+          Penalty applies.
+        </p>
+      )}
+    </div>
   );
 };
 
@@ -97,119 +143,78 @@ export function StakingCard({
   isLocked = true,
   memo,
   percentElapsed,
+  // 🚩 Props we need to pass to the modal store
   withdrawLock,
   isWithdrawing,
 }) {
-  const { toggleModal } = useModalStore();
+  const { openModal } = useModalStore();
   const timeRemainingDays = `${timeLeft} days left`;
 
-  // Logic to determine button state and content
-  // Logic to determine button state and label
-  const actionButton = (
-    <button
-      className={`${
-        isExpired
-          ? "bg-blue-600 hover:bg-blue-700 text-white"
-          : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-400"
-      } px-4 py-2 rounded-lg focus:outline-none font-medium text-sm disabled:opacity-60`}
-      onClick={(e) => {
-        e.stopPropagation(); // prevent modal open
-        withdrawLock();
-      }}
-      disabled={isWithdrawing}
-    >
-      {isWithdrawing
-        ? "Withdrawing..."
-        : isExpired
-        ? "Withdraw"
-        : "Withdraw (Penalty Applies)"}
-    </button>
-  );
+  // The 'actionButton' variable defined here is redundant since the WithdrawButton is rendered separately below.
+  // I've removed the redundant definition to simplify the code, but kept the original function logic commented out
+  // to show the difference between a direct action and a modal-opening action.
 
   return (
-    // Main Card Container: Uses Flexbox for responsiveness
-    // Mobile (<md): flex-wrap allows elements to stack/wrap with defined mobile widths.
-    // Desktop (>=md): md:flex-nowrap sets the 5-column horizontal layout using md:w-*
+    // Main Card Container
     <div
       className='flex md:flex-nowrap justify-between items-center gap-8 bg-white shadow-md hover:shadow-xl mb-3 p-4 border-2 border-blue-700/50 rounded-xl hover:scale-[1.02] transition-all duration-300 cursor-pointer transform'
-      onClick={toggleModal}
+      onClick={() =>
+        openModal("VIEW_LOCK", {
+          yieldLockId,
+          tokenName,
+          tokenAmount,
+          startDate,
+          endDate,
+          timeLeft,
+          yieldEarned,
+          isExpired,
+          memo,
+          percentElapsed,
+          isLocked,
+          tokenIcon: icon || sui_logo,
+
+          // 🏆 FIX: Passing the function and state to the modal store
+          withdrawLock: withdrawLock,
+          isWithdrawing: isWithdrawing,
+        })
+      }
     >
       {/* 1. Token Info Block (SUI, 1,000 tokens) */}
-      <div className='flex items-center space-x-3 gap'>
+      <div className='flex flex-2 items-center space-x-3 gap'>
         <img src={sui_logo} alt='Sui Logo' className='h-8' />
         <div className='flex flex-col min-w-0'>
-          <h3 className='font-semibold text-blue-900 text-base truncate'>
-            {tokenName}
-          </h3>
+          <div className='flex items-center gap-2'>
+            <h3 className='text-blue-900 text-base truncate'>{tokenName}</h3>
+            <StatusPill isExpired={isExpired} />
+          </div>
+          <h3 className='text-black/60 text-sm truncate'>Gadgets</h3>
           <p className='text-gray-500 text-sm truncate'>{tokenAmount} tokens</p>
-          {memo && (
-            <p className='mt-1 text-gray-500 text-xs truncate italic'>
-              "{memo}"
-            </p>
-          )}
         </div>
       </div>
 
-      {/* 2. Duration Block (Dates) */}
-      <div className=''>
-        <p className='flex items-center space-x-1 mb-1 text-gray-500 text-xs'>
-          <span className='w-3 h-3 text-gray-400'>{Icons.calendar}</span>
-          <span className='hidden sm:inline'>Duration</span>
-        </p>
-        {/* Dates use YYYY-MM-DD from the useSuiLocks hook */}
-        <p className='font-semibold text-blue-800 text-sm leading-tight'>
-          {startDate}
-        </p>
-        <p className='font-normal text-gray-500 text-xs'>to {endDate}</p>
+      {/* Withdraw Button Block */}
+      <div>
+        <WithdrawButton
+          isExpired={isExpired}
+          isWithdrawing={isWithdrawing}
+          withdrawLock={withdrawLock}
+        />
       </div>
 
-      {/* 3. Time Remaining & Progress Block - HIDDEN ON MOBILE */}
-      <div className='hidden lg:flex flex-col justify-center md:w-1/5 shrink-0'>
-        <p className='flex items-center space-x-1 mb-1 text-gray-500 text-xs'>
-          <span className='w-3 h-3 text-gray-400'>{Icons.clock}</span>
-          <span>Time Remaining</span>
-        </p>
-
-        {/* Progress Bar */}
-        <div className='bg-gray-200 rounded-full h-1.5 overflow-hidden grow'>
-          <div
-            className={`h-full ${isExpired ? "bg-red-500" : "bg-blue-700"}`}
-            style={{ width: `${isExpired ? 100 : percentElapsed}%` }}
-          />
-        </div>
-
-        {/* Days left text */}
-        <p className='mt-1 text-gray-500 text-xs'>
-          {isExpired ? "Expired" : timeRemainingDays}
-        </p>
-      </div>
-
-      {/* 4. Yield Earned Block - HIDDEN ON MOBILE */}
-      <div className='hidden md:block'>
-        <p className='flex items-center space-x-1 mb-1 text-gray-500 text-xs'>
+      <div className='flex flex-col flex-1 items-end gap-1'>
+        <p className='flex items-center space-x-1 mb-1 w-fit text-gray-500 text-xs'>
           <span className='w-3 h-3 text-gray-400'>{Icons.trending}</span>
           <span>Yield Earned</span>
         </p>
-        <p className='font-semibold text-green-700 text-base'>
+        <p className='w-fit font-semibold text-green-700 text-base'>
           {yieldEarned}{" "}
           <span className='font-medium text-gray-700 text-sm'>SUI</span>
         </p>
-      </div>
-
-      {/* 5. Status Pill & Action Button Block - Takes remaining space on mobile, 20% on desktop */}
-      <div className='flex flex-col md:items-end space-y-2 ml-auto md:ml-0'>
-        <div className='md:hidden'>
-          {/* Status on mobile: takes up space next to Duration */}
-          <StatusPill isExpired={isExpired} />
+        <div className='flex items-center gap-1 px-2 py-1 rounded-sm ring ring-blue-600 w-fit h-fit text-sm'>
+          <span>View</span>
+          {arrowIcon}
         </div>
-        <div className='hidden md:block'>
-          {/* Status on desktop: ensures pill alignment with button */}
-          <StatusPill isExpired={isExpired} />
-        </div>
-
-        {/* Action Button */}
       </div>
-      <div>{actionButton}</div>
     </div>
   );
 }

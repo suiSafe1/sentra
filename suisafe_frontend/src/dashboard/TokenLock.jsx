@@ -62,15 +62,28 @@ function TokenLock() {
       </div>
 
       <div className='gap-4 grid'>
-        {userLocks.map((data, idx) => (
-          <div key={idx} onClick={() => openModal(data)}>
-            <StakingCard
-              {...data}
-              withdrawLock={() => withdrawLock(data)}
-              isWithdrawing={withdrawing === data.yieldLockId}
-            />
-          </div>
-        ))}
+        {userLocks.map((data, idx) => {
+          const isThisWithdrawing = withdrawing === data.yieldLockId;
+
+          return (
+            <div
+              key={idx}
+              onClick={() =>
+                openModal("LOCK_DETAILS", {
+                  ...data,
+                  withdrawLock: () => withdrawLock(data),
+                  isWithdrawing: isThisWithdrawing,
+                })
+              }
+            >
+              <StakingCard
+                {...data}
+                withdrawLock={() => withdrawLock(data)}
+                isWithdrawing={isThisWithdrawing}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

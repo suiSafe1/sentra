@@ -11,6 +11,10 @@ import vest from "../assets/vest.png";
 import swap from "../assets/swap.png";
 import question from "../assets/Question.png";
 import sentra from "../assets/sentra_dashboard.png";
+import wal from "../assets/wal.png";
+import deep from "../assets/deep.png";
+import usdc from "../assets/usdc.png";
+import scal from "../assets/scal.png";
 
 export default function PublicDashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,36 +69,43 @@ export default function PublicDashboard() {
 
   const [searchTerm, setSearchTerm] = useState("");
 
-  const tokens = [
-    {
-      tokenName: "SUI",
-      status: "Available",
-      amount: "2,000",
-      usdValue: "6,000+",
-      icon: sui,
-    },
-    {
-      tokenName: "WAL",
-      status: "Locked",
-      amount: "10,000",
-      usdValue: "30,000+",
-      icon: sui,
-    },
-    {
-      tokenName: "USDC",
-      status: "Available",
-      amount: "10,000",
-      usdValue: "9,999",
-      icon: sui,
-    },
-    {
-      tokenName: "sETH",
-      status: "Staked",
-      amount: "1",
-      usdValue: "4,000",
-      icon: sui,
-    },
-  ];
+    const tokens = [
+      {
+        tokenName: "SUI",
+        status: "Available",
+        amount: "2,000",
+        usdValue: "6,000+",
+        icon: sui,
+      },
+      {
+        tokenName: "WAL",
+        status: "Locked",
+        amount: "10,000",
+        usdValue: "30,000+",
+        icon: wal,
+      },
+      {
+        tokenName: "USDC",
+        status: "Available",
+        amount: "10,000",
+        usdValue: "9,999",
+        icon: usdc,
+      },
+      {
+        tokenName: "DEEP",
+        status: "Staked",
+        amount: "1",
+        usdValue: "4,000",
+        icon: deep,
+      },
+      {
+        tokenName: "SCA",
+        status: "Staked",
+        amount: "1",
+        usdValue: "2,500",
+        icon: scal,
+      },
+    ];
 
   const filteredTokens = tokens.filter((t) =>
     t.tokenName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -222,7 +233,13 @@ export default function PublicDashboard() {
               </button>
             </div>
           </div>
-          <div className=''>
+
+          <div className='flex flex-col gap-2'>
+            <div className='flex justify-around items-center mb-2 pb-2 font-semibold text-blue-900 text-sm'>
+              <span className='w-32'>TOKEN</span>
+              <span className='w-24 text-center'>APY</span>
+              <span className='w-24 text-right'>TVL</span>
+            </div>
             {showTokens ? (
               filteredTokens.length > 0 ? (
                 filteredTokens.map((t) => (
@@ -266,13 +283,14 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
   };
 
   return (
-    <div className='flex justify-between items-center bg-white p-2 py-4 border-black/50 border-b-2'>
-      <div className='flex items-center space-x-2'>
+    <div className='flex justify-between items-center gap-2 bg-white p-2 py-4 border-2 border-black/10 rounded-md'>
+      <div className='flex items-center space-x-2 w-32'>
         {tokenIcon && (
           <img src={tokenIcon} alt={`${tokenName} icon`} className='h-14' />
         )}
         <span className='font-medium text-gray-700'>{tokenName}</span>
       </div>
+      <p className='font-bold text-blue-900'>12.5%</p>
       <div className='space-y-2 text-right'>
         <div className='font-bold text-blue-800'>
           {amount} {tokenName}
@@ -283,7 +301,7 @@ const SuiItem = ({ tokenName, tokenIcon, status, amount, usdValue }) => {
           >
             {status}
           </div> */}
-          <div className='text-gray-500 text-sm'>${usdValue}</div>
+          <div className='w-24 text-gray-500 text-sm'>${usdValue}</div>
         </div>
       </div>
     </div>

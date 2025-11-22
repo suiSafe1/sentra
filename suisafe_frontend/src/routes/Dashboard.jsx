@@ -216,7 +216,7 @@ function Dashboard() {
                       </span>
                     </button>
                     {status && (
-                      <div className='right-0 z-10 absolute bg-white shadow-lg mt-2 border border-gray-200 rounded-lg w-40'>
+                      <div className='left-0 z-10 absolute bg-white shadow-lg mt-2 border border-gray-200 rounded-lg w-40'>
                         <p className='hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer'>
                           All
                         </p>

@@ -23,12 +23,26 @@ import {
 import { fetchTokenPrices, calculateUsdValue } from "../services/priceService";
 import { fetchScallopAPYs, calculateYieldEarned } from "../services/apyService";
 
+// Import token icons
+import sui_logo from "../assets/sui.png";
+import wal_logo from "../assets/wal.png";
+import deep_logo from "../assets/deep.png";
+import usdc_logo from "../assets/usdc.png";
+import scal_logo from "../assets/scal.png";
+
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 const SCALLOP_REDEEM_PACKAGE =
   "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
 
-const suiIcon = "SUI_ICON_SVG_JSX";
+// Token icon mapping
+const TOKEN_ICONS = {
+  SUI: sui_logo,
+  WAL: wal_logo,
+  DEEP: deep_logo,
+  USDC: usdc_logo,
+  SCA: scal_logo,
+};
 
 const TOKEN_SCOIN_MAP = {
   "0x2::sui::SUI": {
@@ -213,12 +227,18 @@ export function useSuiLocks() {
                 )
               : 0;
 
+          // Extract memo/description from fields
+          const lockDescription = (fields.memo ?? fields.fields?.memo) || "";
+
+          // Get the correct icon for this token
+          const tokenIcon = TOKEN_ICONS[tokenName] || sui_logo;
+
           acc.push({
             objectId: objRef.data.objectId,
             yieldLockId: objRef.data.objectId,
             tokenName,
             tokenAmount: tokenAmountStr,
-            icon: suiIcon,
+            icon: tokenIcon,
             coinType: coinTypeRaw,
             scoinInfo,
             decimals,
@@ -231,7 +251,7 @@ export function useSuiLocks() {
             principalUsd: principalUsd.toFixed(2),
             apy: tokenApy.toFixed(2),
             isExpired,
-            memo: (fields.memo ?? fields.fields?.memo) || "",
+            memo: lockDescription,
           });
         } catch (innerErr) {
           console.warn(

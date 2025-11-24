@@ -1,6 +1,19 @@
 import React from "react";
 import { useModalStore } from "../store/useModalStore";
-import sui_logo from "../assets/sui_logo.png";
+import sui_logo from "../assets/sui.png";
+import wal_logo from "../assets/wal.png";
+import deep_logo from "../assets/deep.png";
+import usdc_logo from "../assets/usdc.png";
+import scal_logo from "../assets/scal.png";
+
+// Token icon mapping
+const TOKEN_ICONS = {
+  SUI: sui_logo,
+  WAL: wal_logo,
+  DEEP: deep_logo,
+  USDC: usdc_logo,
+  SCA: scal_logo,
+};
 
 // Reusable SVG for the arrow icon
 const arrowIcon = (
@@ -112,8 +125,6 @@ export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
         } px-4 py-2 rounded-lg focus:outline-none font-medium text-sm disabled:opacity-60`}
         onClick={(e) => {
           e.stopPropagation();
-          // Safety check before calling the function
-          //if (withdrawLock)
           withdrawLock();
         }}
         disabled={isWithdrawing}
@@ -152,9 +163,11 @@ export function StakingCard({
   const { openModal } = useModalStore();
   const timeRemainingDays = `${timeLeft} days left`;
 
-  // The 'actionButton' variable defined here is redundant since the WithdrawButton is rendered separately below.
-  // I've removed the redundant definition to simplify the code, but kept the original function logic commented out
-  // to show the difference between a direct action and a modal-opening action.
+  // Get the correct token icon based on tokenName
+  const tokenIcon = TOKEN_ICONS[tokenName] || sui_logo;
+
+  // Use memo as description, fallback to default
+  const lockDescription = memo || "No description";
 
   return (
     <div
@@ -175,7 +188,7 @@ export function StakingCard({
           memo,
           percentElapsed,
           isLocked,
-          tokenIcon: icon || sui_logo,
+          tokenIcon: tokenIcon,
           withdrawLock: withdrawLock,
           isWithdrawing: isWithdrawing,
         })
@@ -183,16 +196,15 @@ export function StakingCard({
     >
       {/* 1. Token Info Block */}
       <div className="flex flex-2 items-center space-x-3 gap">
-        <img src={sui_logo} alt="Sui Logo" className="h-8" />
+        <img src={tokenIcon} alt={`${tokenName} Logo`} className="h-8" />
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-blue-900 text-base truncate">{tokenName}</h3>
             <StatusPill isExpired={isExpired} />
           </div>
-          <h3 className="text-black/60 text-sm truncate">Gadgets</h3>
+          <h3 className="text-black/60 text-sm truncate">{lockDescription}</h3>
           <p className="text-gray-500 text-sm truncate">
             {tokenAmount} tokens
-            {/* ✅ ADD USD VALUE */}
             <span className="ml-2 text-gray-400">(${principalUsd})</span>
           </p>
         </div>
@@ -217,9 +229,7 @@ export function StakingCard({
           {yieldEarned}{" "}
           <span className="font-medium text-gray-700 text-sm">{tokenName}</span>
         </p>
-        {/* ADD USD YIELD */}
         <p className="text-gray-500 text-xs">${yieldEarnedUsd}</p>
-        {/* ADD APY BADGE */}
         <p className="text-blue-600 text-xs font-medium">{apy}% APY</p>
         <div className="flex items-center gap-1 px-2 py-1 rounded-sm ring ring-blue-600 w-fit h-fit text-sm">
           <span>View</span>

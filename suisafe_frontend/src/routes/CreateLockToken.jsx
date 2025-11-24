@@ -53,9 +53,7 @@ function CreateLockToken() {
       type: "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
       decimals: 9,
       scoin: {
-        // sCoin type for SUI
         type: "0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI",
-        // Converter object ID for SUI
         converterId:
           "0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b",
       },
@@ -105,8 +103,7 @@ function CreateLockToken() {
       },
     },
   ];
-  const [selectedToken, setSelectedToken] = useState(tokens[0]); // Default: SUI
-
+  const [selectedToken, setSelectedToken] = useState(tokens[0]);
   /* --------------------------------------------------------------
      Confetti control
   -------------------------------------------------------------- */

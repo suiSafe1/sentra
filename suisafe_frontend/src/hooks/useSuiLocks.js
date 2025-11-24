@@ -20,6 +20,8 @@ import {
   extractCoinType,
   prettyTokenNameFromType,
 } from "../utils/SuiUtils";
+import { fetchTokenPrices, calculateUsdValue } from "../services/priceService";
+import { fetchScallopAPYs, calculateYieldEarned } from "../services/apyService";
 
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
@@ -69,10 +71,30 @@ export function useSuiLocks() {
   const [userLocks, setUserLocks] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [withdrawing, setWithdrawing] = useState(null);
+  const [prices, setPrices] = useState({});
+  const [apys, setApys] = useState({});
 
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } =
     useSignAndExecuteTransaction();
+
+  // Fetch prices and APYs on mount and periodically
+  useEffect(() => {
+    const loadMarketData = async () => {
+      const [priceData, apyData] = await Promise.all([
+        fetchTokenPrices(),
+        fetchScallopAPYs(),
+      ]);
+      setPrices(priceData);
+      setApys(apyData);
+    };
+
+    loadMarketData();
+
+    // Refresh every 2 minutes
+    const interval = setInterval(loadMarketData, 120000);
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchUserLocks = async () => {
     if (!currentAccount) return;
@@ -87,6 +109,8 @@ export function useSuiLocks() {
 
       const formatToDateString = (timestampMs) =>
         new Date(timestampMs).toLocaleDateString("sv");
+
+      const now = Date.now();
 
       const locks = ownedObjects.data.reduce((acc, objRef) => {
         try {
@@ -155,18 +179,26 @@ export function useSuiLocks() {
             2
           );
 
-          const approxYield = (() => {
-            try {
-              const principalNum = Number(principalBig.toString()) || 0;
-              const display =
-                principalNum === 0 ? 0 : (principalNum / 10 ** decimals) * 0.08;
-              return display.toFixed(2);
-            } catch {
-              return "0.00";
-            }
-          })();
+          // Calculate real yield using APY and time elapsed
+          const principalNum =
+            Number(principalBig.toString()) / Math.pow(10, decimals);
+          const tokenApy = apys[tokenName] || 8.0;
+          const yieldInToken = calculateYieldEarned(
+            principalNum,
+            tokenApy,
+            startTimeMs,
+            now
+          );
 
-          const now = Date.now();
+          // Calculate USD values
+          const principalUsd = calculateUsdValue(
+            tokenName,
+            principalBig.toString(),
+            decimals,
+            prices
+          );
+          const yieldUsd = yieldInToken * (prices[tokenName] || 0);
+
           const isExpired = unlockTime <= now;
           const msLeft = Math.max(0, unlockTime - now);
           const daysLeft = Math.ceil(msLeft / (24 * 60 * 60 * 1000));
@@ -188,13 +220,16 @@ export function useSuiLocks() {
             tokenAmount: tokenAmountStr,
             icon: suiIcon,
             coinType: coinTypeRaw,
-            scoinInfo, // Store sCoin info for withdrawal
+            scoinInfo,
             decimals,
             startDate: startTimeMs > 0 ? formatToDateString(startTimeMs) : "—",
             endDate: durationMs > 0 ? formatToDateString(unlockTime) : "—",
             timeLeft: daysLeft,
             percentElapsed,
-            yieldEarned: approxYield,
+            yieldEarned: yieldInToken.toFixed(4),
+            yieldEarnedUsd: yieldUsd.toFixed(2),
+            principalUsd: principalUsd.toFixed(2),
+            apy: tokenApy.toFixed(2),
             isExpired,
             memo: (fields.memo ?? fields.fields?.memo) || "",
           });
@@ -301,7 +336,7 @@ export function useSuiLocks() {
     } else {
       setUserLocks([]);
     }
-  }, [currentAccount?.address]);
+  }, [currentAccount?.address, prices, apys]); // Re-fetch when prices/APYs update
 
   return {
     userLocks,
@@ -310,5 +345,7 @@ export function useSuiLocks() {
     currentAccount,
     fetchUserLocks,
     withdrawLock,
+    prices,
+    apys,
   };
 }

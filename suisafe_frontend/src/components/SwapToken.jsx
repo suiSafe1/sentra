@@ -15,10 +15,12 @@ import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
 import confetti from "canvas-confetti";
 
 // --- Constants ---
-
 const TREASURY_IDS = {
   SUI: "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1",
   USDC: "0x989b2401f023c0b03ca22e23a0a8ab0d847af705018eab08594446a3a0d5c62a",
+  WAL: "0xde6569305d2ded577b08c3b036c88fe6d2e994e795293c0aaf9fc0da702cc0cf",
+  DEEP: "0x80d455dddb582ce1897635b748872bb63355c85283b57ad86a512f83d7c2c19d",
+  SCA: "0x2cd78563f92b51b4a664534e7b71936dcf5d920dfb9fed0ce846b80d3a9e44f3",
 };
 
 const FEE_MODULE_ADDRESS =
@@ -33,7 +35,7 @@ const tokens = [
   {
     symbol: "SUI",
     icon: sui,
-    type: "0x2::sui::SUI",
+    type: "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
     decimals: 9,
   },
   {
@@ -45,20 +47,20 @@ const tokens = [
   {
     symbol: "WAL",
     icon: wal,
-    type: null, // You would need to add the type for WAL
-    decimals: null, // You would need to add the decimals for WAL
+    type: "0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL",
+    decimals: 9,
   },
   {
     symbol: "DEEP",
     icon: deep,
-    type: null, // You would need to add the type for DEEP
-    decimals: null, // You would need to add the decimals for DEEP
+    type: "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+    decimals: 6,
   },
   {
     symbol: "SCA",
     icon: scal,
-    type: null, // You would need to add the type for DEEP
-    decimals: null, // You would need to add the decimals for DEEP
+    type: "0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA",
+    decimals: 9,
   },
 ];
 
@@ -69,45 +71,44 @@ function TokenSelect({ value, onChange }) {
   const selectedToken = tokens.find((t) => t.symbol === value);
 
   return (
-    <div className='relative min-w-32'>
+    <div className="relative min-w-32">
       <button
-        type='button'
+        type="button"
         onClick={() => setOpen(!open)}
-        className='flex justify-between items-center bg-white hover:bg-gray-50 shadow-sm px-3 py-2 border rounded-md w-full'
+        className="flex justify-between items-center bg-white hover:bg-gray-50 shadow-sm px-3 py-2 border rounded-md w-full"
       >
-        <div className='flex items-center gap-2'>
-          <img src={selectedToken.icon} alt='' className='h-8' />
+        <div className="flex items-center gap-2">
+          <img src={selectedToken.icon} alt="" className="h-8" />
           <span>{selectedToken.symbol}</span>
         </div>
         <svg
-          className='ml-2 w-4 h-4 text-gray-400'
-          xmlns='http://www.w3.org/2000/svg'
-          fill='none'
-          viewBox='0 0 24 24'
-          stroke='currentColor'
+          className="ml-2 w-4 h-4 text-gray-400"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
         >
           <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
+            strokeLinecap="round"
+            strokeLinejoin="round"
             strokeWidth={2}
-            d='M19 9l-7 7-7-7'
+            d="M19 9l-7 7-7-7"
           />
         </svg>
       </button>
 
       {open && (
-        <div className='z-10 absolute bg-white shadow-lg mt-1 border rounded-md max-h-40 overflow-y-auto'>
-          {" "}
+        <div className="z-10 absolute bg-white shadow-lg mt-1 border rounded-md max-h-40 overflow-y-auto">
           {tokens.map((token) => (
             <div
               key={token.symbol}
-              className='flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer'
+              className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer"
               onClick={() => {
                 onChange(token.symbol);
                 setOpen(false);
               }}
             >
-              <img src={token.icon} alt='' className='h-8' />
+              <img src={token.icon} alt="" className="h-8" />
               <span>{token.symbol}</span>
             </div>
           ))}
@@ -134,10 +135,8 @@ function TxOverlay({ outcome, onClose }) {
     ? `${digest.slice(0, 8)}...${digest.slice(-8)}`
     : "N/A";
 
-  // 🎊 Trigger confetti once on success
   useEffect(() => {
     if (isSuccess) {
-      // Fire bursts for a few seconds
       const duration = 2 * 1000;
       const animationEnd = Date.now() + duration;
 
@@ -159,7 +158,6 @@ function TxOverlay({ outcome, onClose }) {
 
         const particleCount = 50 * (timeLeft / duration);
 
-        // Emit from random edges
         confetti({
           ...defaults,
           particleCount,
@@ -175,28 +173,28 @@ function TxOverlay({ outcome, onClose }) {
   }, [isSuccess]);
 
   return (
-    <div className='z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 p-4'>
-      <div className='bg-white shadow-2xl p-6 rounded-lg w-full max-w-sm'>
+    <div className="z-50 fixed inset-0 flex justify-center items-center bg-black bg-opacity-50 p-4">
+      <div className="bg-white shadow-2xl p-6 rounded-lg w-full max-w-sm">
         <h3 className={`text-xl font-bold mb-4 text-center ${titleColor}`}>
           {title}
         </h3>
-        <div className='mb-4 text-gray-700 text-sm'>
-          <p className='mb-1 font-semibold'>
+        <div className="mb-4 text-gray-700 text-sm">
+          <p className="mb-1 font-semibold">
             {isSuccess ? "Swap Complete" : "Error Details:"}
           </p>
-          <p className='bg-gray-50 p-2 rounded max-h-32 overflow-y-auto font-mono break-words'>
+          <p className="bg-gray-50 p-2 rounded max-h-32 overflow-y-auto font-mono break-words">
             {isSuccess
               ? `Swapped successfully. Digest: ${displayDigest}`
               : outcome.message}
           </p>
         </div>
 
-        <div className='flex flex-col space-y-3 mt-4'>
+        <div className="flex flex-col space-y-3 mt-4">
           {isSuccess && explorerUrl && (
             <a
               href={explorerUrl}
-              target='_blank'
-              rel='noopener noreferrer'
+              target="_blank"
+              rel="noopener noreferrer"
               className={`text-white py-2 px-4 rounded-md text-center transition duration-150 ${buttonColor}`}
             >
               View on Explorer
@@ -204,7 +202,7 @@ function TxOverlay({ outcome, onClose }) {
           )}
           <button
             onClick={onClose}
-            className='bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-gray-800 transition duration-150'
+            className="bg-gray-200 hover:bg-gray-300 px-4 py-2 rounded-md text-gray-800 transition duration-150"
           >
             Cancel
           </button>
@@ -224,10 +222,11 @@ export default function SwapTokens() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState("");
-  const [balances, setBalances] = useState({ SUI: "0.00", USDC: "0.00" });
-  const [actualBalances, setActualBalances] = useState({ SUI: 0n, USDC: 0n });
+
+  const [balances, setBalances] = useState({});
+  const [actualBalances, setActualBalances] = useState({});
+
   const [slippage] = useState(0.5);
-  // { status: 'success' | 'failure', digest?: string, message?: string } or null
   const [txOutcome, setTxOutcome] = useState(null);
   const [showConnectBanner, setShowConnectBanner] = useState(false);
 
@@ -236,37 +235,42 @@ export default function SwapTokens() {
     useSignAndExecuteTransaction();
   const suiClient = useSuiClient();
 
-  // --- Effects (Balance & Route) ---
-
   const fetchBalances = useCallback(async () => {
     if (!currentAccount) return;
+
     try {
-      const suiCoins = await suiClient.getCoins({
-        owner: currentAccount.address,
-        coinType: "0x2::sui::SUI",
+      const balancePromises = tokens.map(async (token) => {
+        const coins = await suiClient.getCoins({
+          owner: currentAccount.address,
+          coinType: token.type,
+        });
+
+        const totalBalance = coins.data.reduce(
+          (sum, coin) => sum + BigInt(coin.balance),
+          0n
+        );
+
+        return {
+          symbol: token.symbol,
+          raw: totalBalance,
+          formatted: (
+            Number(totalBalance) / Math.pow(10, token.decimals)
+          ).toFixed(token.decimals === 9 ? 2 : 6),
+        };
       });
 
-      const usdcCoins = await suiClient.getCoins({
-        owner: currentAccount.address,
-        coinType:
-          "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+      const results = await Promise.all(balancePromises);
+
+      const newBalances = {};
+      const newActualBalances = {};
+
+      results.forEach((result) => {
+        newBalances[result.symbol] = result.formatted;
+        newActualBalances[result.symbol] = result.raw;
       });
 
-      const suiBalance = suiCoins.data.reduce(
-        (sum, coin) => sum + BigInt(coin.balance),
-        0n
-      );
-      const usdcBalance = usdcCoins.data.reduce(
-        (sum, coin) => sum + BigInt(coin.balance),
-        0n
-      );
-
-      setActualBalances({ SUI: suiBalance, USDC: usdcBalance });
-
-      setBalances({
-        SUI: (Number(suiBalance) / 1e9).toFixed(2),
-        USDC: (Number(usdcBalance) / 1e6).toFixed(2),
-      });
+      setBalances(newBalances);
+      setActualBalances(newActualBalances);
     } catch (error) {
       console.error("Failed to fetch balances:", error);
     }
@@ -274,7 +278,12 @@ export default function SwapTokens() {
 
   useEffect(() => {
     if (!currentAccount) {
-      setBalances({ SUI: "0.00", USDC: "0.00" });
+      const emptyBalances = {};
+      tokens.forEach((token) => {
+        emptyBalances[token.symbol] = "0.00";
+      });
+      setBalances(emptyBalances);
+      setActualBalances({});
       return;
     }
 
@@ -333,11 +342,9 @@ export default function SwapTokens() {
     return () => clearTimeout(debounce);
   }, [fromAmount, fromToken, toToken]);
 
-  // --- Handlers ---
-
   const handleSwap = async () => {
     if (!currentAccount) {
-      setShowConnectBanner(true); // Show banner instead of alert
+      setShowConnectBanner(true);
       return;
     }
 
@@ -355,15 +362,15 @@ export default function SwapTokens() {
       const fromTokenData = tokens.find((t) => t.symbol === fromToken);
       const toTokenData = tokens.find((t) => t.symbol === toToken);
 
-      let swapAmount = parseFloat(fromAmount);
-
+      const swapAmount = parseFloat(fromAmount);
       const amountInRaw = BigInt(
         Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
       );
 
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
-        coinType: "0x2::sui::SUI",
+        coinType:
+          "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
       });
 
       if (suiCoins.data.length === 0) {
@@ -387,18 +394,8 @@ export default function SwapTokens() {
               6
             )}`
           );
-        } else {
-          const actualSwapBalance = actualBalances[fromToken];
-          if (actualSwapBalance < amountInRaw) {
-            throw new Error(
-              `Insufficient ${fromToken} balance. Need ${(
-                Number(amountInRaw) / Math.pow(10, fromTokenData.decimals)
-              ).toFixed(6)}, have ${(
-                Number(actualSwapBalance) / Math.pow(10, fromTokenData.decimals)
-              ).toFixed(6)}`
-            );
-          }
         }
+
         const sortedCoins = [...suiCoins.data].sort((a, b) => {
           const balanceA = BigInt(a.balance);
           const balanceB = BigInt(b.balance);
@@ -410,7 +407,6 @@ export default function SwapTokens() {
           swapCoinIds = [sortedCoins[0].coinObjectId];
         } else {
           const largestCoin = sortedCoins[0];
-
           gasPayment = null;
           swapCoinIds = [largestCoin.coinObjectId];
 
@@ -499,15 +495,15 @@ export default function SwapTokens() {
 
       const treasuryId = TREASURY_IDS[fromToken];
 
-      if (!treasuryId) {
+      if (!treasuryId || treasuryId.startsWith("0x_YOUR_")) {
         throw new Error(
-          `Treasury not initialized for ${fromToken}. Please initialize it first.`
+          `Treasury not initialized for ${fromToken}. Please deploy and update TREASURY_IDS.`
         );
       }
 
       const [coinAfterFee] = txb.moveCall({
         target: `${FEE_MODULE_ADDRESS}::fee_router::take_fee_and_return`,
-        typeArguments: [fromTokenData.type],
+        typeArguments: [fromTokenData.type], // Dynamic type argument
         arguments: [txb.object(treasuryId), coinForSwap],
       });
 
@@ -520,16 +516,14 @@ export default function SwapTokens() {
 
       txb.transferObjects([outputCoin], currentAccount.address);
 
-      // Execute transaction
       const result = await signAndExecuteTransaction({
         transaction: txb,
       });
 
-      // Show success overlay
       setTxOutcome({ status: "success", digest: result.digest });
       setFromAmount("");
       setToAmount("");
-      await fetchBalances(); // Update balances immediately
+      await fetchBalances();
     } catch (error) {
       console.error("Swap failed:", error);
 
@@ -541,6 +535,8 @@ export default function SwapTokens() {
         error.message?.includes("No swap route")
       ) {
         errorMessage += "No swap route found for this pair";
+      } else if (error.message?.includes("Treasury not initialized")) {
+        errorMessage += error.message;
       } else if (error.message?.includes("Slippage")) {
         errorMessage +=
           "Slippage tolerance exceeded. Try increasing slippage or reducing amount";
@@ -550,7 +546,6 @@ export default function SwapTokens() {
         errorMessage += error.message || String(error);
       }
 
-      // Show failure overlay
       setTxOutcome({ status: "failure", message: errorMessage });
     } finally {
       setIsSwapping(false);
@@ -559,7 +554,6 @@ export default function SwapTokens() {
 
   const handleFromAmountChange = (e) => {
     const value = e.target.value;
-    // Allow empty string or valid numeric input
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setFromAmount(value);
     }
@@ -573,21 +567,24 @@ export default function SwapTokens() {
   };
 
   const handleMaxClick = () => {
+    const tokenData = tokens.find((t) => t.symbol === fromToken);
+    const rawBalance = actualBalances[fromToken] || 0n;
+
     if (fromToken === "SUI") {
-      const actualSuiBalance = Number(actualBalances.SUI) / 1e9;
-      // Reserve GAS_BUDGET (50M / 1e9 = 0.05 SUI)
+      const actualSuiBalance = Number(rawBalance) / 1e9;
       const maxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
       setFromAmount(maxAmount.toFixed(6));
     } else {
-      const actualUsdcBalance = Number(actualBalances.USDC) / 1e6;
-      setFromAmount(actualUsdcBalance.toFixed(6));
+      const actualBalance =
+        Number(rawBalance) / Math.pow(10, tokenData.decimals);
+      setFromAmount(actualBalance.toFixed(6));
     }
   };
 
   const isMaxAmountEntered = () => {
     if (fromToken !== "SUI" || !fromAmount) return false;
 
-    const actualSuiBalance = Number(actualBalances.SUI) / 1e9;
+    const actualSuiBalance = Number(actualBalances.SUI || 0n) / 1e9;
     const actualMaxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
     const actualMaxFormatted = actualMaxAmount.toFixed(6);
 
@@ -596,7 +593,6 @@ export default function SwapTokens() {
 
   const handleCloseTxOverlay = async () => {
     setTxOutcome(null);
-    // Optional: Re-fetch balances after a transaction outcome is closed
     if (currentAccount) {
       await fetchBalances();
     }
@@ -605,60 +601,58 @@ export default function SwapTokens() {
   // --- Render ---
 
   return (
-    <div className='relative bg-white shadow-md mx-auto p-6 rounded-lg w-full h-full'>
-      <div className='m-auto w-[fit-content]'>
-        <h2 className='mb-4 font-bold text-xl text-center'>Swap Tokens</h2>
-        <p className='mb-4 text-gray-500 text-sm text-center'>
+    <div className="relative bg-white shadow-md mx-auto p-6 rounded-lg w-full h-full">
+      <div className="m-auto w-[fit-content]">
+        <h2 className="mb-4 font-bold text-xl text-center">Swap Tokens</h2>
+        <p className="mb-4 text-gray-500 text-sm text-center">
           Exchange your tokens instantly with the best rates
         </p>
 
-        {/* Connect Wallet Banner */}
         {showConnectBanner && !currentAccount && (
           <div
-            className='relative bg-yellow-100 mb-4 px-4 py-3 border border-yellow-400 rounded text-yellow-700'
-            role='alert'
+            className="relative bg-yellow-100 mb-4 px-4 py-3 border border-yellow-400 rounded text-yellow-700"
+            role="alert"
           >
-            <span className='block sm:inline'>
+            <span className="block sm:inline">
               Please connect your wallet to start swapping.
             </span>
-            <span className='top-0 right-0 bottom-0 absolute px-4 py-3'>
+            <span className="top-0 right-0 bottom-0 absolute px-4 py-3">
               <svg
                 onClick={() => setShowConnectBanner(false)}
-                className='fill-current w-6 h-6 text-yellow-500 cursor-pointer'
-                role='button'
-                xmlns='http://www.w3.org/2000/svg'
-                viewBox='0 0 20 20'
+                className="fill-current w-6 h-6 text-yellow-500 cursor-pointer"
+                role="button"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
               >
                 <title>Close</title>
-                <path d='M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.854l-2.651 2.65a1.2 1.2 0 1 1-1.697-1.697l2.65-2.651-2.65-2.651a1.2 1.2 0 1 1 1.697-1.697l2.651 2.65 2.651-2.65a1.2 1.2 0 0 1 1.697 1.697l-2.65 2.651 2.65 2.651a1.2 1.2 0 0 1 0 1.697z' />
+                <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.854l-2.651 2.65a1.2 1.2 0 1 1-1.697-1.697l2.65-2.651-2.65-2.651a1.2 1.2 0 1 1 1.697-1.697l2.651 2.65 2.651-2.65a1.2 1.2 0 0 1 1.697 1.697l-2.65 2.651 2.65 2.651a1.2 1.2 0 0 1 0 1.697z" />
               </svg>
             </span>
           </div>
         )}
 
-        <div className='space-y-4 p-4 rounded-md ring-2 ring-gray-500'>
-          {/* From */}
+        <div className="space-y-4 p-4 rounded-md ring-2 ring-gray-500">
           <div>
-            <label className='block font-medium text-gray-700 text-sm'>
+            <label className="block font-medium text-gray-700 text-sm">
               From
             </label>
-            <div className='flex gap-2 mt-1'>
+            <div className="flex gap-2 mt-1">
               <TokenSelect value={fromToken} onChange={setFromToken} />
               <input
-                type='text'
-                className='px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right appearance-none'
+                type="text"
+                className="px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right appearance-none"
                 value={fromAmount}
                 onChange={handleFromAmountChange}
-                placeholder='0.00'
+                placeholder="0.00"
                 disabled={isSwapping}
               />
             </div>
-            <div className='flex justify-between mt-1'>
-              <p className='text-gray-500 text-xs'>
-                Balance: {balances[fromToken]}
+            <div className="flex justify-between mt-1">
+              <p className="text-gray-500 text-xs">
+                Balance: {balances[fromToken] || "0.00"}
               </p>
               <button
-                className='disabled:opacity-50 font-semibold text-indigo-600 hover:text-indigo-800 text-sm'
+                className="disabled:opacity-50 font-semibold text-indigo-600 hover:text-indigo-800 text-sm"
                 onClick={handleMaxClick}
                 disabled={isSwapping}
               >
@@ -666,55 +660,52 @@ export default function SwapTokens() {
               </button>
             </div>
             {fromToken === "SUI" && isMaxAmountEntered() && (
-              <p className='mt-2 text-gray-500 text-xs'>
+              <p className="mt-2 text-gray-500 text-xs">
                 ~{(GAS_BUDGET / 1e9).toFixed(2)} SUI is reserved to cover gas
                 fees
               </p>
             )}
           </div>
 
-          {/* Flip */}
-          <div className='flex justify-center'>
+          <div className="flex justify-center">
             <button
-              className='rounded-full'
+              className="rounded-full"
               onClick={handleFlip}
               disabled={isSwapping}
             >
-              <img src={swap_swap} alt='swap coins' className='h-16' />
+              <img src={swap_swap} alt="swap coins" className="h-16" />
             </button>
           </div>
 
-          {/* To */}
           <div>
-            <label className='block font-medium text-gray-700 text-sm'>
+            <label className="block font-medium text-gray-700 text-sm">
               To{" "}
               {isFetchingRoute && (
-                <span className='text-gray-400 text-xs'>(Calculating...)</span>
+                <span className="text-gray-400 text-xs">(Calculating...)</span>
               )}
               {routeError && (
-                <span className='ml-2 text-red-500 text-xs'>
+                <span className="ml-2 text-red-500 text-xs">
                   ({routeError})
                 </span>
               )}
             </label>
-            <div className='flex gap-2 mt-1'>
+            <div className="flex gap-2 mt-1">
               <TokenSelect value={toToken} onChange={setToToken} />
               <input
-                type='text'
-                className='px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right'
+                type="text"
+                className="px-3 py-2 border focus:border-indigo-500 rounded-md focus:ring-indigo-500 w-3/4 text-right"
                 value={toAmount}
                 readOnly
-                placeholder='0.00'
+                placeholder="0.00"
               />
             </div>
-            <p className='mt-1 text-gray-500 text-xs'>
-              Balance: {balances[toToken]}
+            <p className="mt-1 text-gray-500 text-xs">
+              Balance: {balances[toToken] || "0.00"}
             </p>
           </div>
 
-          {/* Swap Button */}
           <button
-            className='bg-[#00076C] hover:bg-indigo-700 disabled:opacity-50 px-4 py-2 rounded-md w-full text-white disabled:cursor-not-allowed'
+            className="bg-[#00076C] hover:bg-indigo-700 disabled:opacity-50 px-4 py-2 rounded-md w-full text-white disabled:cursor-not-allowed"
             onClick={handleSwap}
             disabled={
               isSwapping ||
@@ -736,7 +727,6 @@ export default function SwapTokens() {
         </div>
       </div>
 
-      {/* Transaction Outcome Overlay (Success or Failure) */}
       <TxOverlay outcome={txOutcome} onClose={handleCloseTxOverlay} />
     </div>
   );

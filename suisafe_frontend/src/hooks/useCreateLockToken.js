@@ -81,14 +81,13 @@ export function useCreateLockToken() {
       setIsLoading(true);
 
       const tx = new Transaction();
-      tx.setGasBudget(15_000_000); // Increased for two Scallop calls
+      tx.setGasBudget(15_000_000);
 
       const decimals = selectedToken.decimals || 9;
       const tokenAmount = BigInt(
         Math.floor(parseFloat(amount) * 10 ** decimals)
       );
 
-      // ✅ Step 1: Get the base coin
       let coin;
 
       if (selectedToken.symbol === "SUI") {
@@ -129,7 +128,6 @@ export function useCreateLockToken() {
         [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
       }
 
-      // ✅ Step 2: Mint MarketCoin from Scallop
       const marketCoinHandle = tx.moveCall({
         target: `${SCALLOP_MINT_PACKAGE}::mint::mint`,
         arguments: [
@@ -141,38 +139,30 @@ export function useCreateLockToken() {
         typeArguments: [selectedToken.type],
       });
 
-      // ✅ Step 3: Mint sCoin from MarketCoin
       const sCoinHandle = tx.moveCall({
         target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::mint_s_coin`,
         arguments: [
-          tx.object(selectedToken.scoin.converterId), // Converter object for this token
+          tx.object(selectedToken.scoin.converterId),
           marketCoinHandle,
         ],
-        typeArguments: [
-          selectedToken.scoin.type, // SCALLOP_SUI, SCALLOP_DEEP, etc.
-          selectedToken.type, // Base coin type
-        ],
+        typeArguments: [selectedToken.scoin.type, selectedToken.type],
       });
 
       const descriptionBytes = Array.from(
         new TextEncoder().encode(lockDescription || "Yield Lock")
       );
 
-      // ✅ Step 4: Create yield lock with sCoin
       tx.moveCall({
         target: `${PACKAGE_ID}::sentra::create_yield_lock`,
         arguments: [
           tx.object(PLATFORM_ID),
           tx.object(REGISTRY_ID),
-          sCoinHandle, // ✅ Now passing sCoin instead of MarketCoin
+          sCoinHandle,
           tx.pure.u64(getDurationInMs(selectedDuration, selectedDate)),
           tx.pure.vector("u8", descriptionBytes),
           tx.object(CLOCK_ID),
         ],
-        typeArguments: [
-          selectedToken.type, // Base coin type (e.g., 0x2::sui::SUI)
-          selectedToken.scoin.type, // sCoin type (e.g., SCALLOP_SUI)
-        ],
+        typeArguments: [selectedToken.type, selectedToken.scoin.type],
       });
 
       const result = await signAndExecuteTransaction({ transaction: tx });

@@ -240,21 +240,18 @@ export function useSuiLocks() {
       const SCOIN_TYPE = asset.scoinInfo.scoinType;
       const CONVERTER_ID = asset.scoinInfo.converterId;
 
-      // Step 1: Unlock sCoin from YieldLock
       const sCoinHandle = tx.moveCall({
         target: `${PACKAGE_ID}::sentra::unlock_yield_lock_s_coin`,
         arguments: [tx.object(asset.yieldLockId), tx.object(PLATFORM_ID)],
         typeArguments: [SCOIN_TYPE],
       });
 
-      // Step 2: Redeem sCoin to MarketCoin
       const marketCoinHandle = tx.moveCall({
-        target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::redeem_s_coin`,
+        target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::burn_s_coin`,
         arguments: [tx.object(CONVERTER_ID), sCoinHandle],
         typeArguments: [SCOIN_TYPE, BASE_COIN_TYPE],
       });
 
-      // Step 3: Redeem MarketCoin to base coin
       const redeemedCoinHandle = tx.moveCall({
         target: `${SCALLOP_REDEEM_PACKAGE}::redeem::redeem`,
         arguments: [
@@ -266,7 +263,6 @@ export function useSuiLocks() {
         typeArguments: [BASE_COIN_TYPE],
       });
 
-      // Step 4: Complete withdrawal
       tx.moveCall({
         target: `${PACKAGE_ID}::sentra::complete_yield_withdrawal_with_redeemed_coin`,
         arguments: [

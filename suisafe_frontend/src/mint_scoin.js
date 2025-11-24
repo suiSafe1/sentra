@@ -1,17 +1,4 @@
-#!/usr/bin/env node
-
 /**
- * Mint sCoin Script
- *
- * This script mints sCoin from a base token using Scallop Protocol:
- * 1. Mints MarketCoin from base token (SUI, DEEP, etc.)
- * 2. Converts MarketCoin to sCoin
- *
- * Usage:
- *   node mint-scoin.js <token-symbol> <amount>
- *
- * Example:
- *   node mint-scoin.js SUI 10
  *   node mint-scoin.js DEEP 100
  */
 
@@ -55,15 +42,12 @@ const TOKENS = {
         "0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88",
     },
   },
-  // Add more tokens as needed
 };
 
 // ==================== SETUP ====================
 
 const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
 
-// ⚠️ ADD YOUR PRIVATE KEY HERE ⚠️
-// Replace the empty string with your actual private key
 const PRIVATE_KEY = "";
 
 if (!PRIVATE_KEY) {

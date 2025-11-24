@@ -28,22 +28,41 @@ const SCALLOP_REDEEM_PACKAGE =
 
 const suiIcon = "SUI_ICON_SVG_JSX";
 
-// Token configuration with sCoin info - MUST MATCH YOUR TOKEN CONFIG
 const TOKEN_SCOIN_MAP = {
   "0x2::sui::SUI": {
     scoinType:
-      "0xaafc4f740de0dd0dde642a31148fb941a50c77b::scallop_sui::SCALLOP_SUI",
+      "0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI",
     converterId:
       "0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b",
   },
   "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP":
     {
       scoinType:
-        "0xeb7a05a3224837c5e5503575aed0be714608f::scallop_deep::SCALLOP_DEEP",
+        "0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP",
       converterId:
         "0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88",
     },
-  // Add other tokens here as you find their sCoin converters
+  "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC":
+    {
+      scoinType:
+        "0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC",
+      converterId:
+        "0xbe6b63021f3d82e0e7e977cdd718ed7c019cf2eba374b7b546220402452f938e",
+    },
+  "0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL":
+    {
+      scoinType:
+        "0x622345b3f80ea5947567760eec7b9639d0582adcfd6ab9fccb85437aeda7c0d0::scallop_wal::SCALLOP_WAL",
+      converterId:
+        "0xc02b365a1d880156c1a757d7777867e8a436ab97ce5f51e211695580ab7c9bce",
+    },
+  "0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA":
+    {
+      scoinType:
+        "0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA",
+      converterId:
+        "0xe04bfc95e00252bd654ee13c08edef9ac5e4b6ae4074e8390db39e9a0109c529",
+    },
 };
 
 export function useSuiLocks() {

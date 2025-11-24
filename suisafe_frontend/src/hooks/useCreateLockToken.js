@@ -7,16 +7,20 @@ import {
 } from "@mysten/dapp-kit";
 
 const PACKAGE_ID =
-  "0xe7f9195e196481c59eb8da4c624e54574f1ec7a7822f2c0532de67668cadf368";
+  "0x7b9640dc7446fdc540a17ce6a0673be6f95447862ea63685daa7594f57f32601";
 const REGISTRY_ID =
-  "0x15a9045f704069d57cd483c537db8e520b91edf1ed532c8df31443c316a3bae6";
+  "0x1cb927b87f8d1c00aadf70e36d315abfe156dbf8ea37bf9fcaaeb2bbd4ea43ba";
 const PLATFORM_ID =
-  "0x7bff4a524702b14783c6abf1b3dca82dd3237da87d9179c7c7933fc72814da29";
+  "0x38648bb04fd4304ccc4ecb28fbf5ac3003103d5f3ae58b172463f73818d10fa5";
 const CLOCK_ID = "0x6";
 const SCALLOP_MAINNET_MARKET_ID =
   "0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9";
 const SCALLOP_MAINNET_VERSION_ID =
   "0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7";
+const SCALLOP_MINT_PACKAGE =
+  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
+const SCALLOP_S_COIN_CONVERTER_PACKAGE =
+  "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 
 const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
 
@@ -29,7 +33,6 @@ export function useCreateLockToken() {
   const [lockerId, setLockerId] = useState("");
   const [txHash, setTxHash] = useState("");
 
-  // --- Helpers ---
   const getDurationInMs = (selectedDuration, selectedDate) => {
     if (selectedDate) {
       const now = new Date();
@@ -48,15 +51,29 @@ export function useCreateLockToken() {
     return unlockDate.toLocaleDateString();
   };
 
-  // --- Core lock creation ---
   const createLock = async (
     amount,
     selectedDuration,
     selectedDate,
-    lockDescription = ""
+    lockDescription = "",
+    selectedToken
   ) => {
     if (!currentAccount || !amount) {
       alert("Please connect wallet and enter amount");
+      return;
+    }
+
+    if (!selectedToken || !selectedToken.type) {
+      alert("Please select a valid token");
+      return;
+    }
+
+    if (
+      !selectedToken.scoin ||
+      !selectedToken.scoin.type ||
+      !selectedToken.scoin.converterId
+    ) {
+      alert("sCoin configuration missing for this token");
       return;
     }
 
@@ -64,39 +81,97 @@ export function useCreateLockToken() {
       setIsLoading(true);
 
       const tx = new Transaction();
-      tx.setGasBudget(10_000_000);
+      tx.setGasBudget(15_000_000); // Increased for two Scallop calls
 
-      const suiAmount = BigInt(Math.floor(parseFloat(amount) * 1_000_000_000));
-      const [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(suiAmount)]);
+      const decimals = selectedToken.decimals || 9;
+      const tokenAmount = BigInt(
+        Math.floor(parseFloat(amount) * 10 ** decimals)
+      );
 
-      const [marketCoinHandle] = tx.moveCall({
-        target: `0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41::mint::mint`,
+      // ✅ Step 1: Get the base coin
+      let coin;
+
+      if (selectedToken.symbol === "SUI") {
+        [coin] = tx.splitCoins(tx.gas, [tx.pure.u64(tokenAmount)]);
+      } else {
+        const coinType = selectedToken.type;
+        const coins = await client.getCoins({
+          owner: currentAccount.address,
+          coinType: coinType,
+        });
+
+        if (!coins.data || coins.data.length === 0) {
+          throw new Error(`No ${selectedToken.symbol} coins found in wallet`);
+        }
+
+        const totalBalance = coins.data.reduce(
+          (sum, coin) => sum + BigInt(coin.balance),
+          BigInt(0)
+        );
+
+        if (totalBalance < tokenAmount) {
+          throw new Error(`Insufficient ${selectedToken.symbol} balance`);
+        }
+
+        const primaryCoinId = coins.data[0].coinObjectId;
+        coin = tx.object(primaryCoinId);
+
+        if (
+          coins.data.length > 1 &&
+          BigInt(coins.data[0].balance) < tokenAmount
+        ) {
+          const coinsToMerge = coins.data
+            .slice(1)
+            .map((c) => tx.object(c.coinObjectId));
+          tx.mergeCoins(coin, coinsToMerge);
+        }
+
+        [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
+      }
+
+      // ✅ Step 2: Mint MarketCoin from Scallop
+      const marketCoinHandle = tx.moveCall({
+        target: `${SCALLOP_MINT_PACKAGE}::mint::mint`,
         arguments: [
           tx.object(SCALLOP_MAINNET_VERSION_ID),
           tx.object(SCALLOP_MAINNET_MARKET_ID),
           coin,
           tx.object(CLOCK_ID),
         ],
-        typeArguments: ["0x2::sui::SUI"],
+        typeArguments: [selectedToken.type],
+      });
+
+      // ✅ Step 3: Mint sCoin from MarketCoin
+      const sCoinHandle = tx.moveCall({
+        target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::mint_s_coin`,
+        arguments: [
+          tx.object(selectedToken.scoin.converterId), // Converter object for this token
+          marketCoinHandle,
+        ],
+        typeArguments: [
+          selectedToken.scoin.type, // SCALLOP_SUI, SCALLOP_DEEP, etc.
+          selectedToken.type, // Base coin type
+        ],
       });
 
       const descriptionBytes = Array.from(
         new TextEncoder().encode(lockDescription || "Yield Lock")
       );
 
+      // ✅ Step 4: Create yield lock with sCoin
       tx.moveCall({
         target: `${PACKAGE_ID}::sentra::create_yield_lock`,
         arguments: [
           tx.object(PLATFORM_ID),
           tx.object(REGISTRY_ID),
-          marketCoinHandle,
+          sCoinHandle, // ✅ Now passing sCoin instead of MarketCoin
           tx.pure.u64(getDurationInMs(selectedDuration, selectedDate)),
           tx.pure.vector("u8", descriptionBytes),
           tx.object(CLOCK_ID),
         ],
         typeArguments: [
-          "0x2::sui::SUI",
-          "0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf::reserve::MarketCoin<0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI>",
+          selectedToken.type, // Base coin type (e.g., 0x2::sui::SUI)
+          selectedToken.scoin.type, // sCoin type (e.g., SCALLOP_SUI)
         ],
       });
 

@@ -1,5 +1,3 @@
-// src/hooks/useSuiLocks.js
-
 import { useState, useEffect } from "react";
 import {
   useCurrentAccount,
@@ -23,7 +21,30 @@ import {
   prettyTokenNameFromType,
 } from "../utils/SuiUtils";
 
+const SCALLOP_S_COIN_CONVERTER_PACKAGE =
+  "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
+const SCALLOP_REDEEM_PACKAGE =
+  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
+
 const suiIcon = "SUI_ICON_SVG_JSX";
+
+// Token configuration with sCoin info - MUST MATCH YOUR TOKEN CONFIG
+const TOKEN_SCOIN_MAP = {
+  "0x2::sui::SUI": {
+    scoinType:
+      "0xaafc4f740de0dd0dde642a31148fb941a50c77b::scallop_sui::SCALLOP_SUI",
+    converterId:
+      "0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b",
+  },
+  "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP":
+    {
+      scoinType:
+        "0xeb7a05a3224837c5e5503575aed0be714608f::scallop_deep::SCALLOP_DEEP",
+      converterId:
+        "0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88",
+    },
+  // Add other tokens here as you find their sCoin converters
+};
 
 export function useSuiLocks() {
   const [userLocks, setUserLocks] = useState([]);
@@ -45,8 +66,6 @@ export function useSuiLocks() {
         options: { showContent: true, showType: true },
       });
 
-      // Helper function to format timestamp into YYYY-MM-DD
-      // 'sv' (Swedish) locale is used for consistent YYYY-MM-DD output.
       const formatToDateString = (timestampMs) =>
         new Date(timestampMs).toLocaleDateString("sv");
 
@@ -67,32 +86,63 @@ export function useSuiLocks() {
             fields,
             "principal_amount",
             ["principal_amount"],
-            ["market_balance", "value"],
+            ["s_coin_balance", "value"], // Changed from market_balance
             "amount",
             "balance",
             ["balance", "value"]
           );
-          const tokenAmountStr = formatTokenAmountRaw(principalBig, 9, 2);
 
-          const coinTypeRaw = extractCoinType(fields);
-          let tokenName;
+          let coinTypeRaw = extractCoinType(fields);
+          let tokenName = "TOKEN";
+          let decimals = 9;
+          let scoinInfo = null;
 
           if (!coinTypeRaw && objRef.data.type) {
+            // Extract from YieldLock type - now it's YieldLock<SCoin>
             const typeMatch = objRef.data.type.match(/<([^>]+)>/);
-            tokenName =
-              typeMatch && typeMatch[1]
-                ? prettyTokenNameFromType(typeMatch[1])
-                : "SUI";
-          } else {
-            tokenName = prettyTokenNameFromType(coinTypeRaw);
+            if (typeMatch && typeMatch[1]) {
+              const scoinType = typeMatch[1];
+              // Map sCoin type back to base coin type
+              for (const [baseCoin, info] of Object.entries(TOKEN_SCOIN_MAP)) {
+                if (
+                  scoinType.includes(info.scoinType) ||
+                  info.scoinType.includes(scoinType)
+                ) {
+                  coinTypeRaw = baseCoin;
+                  scoinInfo = info;
+                  break;
+                }
+              }
+            }
+          } else if (coinTypeRaw) {
+            scoinInfo = TOKEN_SCOIN_MAP[coinTypeRaw];
           }
+
+          if (coinTypeRaw) {
+            tokenName = prettyTokenNameFromType(coinTypeRaw);
+
+            if (coinTypeRaw.includes("::sui::SUI")) {
+              decimals = 9;
+            } else if (coinTypeRaw.includes("::usdc::USDC")) {
+              decimals = 6;
+            } else if (coinTypeRaw.includes("::deep::DEEP")) {
+              decimals = 6;
+            } else {
+              decimals = 9;
+            }
+          }
+
+          const tokenAmountStr = formatTokenAmountRaw(
+            principalBig,
+            decimals,
+            2
+          );
 
           const approxYield = (() => {
             try {
-              // Simple 8% APR approximation for display
               const principalNum = Number(principalBig.toString()) || 0;
               const display =
-                principalNum === 0 ? 0 : (principalNum / 1_000_000_000) * 0.08;
+                principalNum === 0 ? 0 : (principalNum / 10 ** decimals) * 0.08;
               return display.toFixed(2);
             } catch {
               return "0.00";
@@ -120,10 +170,11 @@ export function useSuiLocks() {
             tokenName,
             tokenAmount: tokenAmountStr,
             icon: suiIcon,
-            // --- NEW DATE LOGIC APPLIED HERE ---
+            coinType: coinTypeRaw,
+            scoinInfo, // Store sCoin info for withdrawal
+            decimals,
             startDate: startTimeMs > 0 ? formatToDateString(startTimeMs) : "—",
             endDate: durationMs > 0 ? formatToDateString(unlockTime) : "—",
-            // ------------------------------------
             timeLeft: daysLeft,
             percentElapsed,
             yieldEarned: approxYield,
@@ -155,36 +206,48 @@ export function useSuiLocks() {
       return;
     }
 
+    if (!asset.coinType || !asset.scoinInfo) {
+      alert("Cannot determine token type or sCoin info for withdrawal");
+      return;
+    }
+
     setWithdrawing(asset.yieldLockId);
 
     try {
       const tx = new Transaction();
-      tx.setGasBudget(10000000);
+      tx.setGasBudget(15000000);
 
-      const SUI_TYPE =
-        "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI";
-      const MARKET_COIN_TYPE = `0xefe8b36d5b2e43728cc323298626b83177803521d195cfb11e15b910e892fddf::reserve::MarketCoin<${SUI_TYPE}>`;
+      const BASE_COIN_TYPE = asset.coinType;
+      const SCOIN_TYPE = asset.scoinInfo.scoinType;
+      const CONVERTER_ID = asset.scoinInfo.converterId;
 
-      // 1. Unlock Market Coin from YieldLock
-      const marketCoinHandle = tx.moveCall({
-        target: `${PACKAGE_ID}::sentra::unlock_yield_lock_market_coin`,
+      // Step 1: Unlock sCoin from YieldLock
+      const sCoinHandle = tx.moveCall({
+        target: `${PACKAGE_ID}::sentra::unlock_yield_lock_s_coin`,
         arguments: [tx.object(asset.yieldLockId), tx.object(PLATFORM_ID)],
-        typeArguments: [MARKET_COIN_TYPE],
+        typeArguments: [SCOIN_TYPE],
       });
 
-      // 2. Redeem Market Coin for base SUI (Scallop integration)
+      // Step 2: Redeem sCoin to MarketCoin
+      const marketCoinHandle = tx.moveCall({
+        target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::redeem_s_coin`,
+        arguments: [tx.object(CONVERTER_ID), sCoinHandle],
+        typeArguments: [SCOIN_TYPE, BASE_COIN_TYPE],
+      });
+
+      // Step 3: Redeem MarketCoin to base coin
       const redeemedCoinHandle = tx.moveCall({
-        target: `0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41::redeem::redeem`,
+        target: `${SCALLOP_REDEEM_PACKAGE}::redeem::redeem`,
         arguments: [
           tx.object(SCALLOP_MAINNET_VERSION_ID),
           tx.object(SCALLOP_MAINNET_MARKET_ID),
           marketCoinHandle,
           tx.object(CLOCK_ID),
         ],
-        typeArguments: [SUI_TYPE],
+        typeArguments: [BASE_COIN_TYPE],
       });
 
-      // 3. Complete withdrawal and transfer SUI to user
+      // Step 4: Complete withdrawal
       tx.moveCall({
         target: `${PACKAGE_ID}::sentra::complete_yield_withdrawal_with_redeemed_coin`,
         arguments: [
@@ -194,11 +257,11 @@ export function useSuiLocks() {
           tx.object(REGISTRY_ID),
           tx.object(CLOCK_ID),
         ],
-        typeArguments: [SUI_TYPE, MARKET_COIN_TYPE],
+        typeArguments: [BASE_COIN_TYPE, SCOIN_TYPE],
       });
 
       const result = await signAndExecuteTransaction({ transaction: tx });
-      console.log("✅ Combined withdrawal result:", result);
+      console.log("✅ Withdrawal result:", result);
 
       await fetchUserLocks();
       alert("Withdrawal successful!");
@@ -225,7 +288,7 @@ export function useSuiLocks() {
     } else {
       setUserLocks([]);
     }
-  }, [currentAccount?.address]); // Dependency on address to ensure refetch on account switch
+  }, [currentAccount?.address]);
 
   return {
     userLocks,

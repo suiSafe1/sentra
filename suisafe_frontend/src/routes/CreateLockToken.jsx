@@ -44,6 +44,70 @@ function CreateLockToken() {
   } = useCreateLockToken();
 
   /* --------------------------------------------------------------
+     ✅ Token Configuration
+  -------------------------------------------------------------- */
+  const tokens = [
+    {
+      symbol: "SUI",
+      icon: sui,
+      type: "0x0000000000000000000000000000000000000000000000000000000000000002::sui::SUI",
+      decimals: 9,
+      scoin: {
+        // sCoin type for SUI
+        type: "0xaafc4f740de0dd0dde642a31148fb94517087052f19afb0f7bed1dc41a50c77b::scallop_sui::SCALLOP_SUI",
+        // Converter object ID for SUI
+        converterId:
+          "0x5c1678c8261ac9eec024d4d630006a9f55c80dc0b1aa38a003fcb1d425818c6b",
+      },
+    },
+    {
+      symbol: "USDC",
+      icon: usdc,
+      type: "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+      decimals: 6,
+      scoin: {
+        type: "0x854950aa624b1df59fe64e630b2ba7c550642e9342267a33061d59fb31582da5::scallop_usdc::SCALLOP_USDC",
+        converterId:
+          "0xbe6b63021f3d82e0e7e977cdd718ed7c019cf2eba374b7b546220402452f938e",
+      },
+    },
+    {
+      symbol: "WAL",
+      icon: wal,
+      type: "0x356a26eb9e012a68958082340d4c4116e7f55615cf27affcff209cf0ae544f59::wal::WAL",
+      decimals: 9,
+      scoin: {
+        type: "0x622345b3f80ea5947567760eec7b9639d0582adcfd6ab9fccb85437aeda7c0d0::scallop_wal::SCALLOP_WAL",
+        converterId:
+          "0xc02b365a1d880156c1a757d7777867e8a436ab97ce5f51e211695580ab7c9bce",
+      },
+    },
+    {
+      symbol: "DEEP",
+      icon: deep,
+      type: "0xdeeb7a4662eec9f2f3def03fb937a663dddaa2e215b8078a284d026b7946c270::deep::DEEP",
+      decimals: 6,
+      scoin: {
+        type: "0xeb7a05a3224837c5e5503575aed0be73c091d1ce5e43aa3c3e716e0ae614608f::scallop_deep::SCALLOP_DEEP",
+        converterId:
+          "0xc63838fabe37b25ad897392d89876d920f5e0c6a406bf3abcb84753d2829bc88",
+      },
+    },
+    {
+      symbol: "SCA",
+      icon: scal,
+      type: "0x7016aae72cfc67f2fadf55769c0a7dd54291a583b63051a5ed71081cce836ac6::sca::SCA",
+      decimals: 9,
+      scoin: {
+        type: "0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA",
+        converterId:
+          "0xe04bfc95e00252bd654ee13c08edef9ac5e4b6ae4074e8390db39e9a0109c529",
+      },
+    },
+  ];
+  const [selectedToken, setSelectedToken] = useState(tokens[0]); // Default: SUI
+
+  /* --------------------------------------------------------------
      Confetti control
   -------------------------------------------------------------- */
   useEffect(() => {
@@ -64,7 +128,8 @@ function CreateLockToken() {
       amount,
       selectedDuration,
       selectedDate,
-      lockDescription
+      lockDescription,
+      selectedToken
     );
     if (res?.success) {
       setConfirmLock(false);
@@ -114,43 +179,6 @@ function CreateLockToken() {
         document.body
       )
     : null;
-
-  const tokens = [
-    {
-      symbol: "SUI",
-      icon: sui, // Assumes 'sui' is an imported image
-      type: "0x2::sui::SUI",
-      decimals: 9,
-    },
-    {
-      symbol: "USDC",
-      icon: usdc, // Assumes 'usdc' is an imported image
-      type: "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
-      decimals: 6,
-    },
-    {
-      symbol: "WAL",
-      icon: wal, // Assumes 'wal' is an imported image
-      type: null,
-      decimals: null,
-    },
-    {
-      symbol: "DEEP",
-      icon: deep, // Assumes 'deep' is an imported image
-      type: null,
-      decimals: null,
-    },
-    {
-      symbol: "SCA",
-      icon: scal, // Assumes 'scal' is an imported image
-      type: null,
-      decimals: null,
-    },
-  ];
-
-  // ... Inside your component
-  // Store the whole selected token object, defaulting to SUI
-  const [selectedToken, setSelectedToken] = useState(tokens[0]);
 
   return (
     <div
@@ -203,7 +231,6 @@ function CreateLockToken() {
                   onClick={() => setSelectToken(!selectToken)}
                   className="flex justify-between items-center bg-white px-2.5 border border-[#4D5562] rounded-lg h-12 font-semibold text-[#4D5562]"
                 >
-                  {/* Dynamic content for the selected token */}
                   <span className="flex items-center gap-2">
                     <img
                       src={selectedToken.icon}
@@ -215,16 +242,16 @@ function CreateLockToken() {
                   <IoIosArrowDown />
                 </button>
 
-                {/* The scrollable dropdown menu */}
+                {/* Token Dropdown */}
                 {selectToken && (
                   <div className="top-full z-10 absolute bg-white shadow-lg mt-1 border rounded-md w-full max-h-60 overflow-y-auto">
                     {tokens.map((token) => (
                       <div
-                        key={token.symbol} // Assumes symbols are unique
+                        key={token.symbol}
                         className="flex items-center gap-2 hover:bg-gray-100 px-3 py-2 cursor-pointer"
                         onClick={() => {
-                          setSelectedToken(token); // Set the clicked token as selected
-                          setSelectToken(false); // Close the dropdown
+                          setSelectedToken(token);
+                          setSelectToken(false);
                         }}
                       >
                         <img
@@ -358,13 +385,17 @@ function CreateLockToken() {
           {amount ? (
             <div className="bg-white p-5">
               <div className="flex items-center gap-3 bg-[#F9FAFC] p-3 rounded-lg">
-                <div className="text-[24px]">Coin</div>
+                <img
+                  src={selectedToken.icon}
+                  alt={selectedToken.symbol}
+                  className="h-8"
+                />
                 <div>
                   <h2 className="font-extrabold text-[#101729] text-[16.88px]">
-                    {amount} SUI
+                    {amount} {selectedToken.symbol}
                   </h2>
                   <p className="font-semibold text-[#4D5562] text-[14.47px]">
-                    SUI Token
+                    {selectedToken.symbol} Token
                   </p>
                 </div>
               </div>
@@ -464,15 +495,9 @@ function CreateLockToken() {
               <h2 className="mt-4 font-extrabold text-[#00076C] text-2xl">
                 Lock Created Successfully!
               </h2>
-              {/* ======================================================== */}
-              {/* ================== HERE IS THE FIX =================== */}
-              {/* ======================================================== */}
               <p className="mt-2 text-[#4D5562] text-base">
                 Your assets have been locked and will start earning yield.
               </p>
-              {/* ======================================================== */}
-              {/* ================== END OF FIX ========================== */}
-              {/* ======================================================== */}
             </div>
 
             <button
@@ -486,9 +511,6 @@ function CreateLockToken() {
         </div>
       )}
 
-      {/* --------------------------------------------------------------
-         CONFETTI PORTAL – ALWAYS ON TOP
-      -------------------------------------------------------------- */}
       {confettiPortal}
     </div>
   );

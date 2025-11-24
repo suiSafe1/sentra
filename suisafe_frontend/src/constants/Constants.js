@@ -4,11 +4,11 @@ import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 
 // Contract IDs
 export const PACKAGE_ID =
-  "0xe7f9195e196481c59eb8da4c624e54574f1ec7a7822f2c0532de67668cadf368";
+  "0x7b9640dc7446fdc540a17ce6a0673be6f95447862ea63685daa7594f57f32601";
 export const REGISTRY_ID =
-  "0x15a9045f704069d57cd483c537db8e520b91edf1ed532c8df31443c316a3bae6";
+  "0x1cb927b87f8d1c00aadf70e36d315abfe156dbf8ea37bf9fcaaeb2bbd4ea43ba";
 export const PLATFORM_ID =
-  "0x7bff4a524702b14783c6abf1b3dca82dd3237da87d9179c7c7933fc72814da29";
+  "0x38648bb04fd4304ccc4ecb28fbf5ac3003103d5f3ae58b172463f73818d10fa5";
 export const CLOCK_ID = "0x6";
 
 // Scallop IDs (for SUI redemption)

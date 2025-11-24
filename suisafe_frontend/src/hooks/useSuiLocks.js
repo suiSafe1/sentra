@@ -105,7 +105,7 @@ export function useSuiLocks() {
             fields,
             "principal_amount",
             ["principal_amount"],
-            ["s_coin_balance", "value"], // Changed from market_balance
+            ["s_coin_balance", "value"],
             "amount",
             "balance",
             ["balance", "value"]
@@ -117,11 +117,9 @@ export function useSuiLocks() {
           let scoinInfo = null;
 
           if (!coinTypeRaw && objRef.data.type) {
-            // Extract from YieldLock type - now it's YieldLock<SCoin>
             const typeMatch = objRef.data.type.match(/<([^>]+)>/);
             if (typeMatch && typeMatch[1]) {
               const scoinType = typeMatch[1];
-              // Map sCoin type back to base coin type
               for (const [baseCoin, info] of Object.entries(TOKEN_SCOIN_MAP)) {
                 if (
                   scoinType.includes(info.scoinType) ||

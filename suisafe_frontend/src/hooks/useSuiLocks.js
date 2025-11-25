@@ -22,8 +22,6 @@ import {
 } from "../utils/SuiUtils";
 import { fetchTokenPrices, calculateUsdValue } from "../services/priceService";
 import { fetchScallopAPYs, calculateYieldEarned } from "../services/apyService";
-
-// Import token icons
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -35,7 +33,6 @@ const SCALLOP_S_COIN_CONVERTER_PACKAGE =
 const SCALLOP_REDEEM_PACKAGE =
   "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
 
-// Token icon mapping
 const TOKEN_ICONS = {
   SUI: sui_logo,
   WAL: wal_logo,
@@ -92,7 +89,6 @@ export function useSuiLocks() {
   const { mutateAsync: signAndExecuteTransaction } =
     useSignAndExecuteTransaction();
 
-  // Fetch prices and APYs on mount and periodically
   useEffect(() => {
     const loadMarketData = async () => {
       const [priceData, apyData] = await Promise.all([
@@ -227,10 +223,10 @@ export function useSuiLocks() {
                 )
               : 0;
 
-          // Extract memo/description from fields
-          const lockDescription = (fields.memo ?? fields.fields?.memo) || "";
+          const lockDescription =
+            (fields.description ?? fields.fields?.description) ||
+            "No description";
 
-          // Get the correct icon for this token
           const tokenIcon = TOKEN_ICONS[tokenName] || sui_logo;
 
           acc.push({
@@ -356,7 +352,7 @@ export function useSuiLocks() {
     } else {
       setUserLocks([]);
     }
-  }, [currentAccount?.address, prices, apys]); // Re-fetch when prices/APYs update
+  }, [currentAccount?.address, prices, apys]);
 
   return {
     userLocks,

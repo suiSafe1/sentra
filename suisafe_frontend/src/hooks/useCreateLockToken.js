@@ -56,7 +56,8 @@ export function useCreateLockToken() {
     selectedDuration,
     selectedDate,
     lockDescription = "",
-    selectedToken
+    selectedToken,
+    memo = ""
   ) => {
     if (!currentAccount || !amount) {
       alert("Please connect wallet and enter amount");
@@ -148,8 +149,10 @@ export function useCreateLockToken() {
         typeArguments: [selectedToken.scoin.type, selectedToken.type],
       });
 
+      // Use memo if provided, otherwise use lockDescription, with fallback to "Yield Lock"
+      const finalDescription = memo || lockDescription || "Yield Lock";
       const descriptionBytes = Array.from(
-        new TextEncoder().encode(lockDescription || "Yield Lock")
+        new TextEncoder().encode(finalDescription)
       );
 
       tx.moveCall({

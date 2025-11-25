@@ -189,7 +189,6 @@ export function useSuiLocks() {
             2
           );
 
-          // Calculate real yield using APY and time elapsed
           const principalNum =
             Number(principalBig.toString()) / Math.pow(10, decimals);
           const tokenApy = apys[tokenName] || 8.0;
@@ -200,7 +199,6 @@ export function useSuiLocks() {
             now
           );
 
-          // Calculate USD values
           const principalUsd = calculateUsdValue(
             tokenName,
             principalBig.toString(),

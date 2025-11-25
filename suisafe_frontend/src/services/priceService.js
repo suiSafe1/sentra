@@ -10,7 +10,7 @@ const TOKEN_IDS = {
   USDC: "usd-coin",
   WAL: "walrus-2",
   DEEP: "deep",
-  SCA: "scallop-2",
+  SCA: "scallop",
 };
 
 /**
@@ -20,7 +20,6 @@ const TOKEN_IDS = {
 export async function fetchTokenPrices() {
   const now = Date.now();
 
-  // Return cached prices if still valid
   if (priceCache && now - lastFetchTime < PRICE_CACHE_DURATION) {
     return priceCache;
   }
@@ -32,12 +31,11 @@ export async function fetchTokenPrices() {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch prices");
+      throw new Error(`API returned ${response.status}`);
     }
 
     const data = await response.json();
 
-    // Map response back to our token symbols
     const prices = {
       SUI: data[TOKEN_IDS.SUI]?.usd || 0,
       USDC: data[TOKEN_IDS.USDC]?.usd || 1.0, // Fallback to $1
@@ -49,18 +47,26 @@ export async function fetchTokenPrices() {
     priceCache = prices;
     lastFetchTime = now;
 
+    console.log("Fetched token prices:", prices);
     return prices;
   } catch (error) {
     console.error("Price fetch error:", error);
 
-    // Return fallback prices
-    return {
-      SUI: 3.5,
-      USDC: 1.0,
-      WAL: 0,
-      DEEP: 0,
-      SCA: 0,
+    if (priceCache) {
+      console.log("Using cached price data");
+      return priceCache;
+    }
+
+    const fallbackPrices = {
+      SUI: 113.5,
+      USDC: 111.0,
+      WAL: 110.5,
+      DEEP: 110.05,
+      SCA: 110.35,
     };
+
+    console.log("Using fallback prices:", fallbackPrices);
+    return fallbackPrices;
   }
 }
 

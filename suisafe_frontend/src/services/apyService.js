@@ -1,18 +1,22 @@
-// src/services/apyService.js
-
 const APY_CACHE_DURATION = 300000; // 5 minutes
 let apyCache = null;
 let lastApyFetchTime = 0;
 
 /**
- * Scallop market IDs for each token
+ * Mapping from API symbols to our token symbols
+ * The Scallop API returns different symbols than we use
  */
-const SCALLOP_MARKET_IDS = {
-  SUI: "sui",
-  USDC: "usdc",
-  WAL: "wal",
-  DEEP: "deep",
-  SCA: "sca",
+const SYMBOL_MAPPING = {
+  SSUI: "SUI",
+  SUSDC: "USDC",
+  SWAL: "WAL",
+  SDEEP: "DEEP",
+  SSCA: "SCA",
+  SUI: "SUI",
+  USDC: "USDC",
+  WAL: "WAL",
+  DEEP: "DEEP",
+  SCA: "SCA",
 };
 
 /**
@@ -22,56 +26,102 @@ const SCALLOP_MARKET_IDS = {
 export async function fetchScallopAPYs() {
   const now = Date.now();
 
+  // Return cached APYs if still valid
   if (apyCache && now - lastApyFetchTime < APY_CACHE_DURATION) {
     return apyCache;
   }
 
   try {
     const response = await fetch("https://sdk.api.scallop.io/api/market");
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}`);
+    }
+
     const data = await response.json();
 
     const apys = {};
+
+    console.log("Raw Scallop API response:", data);
 
     // Extract APYs from pools array
     if (data.pools && Array.isArray(data.pools)) {
       data.pools.forEach((pool) => {
         if (pool.symbol && pool.supplyApy !== undefined) {
-          const symbol = pool.symbol.toUpperCase().replace(/^S/, "");
-          const apy = parseFloat(pool.supplyApy || 0);
-          apys[symbol] = apy * 100; // Convert decimal to percentage
+          const apiSymbol = pool.symbol.toUpperCase();
+
+          // Try to map the symbol
+          const ourSymbol = SYMBOL_MAPPING[apiSymbol];
+
+          if (ourSymbol) {
+            const apy = parseFloat(pool.supplyApy || 0);
+            apys[ourSymbol] = apy * 100;
+            console.log(
+              `Mapped ${apiSymbol} (${pool.symbol}) to ${ourSymbol}: ${
+                apy * 100
+              }%`
+            );
+          }
         }
       });
     }
+
+    if (Object.keys(apys).length === 0) {
+      console.warn(
+        "No matching tokens found. Available pools:",
+        data.pools?.map((p) => ({ symbol: p.symbol, apy: p.supplyApy }))
+      );
+    }
+
+    apyCache = apys;
+    lastApyFetchTime = now;
+
+    console.log("Parsed Scallop APYs:", apys);
+
+    const expectedTokens = ["SUI", "USDC", "WAL", "DEEP", "SCA"];
+    expectedTokens.forEach((token) => {
+      if (!apys[token]) {
+        console.warn(`Missing APY for ${token}, using 0`);
+        apys[token] = 0;
+      }
+    });
 
     return apys;
   } catch (error) {
     console.error("Failed to fetch Scallop APYs:", error);
 
+    if (apyCache) {
+      console.log("Using cached APY data");
+      return apyCache;
+    }
+
     // Fallback APYs
-    return {
-      SUI: 1,
-      USDC: 5.2,
-      WAL: 12.0,
-      DEEP: 10.5,
-      SCA: 15.0,
+    const fallbackApys = {
+      SUI: 18.5,
+      USDC: 15.2,
+      WAL: 112.0,
+      DEEP: 110.5,
+      SCA: 115.0,
     };
+
+    console.log("Using fallback APYs:", fallbackApys);
+    return fallbackApys;
   }
 }
 
 /**
  * Calculate yield earned based on principal, APY, and time elapsed
  *
- * @param {number} principal - Principal amount in token units
- * @param {number} apy - Annual percentage yield (e.g., 8.5 for 8.5%)
- * @param {number} startTime - Lock start timestamp (ms)
- * @param {number} currentTime - Current timestamp (ms)
- * @returns {number} Yield earned in token units
+ * @param {number} principal
+ * @param {number} apy
+ * @param {number} startTime
+ * @param {number} currentTime
+ * @returns {number}
  */
 export function calculateYieldEarned(principal, apy, startTime, currentTime) {
   const timeElapsedMs = currentTime - startTime;
   const timeElapsedYears = timeElapsedMs / (365.25 * 24 * 60 * 60 * 1000);
 
-  // Simple interest calculation (adjust for compound interest if needed)
   const yieldAmount = principal * (apy / 100) * timeElapsedYears;
 
   return yieldAmount;

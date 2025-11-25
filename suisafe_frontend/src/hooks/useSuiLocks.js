@@ -27,6 +27,7 @@ import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
 import usdc_logo from "../assets/usdc.png";
 import scal_logo from "../assets/scal.png";
+import { useActivityContext } from "../context/ActivityContext";
 
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
@@ -84,6 +85,7 @@ export function useSuiLocks() {
   const [withdrawing, setWithdrawing] = useState(null);
   const [prices, setPrices] = useState({});
   const [apys, setApys] = useState({});
+  const { refresh: refreshActivity } = useActivityContext();
 
   const currentAccount = useCurrentAccount();
   const { mutateAsync: signAndExecuteTransaction } =
@@ -324,6 +326,13 @@ export function useSuiLocks() {
 
       const result = await signAndExecuteTransaction({ transaction: tx });
       console.log("✅ Withdrawal result:", result);
+
+      if (result?.digest) {
+        // SUCCESS! Refresh activity
+        setTimeout(() => {
+          refreshActivity();
+        }, 2000);
+      }
 
       await fetchUserLocks();
       alert("Withdrawal successful!");

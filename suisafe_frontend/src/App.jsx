@@ -11,14 +11,13 @@ import {
 
 // Wallet & Icons
 import { useConnectWallet, useCurrentAccount } from "@mysten/dapp-kit";
-// --- Updated Lucide Icons ---
 import {
   X,
-  TrendingUp, // For TVL & APY
-  LayoutDashboard, // For Dashboard
-  Lock, // For Vest Tokens
-  GitCompareArrows, // For Swap
-  HelpCircle, // For Support
+  TrendingUp,
+  LayoutDashboard,
+  Lock,
+  GitCompareArrows,
+  HelpCircle,
 } from "lucide-react";
 
 // Pages & Routes
@@ -38,11 +37,14 @@ import ProtectedRoute from "./authentication/ProtectedRoute";
 import WalletModal from "./routes/Connect";
 import SwapTokens from "./components/SwapToken";
 
-// Assets (Only logo remains as it's a fixed image)
+// Assets
 import sentra from "./assets/sentra_dashboard.png";
 
 // Zustand store
 import { useMenuStore } from "./store/useMenuStore";
+
+// 👇 ADD THIS IMPORT
+import { ActivityProvider } from "../src/context/ActivityContext";
 
 // Styles
 import "flowbite";
@@ -69,39 +71,37 @@ const Layout = () => {
   };
 
   return (
-    <div className='flex h-screen'>
+    <div className="flex h-screen">
       {/* Sidebar */}
       <aside
         className={`flex-none bg-[#00076C] text-white p-6 space-y-6 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 w-64 md:w-64 ${
           menuOpen ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 md:static`}
       >
-        <div className='flex justify-between items-center mb-8 md:mb-12'>
-          <img src={sentra} alt='The sentra logo' className='h-[60px]' />
-          <X className='md:hidden w-6 h-6 cursor-pointer' onClick={closeMenu} />
+        <div className="flex justify-between items-center mb-8 md:mb-12">
+          <img src={sentra} alt="The sentra logo" className="h-[60px]" />
+          <X className="md:hidden w-6 h-6 cursor-pointer" onClick={closeMenu} />
         </div>
 
         {/* Sidebar Nav */}
-        <nav className='flex flex-col justify-between space-y-6 h-[calc(80%-30px)]'>
-          <div className='flex flex-col gap-8'>
-            {/* TVL & APY (TrendingUp Icon) */}
+        <nav className="flex flex-col justify-between space-y-6 h-[calc(80%-30px)]">
+          <div className="flex flex-col gap-8">
             <NavLink
-              to='/tvl'
+              to="/tvl"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
-                    ? "bg-white text-blue-900" // Active: Icon becomes Blue
-                    : "text-white hover:bg-[#00076C]/20" // Inactive: Icon remains White
+                    ? "bg-white text-blue-900"
+                    : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
-              <TrendingUp className='w-5 h-5' />
+              <TrendingUp className="w-5 h-5" />
               <span>TVL & APY</span>
             </NavLink>
 
-            {/* Dashboard (LayoutDashboard Icon) */}
             <NavLink
-              to='/dashboard'
+              to="/dashboard"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -110,13 +110,12 @@ const Layout = () => {
                 }`
               }
             >
-              <LayoutDashboard className='w-5 h-5' />
+              <LayoutDashboard className="w-5 h-5" />
               <span>Dashboard</span>
             </NavLink>
 
-            {/* Swap (GitCompareArrows Icon) */}
             <NavLink
-              to='/swap'
+              to="/swap"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -125,13 +124,12 @@ const Layout = () => {
                 }`
               }
             >
-              <GitCompareArrows className='w-5 h-5' />
+              <GitCompareArrows className="w-5 h-5" />
               <span>Swap</span>
             </NavLink>
 
-            {/* Vest Tokens (Lock Icon) */}
             <NavLink
-              to='/vest'
+              to="/vest"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -140,14 +138,13 @@ const Layout = () => {
                 }`
               }
             >
-              <Lock className='w-5 h-5' />
+              <Lock className="w-5 h-5" />
               <span>Vest Tokens</span>
             </NavLink>
           </div>
 
-          {/* Support (HelpCircle Icon) */}
           <NavLink
-            to='/support'
+            to="/support"
             className={({ isActive }) =>
               `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                 isActive
@@ -156,14 +153,14 @@ const Layout = () => {
               }`
             }
           >
-            <HelpCircle className='w-5 h-5' />
+            <HelpCircle className="w-5 h-5" />
             <span>Support</span>
           </NavLink>
         </nav>
       </aside>
 
       {/* Main Content */}
-      <div className='w-full'>
+      <div className="w-full">
         <Header />
         <Outlet />
       </div>
@@ -182,92 +179,81 @@ function App() {
   const account = useCurrentAccount();
 
   return (
-    <Routes>
-      {/* Public */}
-      <Route path='/public_dashboard' element={<PublicDashboard />} />
-      <Route path='/' element={account ? <Navigate to='/tvl' /> : <Home />} />
+    // 👇 WRAP EVERYTHING WITH ActivityProvider
+    <ActivityProvider>
+      <Routes>
+        {/* Public */}
+        <Route path="/public_dashboard" element={<PublicDashboard />} />
+        <Route path="/" element={account ? <Navigate to="/tvl" /> : <Home />} />
 
-      {/* Layout-protected routes */}
-      <Route element={<Layout />}>
-        <Route path='/connect' element={<WalletConnect />} />
-        <Route
-          path='/dashboard'
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        >
-          {/* Nested route inherits protection */}
-          <Route path='lock' element={<CreateLockToken />} />
-        </Route>
-        <Route
-          path='/tvl'
-          element={
-            <ProtectedRoute>
-              <TVL />
-            </ProtectedRoute>
-          }
-        >
-          {/* Nested /tvl/lock route */}
-          <Route path='lock' element={<CreateLockToken />} />
-        </Route>
+        {/* Layout-protected routes */}
+        <Route element={<Layout />}>
+          <Route path="/connect" element={<WalletConnect />} />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="lock" element={<CreateLockToken />} />
+          </Route>
+          <Route
+            path="/tvl"
+            element={
+              <ProtectedRoute>
+                <TVL />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="lock" element={<CreateLockToken />} />
+          </Route>
 
-        <Route
-          path='/vest'
-          element={
-            <ProtectedRoute>
-              {/* <CreateLockToken /> */}
-              {/* <VestLock /> */}
-              <ComingSoon />
-            </ProtectedRoute>
-          }
-        />
-        {/* <Route
-          path='/lock'
-          element={
-            <ProtectedRoute>
-              <CreateLockToken />
-              // <VestLock />
-            </ProtectedRoute>
-          }
-        /> */}
-        <Route
-          path='/swap'
-          element={
-            <ProtectedRoute>
-              <SwapTokens />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/withdraw'
-          element={
-            <ProtectedRoute>
-              <WithdrawalPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/create'
-          element={
-            <ProtectedRoute>
-              <CreatePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path='/support'
-          element={
-            <ProtectedRoute>
-              <div>Support Page</div>
-            </ProtectedRoute>
-          }
-        />
-        {/* Catch-all */}
-        <Route path='/*' element={<NotFound />} />
-      </Route>
-    </Routes>
+          <Route
+            path="/vest"
+            element={
+              <ProtectedRoute>
+                <ComingSoon />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/swap"
+            element={
+              <ProtectedRoute>
+                <SwapTokens />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/withdraw"
+            element={
+              <ProtectedRoute>
+                <WithdrawalPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/support"
+            element={
+              <ProtectedRoute>
+                <div>Support Page</div>
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/*" element={<NotFound />} />
+        </Route>
+      </Routes>
+    </ActivityProvider>
   );
 }
 

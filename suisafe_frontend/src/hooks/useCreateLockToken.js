@@ -5,7 +5,7 @@ import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
 } from "@mysten/dapp-kit";
-
+import { useActivityContext } from "../context/ActivityContext";
 const PACKAGE_ID =
   "0x7b9640dc7446fdc540a17ce6a0673be6f95447862ea63685daa7594f57f32601";
 const REGISTRY_ID =
@@ -32,6 +32,8 @@ export function useCreateLockToken() {
   const [isLoading, setIsLoading] = useState(false);
   const [lockerId, setLockerId] = useState("");
   const [txHash, setTxHash] = useState("");
+
+  const { refresh: refreshActivity } = useActivityContext();
 
   const getDurationInMs = (selectedDuration, selectedDate) => {
     if (selectedDate) {
@@ -149,7 +151,6 @@ export function useCreateLockToken() {
         typeArguments: [selectedToken.scoin.type, selectedToken.type],
       });
 
-      // Use memo if provided, otherwise use lockDescription, with fallback to "Yield Lock"
       const finalDescription = memo || lockDescription || "Yield Lock";
       const descriptionBytes = Array.from(
         new TextEncoder().encode(finalDescription)
@@ -170,6 +171,13 @@ export function useCreateLockToken() {
 
       const result = await signAndExecuteTransaction({ transaction: tx });
       const digest = result?.digest || result?.effects?.transactionDigest;
+
+      if (result?.digest) {
+        // SUCCESS! Refresh activity
+        setTimeout(() => {
+          refreshActivity();
+        }, 2000); // Wait 2 seconds for blockchain to index
+      }
 
       const txBlock = await client.getTransactionBlock({
         digest,

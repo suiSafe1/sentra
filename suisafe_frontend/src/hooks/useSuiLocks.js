@@ -8,6 +8,7 @@ import {
   client,
   PACKAGE_ID,
   PLATFORM_ID,
+  PACKAGE_ID_V1,
   REGISTRY_ID,
   CLOCK_ID,
   SCALLOP_MAINNET_VERSION_ID,
@@ -113,18 +114,28 @@ export function useSuiLocks() {
 
     setIsLoading(true);
     try {
-      const ownedObjects = await client.getOwnedObjects({
-        owner: currentAccount.address,
-        filter: { StructType: `${PACKAGE_ID}::sentra::YieldLock` },
-        options: { showContent: true, showType: true },
-      });
+      // Fetch locks from BOTH package versions
+      const [oldVersionLocks, newVersionLocks] = await Promise.all([
+        client.getOwnedObjects({
+          owner: currentAccount.address,
+          filter: { StructType: `${PACKAGE_ID_V1}::sentra::YieldLock` },
+          options: { showContent: true, showType: true },
+        }),
+        client.getOwnedObjects({
+          owner: currentAccount.address,
+          filter: { StructType: `${PACKAGE_ID}::sentra::YieldLock` },
+          options: { showContent: true, showType: true },
+        }),
+      ]);
+
+      const allLockObjects = [...oldVersionLocks.data, ...newVersionLocks.data];
 
       const formatToDateString = (timestampMs) =>
         new Date(timestampMs).toLocaleDateString("sv");
 
       const now = Date.now();
 
-      const locks = ownedObjects.data.reduce((acc, objRef) => {
+      const locks = allLockObjects.reduce((acc, objRef) => {
         try {
           if (objRef?.data?.content?.dataType !== "moveObject") return acc;
           const fields = objRef.data.content.fields ?? {};

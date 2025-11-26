@@ -3,6 +3,9 @@ import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 export const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
 
 export const PACKAGE_ID =
+  "0xb23925126c4c636e804b44cba4947d7c02651a71f05f87419e71bf1d1894c1ee";
+
+export const PACKAGE_ID_V1 =
   "0x7b9640dc7446fdc540a17ce6a0673be6f95447862ea63685daa7594f57f32601";
 
 export const REGISTRY_ID =

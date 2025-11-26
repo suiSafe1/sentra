@@ -1,6 +1,6 @@
 // src/services/activityService.js
 
-import { client, PACKAGE_ID } from "../constants/Constants";
+import { client, PACKAGE_ID, PACKAGE_ID_V1 } from "../constants/Constants";
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -249,29 +249,29 @@ export async function fetchUserActivity(userAddress, limit = 50) {
   try {
     console.log("🔍 Fetching activity for:", userAddress);
 
-    // Query events from the platform
+    // Query events from BOTH package versions
     const eventTypes = [
-      `${PACKAGE_ID}::sentra::LockCreated`,
-      `${PACKAGE_ID}::sentra::YieldLockCreated`,
-      `${PACKAGE_ID}::sentra::LockWithdrawn`,
-      `${PACKAGE_ID}::sentra::YieldLockWithdrawn`,
-      `${PACKAGE_ID}::sentra::LockExtended`,
+      "LockCreated",
+      "YieldLockCreated",
+      "LockWithdrawn",
+      "YieldLockWithdrawn",
+      "LockExtended",
     ];
 
     const allActivities = [];
 
-    // Fetch events for each type
+    // Fetch events for each type from BOTH package versions
     for (const eventType of eventTypes) {
       try {
-        const response = await client.queryEvents({
-          query: { MoveEventType: eventType },
+        // Fetch from V1 package
+        const v1Response = await client.queryEvents({
+          query: { MoveEventType: `${PACKAGE_ID_V1}::sentra::${eventType}` },
           limit: limit,
           order: "descending",
         });
 
-        if (response?.data) {
-          // Filter events for this user and parse
-          const userEvents = response.data
+        if (v1Response?.data) {
+          const v1Events = v1Response.data
             .filter((event) => {
               const owner = event.parsedJson?.owner;
               return owner && owner.toLowerCase() === userAddress.toLowerCase();
@@ -279,18 +279,42 @@ export async function fetchUserActivity(userAddress, limit = 50) {
             .map(parseEventToActivity)
             .filter(Boolean);
 
-          allActivities.push(...userEvents);
+          allActivities.push(...v1Events);
+        }
+
+        // Fetch from V2 package (current)
+        const v2Response = await client.queryEvents({
+          query: { MoveEventType: `${PACKAGE_ID}::sentra::${eventType}` },
+          limit: limit,
+          order: "descending",
+        });
+
+        if (v2Response?.data) {
+          const v2Events = v2Response.data
+            .filter((event) => {
+              const owner = event.parsedJson?.owner;
+              return owner && owner.toLowerCase() === userAddress.toLowerCase();
+            })
+            .map(parseEventToActivity)
+            .filter(Boolean);
+
+          allActivities.push(...v2Events);
         }
       } catch (err) {
         console.warn(`Failed to fetch ${eventType}:`, err);
       }
     }
 
+    // Remove duplicates by transaction digest + timestamp
+    const uniqueActivities = Array.from(
+      new Map(allActivities.map((item) => [item.id, item])).values()
+    );
+
     // Sort by timestamp (newest first)
-    allActivities.sort((a, b) => b.timestamp - a.timestamp);
+    uniqueActivities.sort((a, b) => b.timestamp - a.timestamp);
 
     // Limit total results
-    const limitedActivities = allActivities.slice(0, limit);
+    const limitedActivities = uniqueActivities.slice(0, limit);
 
     console.log("✅ Fetched activities:", limitedActivities.length);
     return limitedActivities;

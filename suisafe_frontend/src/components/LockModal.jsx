@@ -1,6 +1,9 @@
 // src/components/Modal.jsx
 import React, { useState } from "react";
 import { useModalStore } from "../store/useModalStore";
+import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useAddToYieldLock } from "../hooks/useAddToYieldLock";
+import { client } from "../constants/Constants";
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -21,22 +24,122 @@ const TOKEN_ICONS = {
 /* Top Up Inner Modal                                                         */
 /* -------------------------------------------------------------------------- */
 const TopUpLockModal = () => {
-  const { modalData, closeModal } = useModalStore();
+  const { modalData, closeModal, goToMain } = useModalStore();
+  const currentAccount = useCurrentAccount();
+  const { addToYieldLock, isLoading: isAdding } = useAddToYieldLock();
+
   const {
+    yieldLockId,
     tokenName = "SUI",
     tokenAmount = "0",
     tokenIcon,
     apy = "12.5",
+    coinType,
+    scoinInfo,
+    decimals = 9,
   } = modalData || {};
+
   const [amountToAdd, setAmountToAdd] = useState("");
+  const [availableBalance, setAvailableBalance] = useState("0");
+  const [loadingBalance, setLoadingBalance] = useState(false);
 
   // Get correct token icon
   const displayIcon = tokenIcon || TOKEN_ICONS[tokenName] || sui_logo;
+
+  // Fetch available balance when modal opens
+  React.useEffect(() => {
+    const fetchBalance = async () => {
+      if (!currentAccount || !coinType) return;
+
+      setLoadingBalance(true);
+      try {
+        if (tokenName === "SUI") {
+          const balance = await client.getBalance({
+            owner: currentAccount.address,
+            coinType: "0x2::sui::SUI",
+          });
+          const balanceInTokens = (
+            Number(balance.totalBalance) / Math.pow(10, decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        } else {
+          const coins = await client.getCoins({
+            owner: currentAccount.address,
+            coinType: coinType,
+          });
+
+          const totalBalance = coins.data.reduce(
+            (sum, coin) => sum + BigInt(coin.balance),
+            BigInt(0)
+          );
+
+          const balanceInTokens = (
+            Number(totalBalance) / Math.pow(10, decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setAvailableBalance("0");
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    fetchBalance();
+  }, [currentAccount, coinType, tokenName, decimals]);
 
   const handleAmountChange = (e) => {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setAmountToAdd(value);
+    }
+  };
+
+  const handleMaxClick = () => {
+    setAmountToAdd(availableBalance);
+  };
+
+  const handleConfirmTopUp = async () => {
+    if (!currentAccount) {
+      alert("Please connect your wallet");
+      return;
+    }
+
+    if (!amountToAdd || parseFloat(amountToAdd) <= 0) {
+      alert("Please enter a valid amount");
+      return;
+    }
+
+    if (parseFloat(amountToAdd) > parseFloat(availableBalance)) {
+      alert("Insufficient balance");
+      return;
+    }
+
+    try {
+      const tokenConfig = {
+        tokenName,
+        coinType,
+        decimals,
+        scoinInfo,
+        userAddress: currentAccount.address,
+      };
+
+      const result = await addToYieldLock(
+        yieldLockId,
+        amountToAdd,
+        tokenConfig
+      );
+
+      if (result.success) {
+        alert(`Successfully added ${amountToAdd} ${tokenName} to your lock!`);
+        closeModal();
+        // Optionally refresh the lock data here
+        window.location.reload(); // Simple refresh - you can improve this
+      }
+    } catch (error) {
+      console.error("Top up failed:", error);
+      alert(`Top up failed: ${error.message || error}`);
     }
   };
 
@@ -137,7 +240,8 @@ const TopUpLockModal = () => {
             <select
               id="token-select"
               value={tokenName}
-              className="block bg-white shadow-sm px-3 py-2 border border-gray-300 focus:border-blue-500 rounded-lg focus:outline-none w-full appearance-none"
+              disabled
+              className="block bg-gray-100 shadow-sm px-3 py-2 border border-gray-300 rounded-lg w-full appearance-none cursor-not-allowed"
             >
               <option value={tokenName}>{tokenName}</option>
             </select>
@@ -163,7 +267,13 @@ const TopUpLockModal = () => {
               Amount to Add
             </label>
             <span className="text-gray-500 text-sm">
-              Available: 5,000 {tokenName}
+              {loadingBalance ? (
+                "Loading..."
+              ) : (
+                <>
+                  Available: {availableBalance} {tokenName}
+                </>
+              )}
             </span>
           </div>
           <div className="flex items-center p-2 border border-gray-300 focus-within:border-blue-500 rounded-lg">
@@ -175,7 +285,10 @@ const TopUpLockModal = () => {
               onChange={handleAmountChange}
               className="p-1 focus:outline-none w-full text-lg"
             />
-            <button className="px-2 font-semibold text-blue-600 hover:text-blue-700 text-sm">
+            <button
+              onClick={handleMaxClick}
+              className="px-2 font-semibold text-blue-600 hover:text-blue-700 text-sm"
+            >
               MAX
             </button>
           </div>
@@ -188,15 +301,17 @@ const TopUpLockModal = () => {
       <div className="flex gap-3 mt-8">
         <button
           onClick={closeModal}
-          className="flex-1 hover:bg-gray-100 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700"
+          disabled={isAdding}
+          className="flex-1 hover:bg-gray-100 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 disabled:opacity-50"
         >
           Cancel
         </button>
         <button
-          disabled={!shouldShowNewTotal}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold text-white"
+          onClick={handleConfirmTopUp}
+          disabled={!shouldShowNewTotal || isAdding || loadingBalance}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Confirm Top Up
+          {isAdding ? "Processing..." : "Confirm Top Up"}
         </button>
       </div>
     </div>

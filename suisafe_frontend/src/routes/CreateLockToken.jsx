@@ -14,11 +14,14 @@ import { useCreateLockToken } from "../hooks/useCreateLockToken";
 import CreateLockNft from "../pages/CreateLockNft";
 import ConfettiExplosion from "react-confetti-explosion";
 import { useWindowSize } from "react-use";
+import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 import sui from "../assets/sui.png";
 import wal from "../assets/wal.png";
 import deep from "../assets/deep.png";
 import usdc from "../assets/usdc.png";
 import scal from "../assets/scal.png";
+
+const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
 
 function CreateLockToken() {
   const [nftLock, setNftLock] = useState(false);
@@ -32,6 +35,8 @@ function CreateLockToken() {
   const [selectedDuration, setSelectedDuration] = useState(30);
   const [memo, setMemo] = useState("");
   const [lockDescription, setLockDescription] = useState("");
+  const [availableBalance, setAvailableBalance] = useState("0");
+  const [loadingBalance, setLoadingBalance] = useState(false);
   const { width, height } = useWindowSize();
 
   const {
@@ -104,6 +109,7 @@ function CreateLockToken() {
     },
   ];
   const [selectedToken, setSelectedToken] = useState(tokens[0]);
+
   /* --------------------------------------------------------------
      Confetti control
   -------------------------------------------------------------- */
@@ -116,9 +122,65 @@ function CreateLockToken() {
   }, [lockSuccess]);
 
   /* --------------------------------------------------------------
+     Fetch available balance when token changes
+  -------------------------------------------------------------- */
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!currentAccount || !selectedToken) return;
+
+      setLoadingBalance(true);
+      try {
+        if (selectedToken.symbol === "SUI") {
+          const balance = await client.getBalance({
+            owner: currentAccount.address,
+            coinType: selectedToken.type,
+          });
+          const balanceInTokens = (
+            Number(balance.totalBalance) / Math.pow(10, selectedToken.decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        } else {
+          const coins = await client.getCoins({
+            owner: currentAccount.address,
+            coinType: selectedToken.type,
+          });
+
+          const totalBalance = coins.data.reduce(
+            (sum, coin) => sum + BigInt(coin.balance),
+            BigInt(0)
+          );
+
+          const balanceInTokens = (
+            Number(totalBalance) / Math.pow(10, selectedToken.decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setAvailableBalance("0");
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    fetchBalance();
+  }, [currentAccount, selectedToken]);
+
+  /* --------------------------------------------------------------
      Event Handlers
   -------------------------------------------------------------- */
   const handleSwitch = (e) => setNftLock(e.target.id === "nft");
+
+  const handleMaxClick = () => {
+    if (selectedToken.symbol === "SUI") {
+      // Reserve 0.05 SUI for gas
+      const maxAmount = Math.max(0, parseFloat(availableBalance) - 0.05);
+      setAmount(maxAmount.toFixed(2));
+      alert("0.05 SUI reserved for gas fee");
+    } else {
+      setAmount(availableBalance);
+    }
+  };
 
   const handleConfirmLock = async () => {
     const res = await createLock(
@@ -265,7 +327,18 @@ function CreateLockToken() {
 
               {/* Amount */}
               <div className="flex flex-col gap-2 mb-4 font-bold text-[#505A6B]">
-                <span>Amount</span>
+                <div className="flex justify-between items-center">
+                  <span>Amount</span>
+                  <span className="text-[14px] text-[#4D5562]">
+                    {loadingBalance ? (
+                      "Loading..."
+                    ) : (
+                      <>
+                        Available: {availableBalance} {selectedToken.symbol}
+                      </>
+                    )}
+                  </span>
+                </div>
                 <div className="flex justify-between items-center bg-white px-2.5 border border-[#4D5562] rounded-lg h-12">
                   <input
                     type="text"
@@ -277,7 +350,10 @@ function CreateLockToken() {
                     }
                     className="flex-1 bg-transparent border-none outline-none font-semibold text-[16.05px]"
                   />
-                  <span className="font-semibold text-[#00076C] cursor-pointer">
+                  <span
+                    className="font-semibold text-[#00076C] cursor-pointer hover:opacity-80"
+                    onClick={handleMaxClick}
+                  >
                     Max
                   </span>
                 </div>
@@ -354,7 +430,11 @@ function CreateLockToken() {
                   className="flex-1 bg-[#00076C] disabled:opacity-60 py-[0.8rem] rounded-md font-semibold text-white text-sm md:text-lg"
                   onClick={() => setConfirmLock(true)}
                   disabled={
-                    !currentAccount || !amount || parseFloat(amount) <= 0
+                    !currentAccount ||
+                    !amount ||
+                    parseFloat(amount) <= 0 ||
+                    !selectedDate ||
+                    !lockDescription.trim()
                   }
                 >
                   {isLoading ? "Processing..." : "Confirm Lock"}

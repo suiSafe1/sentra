@@ -7,7 +7,7 @@ import {
 } from "@mysten/dapp-kit";
 import { useActivityContext } from "../context/ActivityContext";
 const PACKAGE_ID =
-  "0x7b9640dc7446fdc540a17ce6a0673be6f95447862ea63685daa7594f57f32601";
+  "0xb23925126c4c636e804b44cba4947d7c02651a71f05f87419e71bf1d1894c1ee";
 const REGISTRY_ID =
   "0x1cb927b87f8d1c00aadf70e36d315abfe156dbf8ea37bf9fcaaeb2bbd4ea43ba";
 const PLATFORM_ID =

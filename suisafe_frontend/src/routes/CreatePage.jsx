@@ -6,12 +6,10 @@ import "../styles/CreatePage.css";
 import Loader from "../components/Loader";
 import { useNavigate } from "react-router-dom";
 
-// Component for the CreatePage, handling asset locking and navigation to withdrawal
 function CreatePage() {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
 
-  // Handler for navigating to the Withdrawal page with a 2-second loading delay to simulate processing
   const handleViewWithdrawals = () => {
     setIsLoading(true);
     setTimeout(() => {

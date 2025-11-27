@@ -1,4 +1,4 @@
-// src/hooks/useActivity.js
+// src/hooks/useActivity.js - FIXED VERSION
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useCurrentAccount } from "@mysten/dapp-kit";
@@ -126,7 +126,7 @@ export function useActivity() {
                 filter: {
                   MoveEventType: `${pkg}::sentra::${eventType}`,
                 },
-                onMessage: (event) => {
+                onMessage: async (event) => {
                   try {
                     // Check if event belongs to current user
                     const owner = event.parsedJson?.owner;
@@ -137,7 +137,10 @@ export function useActivity() {
                       console.log("📨 New event received:", eventType, event);
 
                       // Parse event to activity format
-                      const activity = parseEventToActivity(event);
+                      const activity = await parseEventToActivity(
+                        event,
+                        client
+                      );
                       if (activity) {
                         addActivity(activity);
                       }
@@ -155,31 +158,27 @@ export function useActivity() {
           }
         }
 
-        // Subscribe to swap events from fee_router
+        // Subscribe to swap events
         try {
           const swapUnsubscribe = await client.subscribeEvent({
             filter: {
               MoveEventType: `${FEE_ROUTER_PACKAGE}::fee_router::SwapEvent`,
             },
-            onMessage: (event) => {
+            onMessage: async (event) => {
               try {
+                console.log("🔄 RAW Swap event received:", event);
+
                 const user = event.parsedJson?.user;
+
+                // Check if event belongs to current user
                 if (user && user.toLowerCase() === userAddress.toLowerCase()) {
-                  console.log("🔄 Swap event received:", event);
+                  console.log("✅ Swap event for current user:", event);
 
-                  const activity = {
-                    id: `${event.id?.txDigest}-${event.timestampMs}`,
-                    type: "swap",
-                    token: "TOKEN",
-                    icon: null,
-                    amount: "N/A",
-                    timestamp: Number(event.timestampMs),
-                    description: `Executed token swap`,
-                    txDigest: event.id?.txDigest || "",
-                    status: "success",
-                  };
-
-                  addActivity(activity);
+                  // Parse swap event with proper data extraction
+                  const activity = await parseEventToActivity(event, client);
+                  if (activity) {
+                    addActivity(activity);
+                  }
                 }
               } catch (err) {
                 console.error("Failed to process swap event:", err);
@@ -188,6 +187,7 @@ export function useActivity() {
           });
 
           subscriptionsRef.current.push(swapUnsubscribe);
+          console.log("✅ Swap event listener setup complete");
         } catch (err) {
           console.warn("Failed to subscribe to swap events:", err);
         }
@@ -261,6 +261,7 @@ export function useActivity() {
       const allActivities = [];
       const packages = [PACKAGE_ID, PACKAGE_ID_V1];
 
+      // Fetch sentra events
       for (const pkg of packages) {
         for (const eventType of eventTypes) {
           try {
@@ -271,23 +272,59 @@ export function useActivity() {
             });
 
             if (response?.data) {
-              const userEvents = response.data
-                .filter((event) => {
-                  const owner = event.parsedJson?.owner;
-                  return (
-                    owner &&
-                    owner.toLowerCase() === currentAccount.address.toLowerCase()
-                  );
-                })
-                .map(parseEventToActivity)
-                .filter(Boolean);
+              const userEvents = response.data.filter((event) => {
+                const owner = event.parsedJson?.owner;
+                return (
+                  owner &&
+                  owner.toLowerCase() === currentAccount.address.toLowerCase()
+                );
+              });
 
-              allActivities.push(...userEvents);
+              // Parse events with client
+              const parsedEvents = await Promise.all(
+                userEvents.map((event) => parseEventToActivity(event, client))
+              );
+
+              const validEvents = parsedEvents.filter(Boolean);
+              allActivities.push(...validEvents);
             }
           } catch (err) {
             console.warn(`Failed to fetch ${eventType}:`, err);
           }
         }
+      }
+
+      // Fetch historical swap events
+      try {
+        const swapResponse = await client.queryEvents({
+          query: {
+            MoveEventType: `${FEE_ROUTER_PACKAGE}::fee_router::SwapEvent`,
+          },
+          limit: 50,
+          order: "descending",
+        });
+
+        if (swapResponse?.data) {
+          const userSwaps = swapResponse.data.filter((event) => {
+            const user = event.parsedJson?.user;
+            return (
+              user &&
+              user.toLowerCase() === currentAccount.address.toLowerCase()
+            );
+          });
+
+          // Parse swap events with client (async)
+          const parsedSwaps = await Promise.all(
+            userSwaps.map((event) => parseEventToActivity(event, client))
+          );
+
+          const validSwaps = parsedSwaps.filter(Boolean);
+
+          console.log("📊 Found swap events:", validSwaps.length);
+          allActivities.push(...validSwaps);
+        }
+      } catch (err) {
+        console.warn("Failed to fetch swap events:", err);
       }
 
       // Remove duplicates by ID

@@ -1,7 +1,14 @@
 // src/components/ActivityPanel.jsx
 
 import React from "react";
-import { X, RefreshCw, ExternalLink, Clock, CheckCircle2 } from "lucide-react";
+import {
+  X,
+  RefreshCw,
+  ExternalLink,
+  Clock,
+  CheckCircle2,
+  ArrowRight,
+} from "lucide-react";
 import { formatActivityTime } from "../services/activityService";
 
 /**
@@ -46,6 +53,66 @@ function ActivityItem({ activity }) {
     }
   };
 
+  // Special rendering for swap activities
+  if (activity.type === "swap") {
+    return (
+      <div
+        className={`border ${typeColor} rounded-lg p-3 mb-2 hover:shadow-sm transition-shadow`}
+      >
+        <div className="flex items-start gap-3">
+          {/* Swap Token Icons with Arrow */}
+          <div className="flex-shrink-0 flex items-center gap-1">
+            <img
+              src={activity.icon}
+              alt={activity.token}
+              className="w-8 h-8 rounded-full"
+            />
+            <ArrowRight className="w-4 h-4 text-gray-400" />
+            <img
+              src={activity.toIcon}
+              alt={activity.toToken}
+              className="w-8 h-8 rounded-full"
+            />
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Description */}
+            <p className="text-sm font-semibold text-gray-800 mb-1">
+              {activity.description}
+            </p>
+
+            {/* Time and Status */}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>{formatActivityTime(activity.timestamp)}</span>
+
+              {activity.status === "success" && (
+                <>
+                  <span>•</span>
+                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                  <span className="text-green-600">Success</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* View TX Button */}
+          {activity.txDigest && (
+            <button
+              onClick={handleViewTx}
+              className="flex-shrink-0 p-1.5 hover:bg-white rounded-md transition-colors"
+              title="View transaction"
+            >
+              <ExternalLink className="w-4 h-4 text-gray-400 hover:text-blue-500" />
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Default rendering for non-swap activities
   return (
     <div
       className={`border ${typeColor} rounded-lg p-3 mb-2 hover:shadow-sm transition-shadow`}

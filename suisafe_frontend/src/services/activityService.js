@@ -1,4 +1,4 @@
-// src/services/activityService.js
+// src/services/activityService.js - FIXED VERSION
 
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
@@ -88,11 +88,66 @@ function getTokenDecimals(symbol) {
 }
 
 /**
+ * Fetch full transaction to extract token info from ConfirmSwapEvent or balance changes
+ */
+async function fetchSwapTokenInfo(txDigest, suiClient) {
+  try {
+    const txDetails = await suiClient.getTransactionBlock({
+      digest: txDigest,
+      options: {
+        showEvents: true,
+        showBalanceChanges: true,
+      },
+    });
+
+    // Method 1: Try to find ConfirmSwapEvent (most reliable)
+    const confirmSwapEvent = txDetails.events?.find((evt) =>
+      evt.type.includes("ConfirmSwapEvent")
+    );
+
+    if (confirmSwapEvent?.parsedJson) {
+      const fromType = confirmSwapEvent.parsedJson.from?.name;
+      const targetType = confirmSwapEvent.parsedJson.target?.name;
+      const amountIn = confirmSwapEvent.parsedJson.amount_in;
+      const amountOut = confirmSwapEvent.parsedJson.amount_out;
+
+      if (fromType && targetType) {
+        return {
+          coinInType: fromType,
+          coinOutType: targetType,
+          amountIn: amountIn || "0",
+          amountOut: amountOut || "0",
+        };
+      }
+    }
+
+    // Method 2: Extract from balance changes
+    const balanceChanges = txDetails.balanceChanges || [];
+    const negative = balanceChanges.find((bc) => Number(bc.amount) < 0);
+    const positive = balanceChanges.find((bc) => Number(bc.amount) > 0);
+
+    if (negative && positive) {
+      return {
+        coinInType: negative.coinType,
+        coinOutType: positive.coinType,
+        amountIn: Math.abs(Number(negative.amount)).toString(),
+        amountOut: Math.abs(Number(positive.amount)).toString(),
+      };
+    }
+
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch swap token info:", error);
+    return null;
+  }
+}
+
+/**
  * Parse event data into activity item
  *
  * THIS IS THE MAIN FUNCTION USED BY THE EVENT LISTENER
  */
-export function parseEventToActivity(event) {
+export async function parseEventToActivity(event, suiClient = null) {
   try {
     const { type, parsedJson, timestampMs, id } = event;
     const txDigest = id?.txDigest || "";
@@ -105,6 +160,69 @@ export function parseEventToActivity(event) {
 
     const eventName = eventTypeMatch[1];
     const typeArgs = eventTypeMatch[2] || "";
+
+    // ===== FIX: Handle SwapEvent specially =====
+    if (eventName === "SwapEvent") {
+      console.log("🔄 SwapEvent detected, fetching transaction details...");
+
+      // Try to fetch detailed token info from transaction
+      let swapInfo = null;
+      if (suiClient && txDigest) {
+        swapInfo = await fetchSwapTokenInfo(txDigest, suiClient);
+      }
+
+      // Extract token information
+      let coinInType = swapInfo?.coinInType || parsedJson?.coin_in_type;
+      let coinOutType = swapInfo?.coinOutType || parsedJson?.coin_out_type;
+      const amountIn = swapInfo?.amountIn || parsedJson?.amount_in || "0";
+      const amountOut = swapInfo?.amountOut || parsedJson?.amount_out || "0";
+
+      // Handle different formats of coin_type (string, object, or array)
+      if (typeof coinInType === "object" && coinInType?.name) {
+        coinInType = coinInType.name;
+      } else if (Array.isArray(coinInType)) {
+        coinInType = String.fromCharCode(...coinInType);
+      }
+
+      if (typeof coinOutType === "object" && coinOutType?.name) {
+        coinOutType = coinOutType.name;
+      } else if (Array.isArray(coinOutType)) {
+        coinOutType = String.fromCharCode(...coinOutType);
+      }
+
+      console.log("🔄 Extracted:", {
+        coinInType,
+        coinOutType,
+        amountIn,
+        amountOut,
+      });
+
+      // Get token symbols and metadata
+      const fromToken = getTokenSymbolFromType(coinInType || "");
+      const toToken = getTokenSymbolFromType(coinOutType || "");
+      const fromDecimals = getTokenDecimals(fromToken);
+      const toDecimals = getTokenDecimals(toToken);
+      const fromIcon = TOKEN_ICONS[fromToken] || sui_logo;
+      const toIcon = TOKEN_ICONS[toToken] || sui_logo;
+
+      return {
+        id: `${txDigest}-${timestampMs}`,
+        type: "swap",
+        token: fromToken,
+        icon: fromIcon,
+        toToken: toToken,
+        toIcon: toIcon,
+        amount: formatAmount(amountIn, fromDecimals),
+        amountOut: formatAmount(amountOut, toDecimals),
+        timestamp: Number(timestampMs),
+        description: `Swapped ${formatAmount(
+          amountIn,
+          fromDecimals
+        )} ${fromToken} to ${formatAmount(amountOut, toDecimals)} ${toToken}`,
+        txDigest,
+        status: "success",
+      };
+    }
 
     // Try to extract coin type from multiple sources
     let coinType = "";
@@ -250,20 +368,6 @@ export function parseEventToActivity(event) {
         };
       }
 
-      case "SwapEvent": {
-        return {
-          id: `${txDigest}-${timestampMs}`,
-          type: "swap",
-          token: "SWAP",
-          icon: sui_logo,
-          amount: "N/A",
-          timestamp: Number(timestampMs),
-          description: "Executed token swap",
-          txDigest,
-          status: "success",
-        };
-      }
-
       default:
         return null;
     }
@@ -326,13 +430,4 @@ export function formatActivityTime(timestamp) {
       year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   }
-}
-
-/**
- * DEPRECATED: This function is no longer used
- * Real-time listeners replaced the need for manual fetching
- */
-export async function fetchUserActivity() {
-  console.warn("fetchUserActivity is deprecated. Use event listeners instead.");
-  return [];
 }

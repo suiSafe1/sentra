@@ -1,15 +1,16 @@
-// src/components/Modal.jsx
+// src/components/Modal.jsx - UPDATED VERSION
 import React, { useState } from "react";
 import { useModalStore } from "../store/useModalStore";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { useAddToYieldLock } from "../hooks/useAddToYieldLock";
+import { useWithdrawYieldLock } from "../hooks/useWithdrawYieldLock";
 import { client } from "../constants/Constants";
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
 import usdc_logo from "../assets/usdc.png";
 import scal_logo from "../assets/scal.png";
-import { StatusPill, WithdrawButton } from "./StakingCard";
+import { StatusPill } from "./StakingCard";
 
 // Token icon mapping
 const TOKEN_ICONS = {
@@ -18,6 +19,80 @@ const TOKEN_ICONS = {
   DEEP: deep_logo,
   USDC: usdc_logo,
   SCA: scal_logo,
+};
+
+/* -------------------------------------------------------------------------- */
+/* Updated WithdrawButton Component                                           */
+/* -------------------------------------------------------------------------- */
+const WithdrawButton = ({
+  className,
+  isExpired,
+  lockData,
+  onWithdrawSuccess,
+}) => {
+  const { withdrawLock, isWithdrawing } = useWithdrawLock();
+  const { withdrawYieldLock, isWithdrawing: isWithdrawingYield } =
+    useWithdrawYieldLock();
+
+  const handleWithdraw = async () => {
+    if (!lockData) {
+      alert("Lock data not available");
+      return;
+    }
+
+    try {
+      let result;
+
+      if (lockData.isYieldLock) {
+        // Yield lock withdrawal
+        result = await withdrawYieldLock(
+          lockData.yieldLockId,
+          lockData.platform,
+          lockData.registry,
+          lockData.clock,
+          lockData.coinType,
+          lockData.sCoinType,
+          lockData.scoinInfo
+        );
+      } else {
+        // Regular lock withdrawal
+        result = await withdrawLock(
+          lockData.lockId,
+          lockData.lockType,
+          lockData.platform,
+          lockData.registry,
+          lockData.clock,
+          lockData.coinType
+        );
+      }
+
+      if (result.success) {
+        alert("Withdrawal successful! Your funds have been transferred.");
+
+        // Call success callback to close modal and refresh dashboard
+        if (onWithdrawSuccess) {
+          onWithdrawSuccess();
+        }
+      }
+    } catch (error) {
+      console.error("Withdrawal error:", error);
+      alert(`Withdrawal failed: ${error.message || error}`);
+    }
+  };
+
+  const isProcessing = isWithdrawing || isWithdrawingYield;
+
+  return (
+    <button
+      onClick={handleWithdraw}
+      disabled={!isExpired || isProcessing}
+      className={`font-semibold text-white py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed ${
+        isExpired ? "bg-green-600 hover:bg-green-700" : "bg-gray-400"
+      } ${className}`}
+    >
+      {isProcessing ? "Processing..." : isExpired ? "Withdraw" : "Locked"}
+    </button>
+  );
 };
 
 /* -------------------------------------------------------------------------- */
@@ -134,8 +209,8 @@ const TopUpLockModal = () => {
       if (result.success) {
         alert(`Successfully added ${amountToAdd} ${tokenName} to your lock!`);
         closeModal();
-        // Optionally refresh the lock data here
-        window.location.reload(); // Simple refresh - you can improve this
+        // Refresh will happen automatically via activity context
+        window.location.reload();
       }
     } catch (error) {
       console.error("Top up failed:", error);
@@ -324,8 +399,6 @@ const TopUpLockModal = () => {
 const Modal = () => {
   const { isOpen, view, modalData, closeModal, goToInner } = useModalStore();
 
-  if (!isOpen) return null;
-
   const {
     tokenName = "SUI",
     tokenAmount = "0",
@@ -334,10 +407,18 @@ const Modal = () => {
     endDate = "N/A",
     timeLeft = 0,
     isExpired: modalIsExpired,
-    withdrawLock,
-    isWithdrawing,
     memo,
     apy = "12.5",
+    // Withdrawal data
+    lockId,
+    yieldLockId,
+    isYieldLock,
+    platform,
+    registry,
+    clock,
+    coinType,
+    sCoinType,
+    scoinInfo,
   } = modalData || {};
 
   const isExpired = modalIsExpired ?? false;
@@ -350,17 +431,36 @@ const Modal = () => {
   // Use memo as description
   const lockDescription = memo || "No description";
 
+  // Handle successful withdrawal
+  const handleWithdrawSuccess = () => {
+    closeModal();
+    // The activity context will handle the refresh automatically
+    // But we can also force a page reload for immediate dashboard update
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
   // ---------------------- ACTION BUTTONS ----------------------
   const ActionButtons = () => {
-    // Only render WithdrawButton if withdrawLock exists
     if (isExpired) {
       return (
         <div className="flex gap-4">
           <WithdrawButton
-            className="ring-2 w-full"
+            className="w-full"
             isExpired={isExpired}
-            isWithdrawing={isWithdrawing}
-            withdrawLock={withdrawLock}
+            lockData={{
+              lockId,
+              yieldLockId,
+              isYieldLock,
+              platform,
+              registry,
+              clock,
+              coinType,
+              sCoinType,
+              scoinInfo,
+            }}
+            onWithdrawSuccess={handleWithdrawSuccess}
           />
         </div>
       );
@@ -384,6 +484,8 @@ const Modal = () => {
       </div>
     );
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50">

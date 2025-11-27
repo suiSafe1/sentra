@@ -1,5 +1,3 @@
-// src/services/analyticsService.js
-
 import {
   client,
   PACKAGE_ID,
@@ -7,15 +5,8 @@ import {
   REGISTRY_ID,
 } from "../constants/Constants";
 
-/**
- * Your analytics module package ID
- * Update this with your actual analytics module package ID
- */
-const ANALYTICS_PACKAGE_ID = PACKAGE_ID; // Assuming analytics is part of main package
+const ANALYTICS_PACKAGE_ID = PACKAGE_ID;
 
-/**
- * Supported token types - must match your Move contract
- */
 const TOKEN_TYPES = {
   SUI: "0x2::sui::SUI",
   USDC: "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
@@ -32,10 +23,6 @@ const SCOIN_TYPES = {
   SCA: "0x5ca17430c1d046fae9edeaa8fd76c7b4193a00d764a0ecfa9418d733ad27bc1e::scallop_sca::SCALLOP_SCA",
 };
 
-/**
- * Fetch global TVL stats for all tokens
- * Uses analytics::get_all_tvl() from your Move module
- */
 export async function fetchGlobalTVL() {
   try {
     const txb = await client.devInspectTransactionBlock({
@@ -53,16 +40,12 @@ export async function fetchGlobalTVL() {
       throw new Error("No results from TVL query");
     }
 
-    // Parse the returned vector<TVLStats>
     const returnValues = txb.results[0].returnValues;
     if (!returnValues || returnValues.length === 0) {
       return [];
     }
 
-    // Decode the BCS data
     const [data] = returnValues;
-    // This would need proper BCS deserialization
-    // For now, we'll use the alternative approach below
 
     return [];
   } catch (error) {
@@ -71,10 +54,6 @@ export async function fetchGlobalTVL() {
   }
 }
 
-/**
- * Fetch TVL for a specific token
- * Uses analytics::get_tvl_stats<CoinType>()
- */
 export async function fetchTokenTVL(tokenSymbol) {
   const coinType = TOKEN_TYPES[tokenSymbol];
   if (!coinType) return null;
@@ -91,7 +70,6 @@ export async function fetchTokenTVL(tokenSymbol) {
         "0x0000000000000000000000000000000000000000000000000000000000000000",
     });
 
-    // Parse results
     return txb.results;
   } catch (error) {
     console.error(`Failed to fetch TVL for ${tokenSymbol}:`, error);
@@ -99,10 +77,6 @@ export async function fetchTokenTVL(tokenSymbol) {
   }
 }
 
-/**
- * Fetch global lock statistics
- * Uses analytics::get_global_lock_stats()
- */
 export async function fetchGlobalLockStats() {
   try {
     const txb = await client.devInspectTransactionBlock({
@@ -123,10 +97,6 @@ export async function fetchGlobalLockStats() {
   }
 }
 
-/**
- * Fetch platform statistics (supported tokens, pause status, etc.)
- * Uses analytics::get_platform_stats()
- */
 export async function fetchPlatformStats() {
   try {
     const txb = await client.devInspectTransactionBlock({
@@ -147,13 +117,8 @@ export async function fetchPlatformStats() {
   }
 }
 
-/**
- * Fetch global lock IDs from the Platform object
- * Uses dynamic field access to get the global lock lists
- */
 export async function fetchGlobalLockIds() {
   try {
-    // Fetch the Platform object to get global lock lists
     const platformObj = await client.getObject({
       id: PLATFORM_ID,
       options: {
@@ -168,7 +133,6 @@ export async function fetchGlobalLockIds() {
 
     const fields = platformObj.data.content.fields;
 
-    // Extract lock IDs from global_lock_list and global_yield_lock_list
     const regularLockIds = fields.global_lock_list || [];
     const yieldLockIds = fields.global_yield_lock_list || [];
 
@@ -182,10 +146,6 @@ export async function fetchGlobalLockIds() {
   }
 }
 
-/**
- * Fetch all lock objects from the blockchain
- * Uses the global lock ID lists from the Platform object
- */
 export async function fetchAllLockObjects() {
   try {
     const { regularLockIds, yieldLockIds } = await fetchGlobalLockIds();
@@ -195,10 +155,8 @@ export async function fetchAllLockObjects() {
       yield: [],
     };
 
-    // Fetch regular locks in batches
     if (regularLockIds.length > 0) {
       try {
-        // Batch fetch (max 50 at a time due to RPC limits)
         const batchSize = 50;
         for (let i = 0; i < regularLockIds.length; i += batchSize) {
           const batch = regularLockIds.slice(i, i + batchSize);
@@ -217,7 +175,6 @@ export async function fetchAllLockObjects() {
       }
     }
 
-    // Fetch yield locks in batches
     if (yieldLockIds.length > 0) {
       try {
         const batchSize = 50;
@@ -245,16 +202,12 @@ export async function fetchAllLockObjects() {
   }
 }
 
-/**
- * Parse lock object data and extract relevant info
- */
 export function parseLockObject(lockData) {
   try {
     if (!lockData?.data?.content?.fields) return null;
 
     const fields = lockData.data.content.fields;
 
-    // Handle balance field (can be nested)
     let balance = "0";
     if (fields.balance) {
       if (typeof fields.balance === "object" && fields.balance.fields) {
@@ -281,16 +234,12 @@ export function parseLockObject(lockData) {
   }
 }
 
-/**
- * Parse yield lock object data
- */
 export function parseYieldLockObject(lockData) {
   try {
     if (!lockData?.data?.content?.fields) return null;
 
     const fields = lockData.data.content.fields;
 
-    // Handle s_coin_balance field
     let sCoinBalance = "0";
     if (fields.s_coin_balance) {
       if (
@@ -305,7 +254,6 @@ export function parseYieldLockObject(lockData) {
       }
     }
 
-    // Handle coin_type field
     let coinType = "";
     if (fields.coin_type) {
       if (typeof fields.coin_type === "object" && fields.coin_type.name) {
@@ -332,25 +280,19 @@ export function parseYieldLockObject(lockData) {
   }
 }
 
-/**
- * Calculate total TVL in USD from all locks
- */
 export function calculateTotalTVL(locks, prices) {
   let totalTVL = 0;
 
-  // Process regular locks
   locks.regular.forEach((lockObj) => {
     const lock = parseLockObject(lockObj);
     if (!lock) return;
 
-    // Extract token type from the object type
     const symbol = getTokenSymbolFromType(lock.type || lockObj.data.type);
     if (!symbol) return;
 
     const decimals = getTokenDecimals(symbol);
     const price = prices[symbol] || 0;
 
-    // Parse balance safely
     const balanceStr =
       typeof lock.balance === "object" && lock.balance.value
         ? lock.balance.value
@@ -362,18 +304,14 @@ export function calculateTotalTVL(locks, prices) {
     }
   });
 
-  // Process yield locks
   locks.yield.forEach((lockObj) => {
     const lock = parseYieldLockObject(lockObj);
     if (!lock) return;
 
-    // Get token type from coinType field or from object type
     let symbol = getTokenSymbolFromType(lock.coinType);
     if (!symbol) {
-      // Fallback: try to extract from object type
       const typeMatch = (lock.type || lockObj.data.type).match(/<([^>]+)>/);
       if (typeMatch) {
-        // This is an sCoin type, need to map back to base token
         symbol = getTokenSymbolFromScoinType(typeMatch[1]);
       }
     }
@@ -393,9 +331,6 @@ export function calculateTotalTVL(locks, prices) {
   return totalTVL;
 }
 
-/**
- * Helper: Get token symbol from coin type string
- */
 function getTokenSymbolFromType(coinType) {
   if (!coinType) return null;
 
@@ -412,9 +347,6 @@ function getTokenSymbolFromType(coinType) {
   return null;
 }
 
-/**
- * Helper: Get token symbol from sCoin type
- */
 function getTokenSymbolFromScoinType(scoinType) {
   if (!scoinType) return null;
 
@@ -424,7 +356,6 @@ function getTokenSymbolFromScoinType(scoinType) {
     }
   }
 
-  // Fallback: check if scoin type contains token name
   const upperType = scoinType.toUpperCase();
   for (const symbol of Object.keys(TOKEN_TYPES)) {
     if (upperType.includes(`SCALLOP_${symbol}`) || upperType.includes(symbol)) {
@@ -435,21 +366,14 @@ function getTokenSymbolFromScoinType(scoinType) {
   return null;
 }
 
-/**
- * Helper: Get token decimals
- */
 function getTokenDecimals(symbol) {
   if (symbol === "USDC" || symbol === "DEEP") return 6;
   return 9;
 }
 
-/**
- * Get TVL breakdown by token
- */
 export function getTVLByToken(locks, prices) {
   const tvlByToken = {};
 
-  // Initialize
   Object.keys(TOKEN_TYPES).forEach((symbol) => {
     tvlByToken[symbol] = {
       locked: 0,
@@ -459,7 +383,6 @@ export function getTVLByToken(locks, prices) {
     };
   });
 
-  // Process regular locks
   locks.regular.forEach((lockObj) => {
     const lock = parseLockObject(lockObj);
     if (!lock) return;
@@ -484,7 +407,6 @@ export function getTVLByToken(locks, prices) {
     }
   });
 
-  // Process yield locks
   locks.yield.forEach((lockObj) => {
     const lock = parseYieldLockObject(lockObj);
     if (!lock) return;
@@ -515,9 +437,6 @@ export function getTVLByToken(locks, prices) {
   return tvlByToken;
 }
 
-/**
- * Get top performing assets by TVL and APY
- */
 export function getTopPerformingAssets(tvlByToken, apys) {
   const assets = Object.entries(tvlByToken)
     .map(([symbol, data]) => ({
@@ -525,7 +444,6 @@ export function getTopPerformingAssets(tvlByToken, apys) {
       tvl: data.total,
       apy: apys[symbol] || 0,
       count: data.count,
-      // Performance score = TVL * APY (simple metric)
       score: data.total * (apys[symbol] || 0),
     }))
     .filter((asset) => asset.tvl > 0)

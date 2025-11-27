@@ -173,10 +173,9 @@ export function useCreateLockToken() {
       const digest = result?.digest || result?.effects?.transactionDigest;
 
       if (result?.digest) {
-        // SUCCESS! Refresh activity
         setTimeout(() => {
           refreshActivity();
-        }, 2000); // Wait 2 seconds for blockchain to index
+        }, 2000);
       }
 
       const txBlock = await client.getTransactionBlock({

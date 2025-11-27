@@ -1,5 +1,3 @@
-// src/hooks/useActivity.js - FIXED VERSION
-
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { client, PACKAGE_ID, PACKAGE_ID_V1 } from "../constants/Constants";
@@ -12,7 +10,6 @@ const ACTIVITY_CACHE_KEY = "sui_activities_cache";
 const LAST_SEEN_KEY = "lastSeenActivityTimestamp";
 const MAX_ACTIVITIES = 50;
 
-// Fee router package for swap events
 const FEE_ROUTER_PACKAGE =
   "0xf6e33c23ef17c81796b8995b493e906a7446686a3dce763bb3259e2fe59df737";
 
@@ -73,13 +70,11 @@ export function useActivity() {
   const addActivity = useCallback(
     (newActivity) => {
       setActivities((prev) => {
-        // Check if activity already exists
         const isDuplicate = prev.some((act) => act.id === newActivity.id);
         if (isDuplicate) {
           return prev;
         }
 
-        // Add new activity and sort by timestamp
         const updated = [newActivity, ...prev]
           .sort((a, b) => b.timestamp - a.timestamp)
           .slice(0, MAX_ACTIVITIES);
@@ -128,7 +123,6 @@ export function useActivity() {
                 },
                 onMessage: async (event) => {
                   try {
-                    // Check if event belongs to current user
                     const owner = event.parsedJson?.owner;
                     if (
                       owner &&

@@ -1,5 +1,3 @@
-// src/services/activityService.js - FIXED VERSION
-
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -28,33 +26,26 @@ const TOKEN_TYPES = {
     "SCA",
 };
 
-/**
- * Extract token symbol from type string
- */
 function getTokenSymbolFromType(typeStr) {
   if (!typeStr) {
     return "TOKEN";
   }
 
-  // Direct lookup - exact match
   if (TOKEN_TYPES[typeStr]) {
     return TOKEN_TYPES[typeStr];
   }
 
-  // Check for partial matches in the type string
   for (const [key, symbol] of Object.entries(TOKEN_TYPES)) {
     if (typeStr.includes(key)) {
       return symbol;
     }
   }
 
-  // Extract from type name (e.g., "::sui::SUI" -> "SUI")
   const match = typeStr.match(/::([a-z]+)::[A-Z]+$/i);
   if (match) {
     return match[1].toUpperCase();
   }
 
-  // Try to find any known token name in the string
   const upperType = typeStr.toUpperCase();
   for (const symbol of Object.values(TOKEN_TYPES)) {
     if (upperType.includes(symbol)) {
@@ -65,9 +56,6 @@ function getTokenSymbolFromType(typeStr) {
   return "TOKEN";
 }
 
-/**
- * Format amount with decimals
- */
 function formatAmount(amount, decimals = 9) {
   const num = Number(amount) / Math.pow(10, decimals);
   if (num >= 1000) {
@@ -79,17 +67,11 @@ function formatAmount(amount, decimals = 9) {
   }
 }
 
-/**
- * Get decimals for a token
- */
 function getTokenDecimals(symbol) {
   if (symbol === "USDC" || symbol === "DEEP") return 6;
   return 9;
 }
 
-/**
- * Fetch full transaction to extract token info from ConfirmSwapEvent or balance changes
- */
 async function fetchSwapTokenInfo(txDigest, suiClient) {
   try {
     const txDetails = await suiClient.getTransactionBlock({
@@ -100,7 +82,6 @@ async function fetchSwapTokenInfo(txDigest, suiClient) {
       },
     });
 
-    // Method 1: Try to find ConfirmSwapEvent (most reliable)
     const confirmSwapEvent = txDetails.events?.find((evt) =>
       evt.type.includes("ConfirmSwapEvent")
     );
@@ -121,7 +102,6 @@ async function fetchSwapTokenInfo(txDigest, suiClient) {
       }
     }
 
-    // Method 2: Extract from balance changes
     const balanceChanges = txDetails.balanceChanges || [];
     const negative = balanceChanges.find((bc) => Number(bc.amount) < 0);
     const positive = balanceChanges.find((bc) => Number(bc.amount) > 0);
@@ -142,17 +122,11 @@ async function fetchSwapTokenInfo(txDigest, suiClient) {
   }
 }
 
-/**
- * Parse event data into activity item
- *
- * THIS IS THE MAIN FUNCTION USED BY THE EVENT LISTENER
- */
 export async function parseEventToActivity(event, suiClient = null) {
   try {
     const { type, parsedJson, timestampMs, id } = event;
     const txDigest = id?.txDigest || "";
 
-    // Extract event type from the full type string
     const eventTypeMatch = type.match(/::([^:<]+)(<.*>)?$/);
     if (!eventTypeMatch) {
       return null;
@@ -161,23 +135,19 @@ export async function parseEventToActivity(event, suiClient = null) {
     const eventName = eventTypeMatch[1];
     const typeArgs = eventTypeMatch[2] || "";
 
-    // ===== FIX: Handle SwapEvent specially =====
     if (eventName === "SwapEvent") {
       console.log("🔄 SwapEvent detected, fetching transaction details...");
 
-      // Try to fetch detailed token info from transaction
       let swapInfo = null;
       if (suiClient && txDigest) {
         swapInfo = await fetchSwapTokenInfo(txDigest, suiClient);
       }
 
-      // Extract token information
       let coinInType = swapInfo?.coinInType || parsedJson?.coin_in_type;
       let coinOutType = swapInfo?.coinOutType || parsedJson?.coin_out_type;
       const amountIn = swapInfo?.amountIn || parsedJson?.amount_in || "0";
       const amountOut = swapInfo?.amountOut || parsedJson?.amount_out || "0";
 
-      // Handle different formats of coin_type (string, object, or array)
       if (typeof coinInType === "object" && coinInType?.name) {
         coinInType = coinInType.name;
       } else if (Array.isArray(coinInType)) {
@@ -197,7 +167,6 @@ export async function parseEventToActivity(event, suiClient = null) {
         amountOut,
       });
 
-      // Get token symbols and metadata
       const fromToken = getTokenSymbolFromType(coinInType || "");
       const toToken = getTokenSymbolFromType(coinOutType || "");
       const fromDecimals = getTokenDecimals(fromToken);
@@ -224,18 +193,14 @@ export async function parseEventToActivity(event, suiClient = null) {
       };
     }
 
-    // Try to extract coin type from multiple sources
     let coinType = "";
 
-    // 1. Try from type arguments (angle brackets)
     const coinTypeMatch = typeArgs.match(/<([^>]+)>/);
     if (coinTypeMatch) {
       coinType = coinTypeMatch[1];
     }
 
-    // 2. Try from parsedJson.coin_type - HANDLE OBJECT FORMAT
     if (!coinType && parsedJson?.coin_type) {
-      // Check if coin_type is an object with a 'name' property
       if (
         typeof parsedJson.coin_type === "object" &&
         parsedJson.coin_type.name
@@ -246,7 +211,6 @@ export async function parseEventToActivity(event, suiClient = null) {
       }
     }
 
-    // 3. Try from parsedJson.type
     if (!coinType && parsedJson?.type) {
       coinType = parsedJson.type;
     }
@@ -255,7 +219,6 @@ export async function parseEventToActivity(event, suiClient = null) {
     const decimals = getTokenDecimals(tokenSymbol);
     const tokenIcon = TOKEN_ICONS[tokenSymbol] || sui_logo;
 
-    // Parse based on event type
     switch (eventName) {
       case "LockCreated": {
         const amount = parsedJson?.amount || "0";
@@ -377,9 +340,6 @@ export async function parseEventToActivity(event, suiClient = null) {
   }
 }
 
-/**
- * Get activity summary (counts by type)
- */
 export function getActivitySummary(activities) {
   const summary = {
     total: activities.length,
@@ -404,9 +364,6 @@ export function getActivitySummary(activities) {
   return summary;
 }
 
-/**
- * Format timestamp to readable date/time
- */
 export function formatActivityTime(timestamp) {
   const date = new Date(timestamp);
   const now = new Date();

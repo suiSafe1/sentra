@@ -1,5 +1,3 @@
-// src/hooks/useAddToYieldLock.js
-
 import { useState } from "react";
 import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
@@ -44,7 +42,6 @@ export function useAddToYieldLock() {
         Math.floor(parseFloat(amount) * 10 ** decimals)
       );
 
-      // Step 1: Get the base coin
       let coin;
 
       if (tokenConfig.tokenName === "SUI") {
@@ -85,7 +82,6 @@ export function useAddToYieldLock() {
         [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
       }
 
-      // Step 2: Mint market coin from base token
       const marketCoinHandle = tx.moveCall({
         target: `${SCALLOP_MINT_PACKAGE}::mint::mint`,
         arguments: [
@@ -97,7 +93,6 @@ export function useAddToYieldLock() {
         typeArguments: [tokenConfig.coinType],
       });
 
-      // Step 3: Convert market coin to sCoin
       const sCoinHandle = tx.moveCall({
         target: `${SCALLOP_S_COIN_CONVERTER_PACKAGE}::s_coin_converter::mint_s_coin`,
         arguments: [
@@ -107,7 +102,6 @@ export function useAddToYieldLock() {
         typeArguments: [tokenConfig.scoinInfo.scoinType, tokenConfig.coinType],
       });
 
-      // Step 4: Add sCoin to existing yield lock
       tx.moveCall({
         target: `${PACKAGE_ID}::sentra::add_to_yield_lock`,
         arguments: [
@@ -118,12 +112,10 @@ export function useAddToYieldLock() {
         typeArguments: [tokenConfig.coinType, tokenConfig.scoinInfo.scoinType],
       });
 
-      // Execute transaction
       const result = await signAndExecuteTransaction({ transaction: tx });
       const digest = result?.digest || result?.effects?.transactionDigest;
 
       if (result?.digest) {
-        // Success! Refresh activity after 2 seconds
         setTimeout(() => {
           refreshActivity();
         }, 2000);

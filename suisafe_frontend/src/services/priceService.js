@@ -15,7 +15,7 @@ const TOKEN_IDS = {
 
 /**
  * Fetch token prices from CoinGecko
- * @returns {Promise<Object>} Price map: { SUI: 3.45, USDC: 1.00, ... }
+ * @returns {Promise<Object>}
  */
 export async function fetchTokenPrices() {
   const now = Date.now();
@@ -38,7 +38,7 @@ export async function fetchTokenPrices() {
 
     const prices = {
       SUI: data[TOKEN_IDS.SUI]?.usd || 0,
-      USDC: data[TOKEN_IDS.USDC]?.usd || 1.0, // Fallback to $1
+      USDC: data[TOKEN_IDS.USDC]?.usd || 1.0,
       WAL: data[TOKEN_IDS.WAL]?.usd || 0,
       DEEP: data[TOKEN_IDS.DEEP]?.usd || 0,
       SCA: data[TOKEN_IDS.SCA]?.usd || 0,

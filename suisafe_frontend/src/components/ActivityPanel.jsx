@@ -1,5 +1,3 @@
-// src/components/ActivityPanel.jsx
-
 import React from "react";
 import {
   X,
@@ -53,7 +51,6 @@ function ActivityItem({ activity }) {
     }
   };
 
-  // Special rendering for swap activities
   if (activity.type === "swap") {
     return (
       <div
@@ -112,7 +109,6 @@ function ActivityItem({ activity }) {
     );
   }
 
-  // Default rendering for non-swap activities
   return (
     <div
       className={`border ${typeColor} rounded-lg p-3 mb-2 hover:shadow-sm transition-shadow`}

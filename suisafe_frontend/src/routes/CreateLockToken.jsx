@@ -185,10 +185,8 @@ function CreateLockToken() {
             coinType: selectedToken.type,
           });
 
-          // Store raw balance for calculations
           setRawBalance(balance.totalBalance);
 
-          // Display formatted balance
           const balanceInTokens = (
             Number(balance.totalBalance) / Math.pow(10, selectedToken.decimals)
           ).toFixed(2);
@@ -204,10 +202,8 @@ function CreateLockToken() {
             BigInt(0)
           );
 
-          // Store raw balance for calculations
           setRawBalance(totalBalance.toString());
 
-          // Display formatted balance
           const balanceInTokens = (
             Number(totalBalance) / Math.pow(10, selectedToken.decimals)
           ).toFixed(2);
@@ -235,7 +231,6 @@ function CreateLockToken() {
     const rawBalanceBigInt = BigInt(rawBalance);
 
     if (selectedToken.symbol === "SUI") {
-      // Reserve 0.05 SUI for gas (0.05 * 10^9 = 50000000)
       const gasReserve = BigInt(50000000);
 
       if (rawBalanceBigInt <= gasReserve) {
@@ -246,14 +241,11 @@ function CreateLockToken() {
       const maxAmountRaw = rawBalanceBigInt - gasReserve;
       const maxAmount = Number(maxAmountRaw) / Math.pow(10, decimals);
 
-      // Use full precision for the amount input
       setAmount(maxAmount.toString());
       alert("0.05 SUI reserved for gas fee");
     } else {
-      // For non-SUI tokens, use full balance with proper precision
       const maxAmount = Number(rawBalanceBigInt) / Math.pow(10, decimals);
 
-      // Set the amount with full precision (not just 2 decimals)
       setAmount(maxAmount.toString());
     }
   };

@@ -14,7 +14,6 @@ import scal from "../assets/scal.png";
 import { AggregatorClient } from "@cetusprotocol/aggregator-sdk";
 import confetti from "canvas-confetti";
 
-// --- Constants ---
 const TREASURY_IDS = {
   SUI: "0x6a8c7f91b5dd6a4a026bc8800d4903392eb18c18e60d5a89b454cd2c72470fd1",
   USDC: "0x989b2401f023c0b03ca22e23a0a8ab0d847af705018eab08594446a3a0d5c62a",
@@ -503,7 +502,7 @@ export default function SwapTokens() {
 
       const [coinAfterFee] = txb.moveCall({
         target: `${FEE_MODULE_ADDRESS}::fee_router::take_fee_and_return`,
-        typeArguments: [fromTokenData.type], // Dynamic type argument
+        typeArguments: [fromTokenData.type],
         arguments: [txb.object(treasuryId), coinForSwap],
       });
 

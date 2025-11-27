@@ -8,10 +8,6 @@ import {
 import { fetchTokenPrices } from "../services/priceService";
 import { fetchScallopAPYs } from "../services/apyService";
 
-/**
- * Hook for fetching global platform analytics
- * This provides dashboard-level statistics across ALL users
- */
 export function useGlobalAnalytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);

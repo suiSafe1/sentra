@@ -104,7 +104,6 @@ export function useSuiLocks() {
 
     loadMarketData();
 
-    // Refresh every 2 minutes
     const interval = setInterval(loadMarketData, 120000);
     return () => clearInterval(interval);
   }, []);
@@ -114,7 +113,6 @@ export function useSuiLocks() {
 
     setIsLoading(true);
     try {
-      // Fetch locks from BOTH package versions
       const [oldVersionLocks, newVersionLocks] = await Promise.all([
         client.getOwnedObjects({
           owner: currentAccount.address,

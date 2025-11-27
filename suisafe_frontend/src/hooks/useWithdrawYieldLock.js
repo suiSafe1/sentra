@@ -1,6 +1,3 @@
-// src/hooks/useWithdrawYieldLock.js - ADD THIS NEW FILE
-// Separate hook for yield lock withdrawals
-
 import { useState } from "react";
 import { Transaction } from "@mysten/sui/transactions";
 import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
@@ -31,21 +28,18 @@ export function useWithdrawYieldLock() {
       const tx = new Transaction();
       tx.setGasBudget(20_000_000);
 
-      // Step 1: Unlock s_coin from yield lock
       const sCoinHandle = tx.moveCall({
         target: `${platform.packageId}::sentra::unlock_yield_lock_s_coin`,
         arguments: [tx.object(yieldLockId), tx.object(platform.platformId)],
         typeArguments: [sCoinType],
       });
 
-      // Step 2: Convert s_coin back to regular coin
       const redeemedCoinHandle = tx.moveCall({
         target: `${scoinInfo.converterPackage}::s_coin_converter::redeem_s_coin`,
         arguments: [tx.object(scoinInfo.converterId), sCoinHandle],
         typeArguments: [sCoinType, coinType],
       });
 
-      // Step 3: Complete withdrawal with redeemed coin
       tx.moveCall({
         target: `${platform.packageId}::sentra::complete_yield_withdrawal_with_redeemed_coin`,
         arguments: [
@@ -63,10 +57,9 @@ export function useWithdrawYieldLock() {
       if (result?.digest) {
         console.log("✅ Yield withdrawal successful:", result.digest);
 
-        // IMPORTANT: Refresh activity feed after successful withdrawal
         setTimeout(() => {
           refreshActivity();
-        }, 2000); // Wait 2 seconds for blockchain to index
+        }, 2000);
 
         return { success: true, digest: result.digest };
       }

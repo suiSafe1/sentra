@@ -1,4 +1,3 @@
-// src/components/Modal.jsx - UPDATED VERSION
 import React, { useState } from "react";
 import { useModalStore } from "../store/useModalStore";
 import { useCurrentAccount } from "@mysten/dapp-kit";
@@ -22,7 +21,7 @@ const TOKEN_ICONS = {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Updated WithdrawButton Component                                           */
+/* WithdrawButton Component                                           */
 /* -------------------------------------------------------------------------- */
 const WithdrawButton = ({
   className,
@@ -44,7 +43,6 @@ const WithdrawButton = ({
       let result;
 
       if (lockData.isYieldLock) {
-        // Yield lock withdrawal
         result = await withdrawYieldLock(
           lockData.yieldLockId,
           lockData.platform,
@@ -55,7 +53,6 @@ const WithdrawButton = ({
           lockData.scoinInfo
         );
       } else {
-        // Regular lock withdrawal
         result = await withdrawLock(
           lockData.lockId,
           lockData.lockType,
@@ -118,10 +115,8 @@ const TopUpLockModal = () => {
   const [availableBalance, setAvailableBalance] = useState("0");
   const [loadingBalance, setLoadingBalance] = useState(false);
 
-  // Get correct token icon
   const displayIcon = tokenIcon || TOKEN_ICONS[tokenName] || sui_logo;
 
-  // Fetch available balance when modal opens
   React.useEffect(() => {
     const fetchBalance = async () => {
       if (!currentAccount || !coinType) return;
@@ -209,7 +204,6 @@ const TopUpLockModal = () => {
       if (result.success) {
         alert(`Successfully added ${amountToAdd} ${tokenName} to your lock!`);
         closeModal();
-        // Refresh will happen automatically via activity context
         window.location.reload();
       }
     } catch (error) {
@@ -434,8 +428,6 @@ const Modal = () => {
   // Handle successful withdrawal
   const handleWithdrawSuccess = () => {
     closeModal();
-    // The activity context will handle the refresh automatically
-    // But we can also force a page reload for immediate dashboard update
     setTimeout(() => {
       window.location.reload();
     }, 1000);

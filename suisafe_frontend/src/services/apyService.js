@@ -2,10 +2,6 @@ const APY_CACHE_DURATION = 300000; // 5 minutes
 let apyCache = null;
 let lastApyFetchTime = 0;
 
-/**
- * Mapping from API symbols to our token symbols
- * The Scallop API returns different symbols than we use
- */
 const SYMBOL_MAPPING = {
   SSUI: "SUI",
   SUSDC: "USDC",
@@ -21,12 +17,11 @@ const SYMBOL_MAPPING = {
 
 /**
  * Fetch current APY rates from Scallop
- * @returns {Promise<Object>} APY map: { SUI: 8.5, USDC: 5.2, ... }
+ * @returns {Promise<Object>}
  */
 export async function fetchScallopAPYs() {
   const now = Date.now();
 
-  // Return cached APYs if still valid
   if (apyCache && now - lastApyFetchTime < APY_CACHE_DURATION) {
     return apyCache;
   }
@@ -44,13 +39,11 @@ export async function fetchScallopAPYs() {
 
     console.log("Raw Scallop API response:", data);
 
-    // Extract APYs from pools array
     if (data.pools && Array.isArray(data.pools)) {
       data.pools.forEach((pool) => {
         if (pool.symbol && pool.supplyApy !== undefined) {
           const apiSymbol = pool.symbol.toUpperCase();
 
-          // Try to map the symbol
           const ourSymbol = SYMBOL_MAPPING[apiSymbol];
 
           if (ourSymbol) {

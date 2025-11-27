@@ -15,7 +15,6 @@ const TOKEN_ICONS = {
   SCA: scal_logo,
 };
 
-// Reusable SVG for the arrow icon
 const arrowIcon = (
   <svg
     width="13"
@@ -97,7 +96,6 @@ const Icons = {
   ),
 };
 
-// Component that displays the status badge
 export const StatusPill = ({ isExpired }) => {
   const statusColor = isExpired
     ? "bg-[#EFECEC] text-[#505A6B]"
@@ -163,10 +161,8 @@ export function StakingCard({
   const { openModal } = useModalStore();
   const timeRemainingDays = `${timeLeft} days left`;
 
-  // Get the correct token icon based on tokenName
   const tokenIcon = TOKEN_ICONS[tokenName] || sui_logo;
 
-  // Use memo as description, fallback to default
   const lockDescription = memo || "No description";
 
   return (

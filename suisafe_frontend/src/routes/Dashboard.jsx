@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// src/pages/Dashboard.jsx
+import React, { useState } from "react";
 import {
   ChevronUp,
   ChevronDown,
@@ -10,64 +11,27 @@ import {
 } from "lucide-react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useCurrentAccount } from "@mysten/dapp-kit";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 
 import TokenLock from "../dashboard/TokenLock.jsx";
 import NftLock from "../dashboard/NftLock.jsx";
 import Modal from "../components/LockModal.jsx";
 import ComingSoon from "../pages/ComingSoon.jsx";
-
-const PACKAGE_ID =
-  "0x690cc8f7277cbb2622de286387fc3bec5b6de4bdbb155d0ae2a0852d154ab194";
-const REGISTRY_ID =
-  "0xa92e808ecf2e5a129b7a801719d8299528c644ae0f609054fa17f902610aa93a";
-const PLATFORM_ID =
-  "0x07a716a59b9a44fa761e417ef568367cb2ed3a9cf7cfcf1c281c1ad257d806bc";
-
-const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
+import { useDashboardStats } from "../hooks/useDashboardStats";
 
 function Dashboard() {
   const [switchLock, setSwitchLock] = useState(false);
   const [status, setStatus] = useState(false);
-  const [dashboardData, setDashboardData] = useState({
-    totalValueLocked: "0.00",
-    totalYieldEarned: "0.00",
-    activeLocks: 0,
-    readyForWithdrawal: 3,
-    loading: true,
-  });
+
+  const dashboardData = useDashboardStats();
 
   const currentAccount = useCurrentAccount();
-  const location = useLocation(); // detect current path
+  const location = useLocation();
 
   const handleSwitch = (e) => {
     e.preventDefault();
     if (e.target.id === "tokenLock") setSwitchLock(false);
     else if (e.target.id === "nftLock") setSwitchLock(true);
   };
-
-  const fetchDashboardStats = async () => {
-    try {
-      setDashboardData((prev) => ({ ...prev, loading: true }));
-
-      // Mocked data (replace with real fetch logic)
-      setDashboardData({
-        totalValueLocked: "12,450.75",
-        totalYieldEarned: "402.12",
-        activeLocks: 7,
-        readyForWithdrawal: 3,
-        loading: false,
-      });
-    } catch (error) {
-      console.error("Failed to fetch dashboard stats:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardStats();
-    const interval = setInterval(fetchDashboardStats, 30000);
-    return () => clearInterval(interval);
-  }, [currentAccount]);
 
   const getIcon = (title) => {
     switch (title) {
@@ -84,6 +48,7 @@ function Dashboard() {
     }
   };
 
+  //  Stats cards data
   const infos = [
     {
       key: 1,
@@ -91,7 +56,7 @@ function Dashboard() {
       primary: dashboardData.loading
         ? "Loading..."
         : `$${dashboardData.totalValueLocked}`,
-      secondary: dashboardData.loading ? "" : "+5.2% from last month",
+      secondary: dashboardData.loading,
       icon: getIcon("Total Value Locked"),
     },
     {
@@ -99,10 +64,8 @@ function Dashboard() {
       title: "Yield Earned",
       primary: dashboardData.loading
         ? "Loading..."
-        : `${dashboardData.totalYieldEarned} SUI`,
-      secondary: dashboardData.loading
-        ? ""
-        : `+$1,204.64 (+5.2% from last month)`,
+        : `$${dashboardData.totalYieldEarned}`,
+      secondary: dashboardData.loading,
       icon: getIcon("Yield Earned"),
     },
     {
@@ -126,15 +89,15 @@ function Dashboard() {
   ];
 
   const StatCard = ({ title, primaryText, secondaryText, icon: Icon }) => (
-    <div className='flex flex-col gap-2 bg-white shadow-md p-6 border border-gray-200 rounded-xl text-gray-900'>
-      <div className='flex justify-between items-start'>
-        <h4 className='font-medium text-gray-500 text-sm'>{title}</h4>
-        {Icon && <Icon className='w-5 h-5 text-blue-900' />}
+    <div className="flex flex-col gap-2 bg-white shadow-md p-6 border border-gray-200 rounded-xl text-gray-900">
+      <div className="flex justify-between items-start">
+        <h4 className="font-medium text-gray-500 text-sm">{title}</h4>
+        {Icon && <Icon className="w-5 h-5 text-blue-900" />}
       </div>
-      <p className='font-blue-900 text-gray-900 text-2xl md:text-3xl'>
+      <p className="font-bold text-gray-900 text-2xl md:text-3xl">
         {primaryText}
       </p>
-      <p className='font-medium text-green-600 text-sm'>{secondaryText}</p>
+      <p className="font-medium text-green-600 text-sm">{secondaryText}</p>
     </div>
   );
 
@@ -145,19 +108,19 @@ function Dashboard() {
         : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900"
     }`;
 
-  // 🧭 Detect if user is in /dashboard/lock
+  // Check if we're on the lock creation page
   const isLockPage = location.pathname === "/dashboard/lock";
 
   return (
-    <div className='flex flex-col flex-1 bg-gray-50 h-[88vh] overflow-y-scroll text-gray-900'>
-      <div className='space-y-8 mx-auto p-4 md:p-8 w-full max-w-7xl'>
-        {/* ✅ If /dashboard/lock → show nested route content */}
+    <div className="flex flex-col flex-1 bg-gray-50 h-[88vh] overflow-y-scroll text-gray-900">
+      <div className="space-y-8 mx-auto p-4 md:p-8 w-full max-w-7xl">
+        {/* If on /dashboard/lock, show nested route */}
         {isLockPage ? (
           <Outlet />
         ) : (
           <>
-            {/* Dashboard info section (Stat Cards) */}
-            <section className='gap-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'>
+            {/* Dashboard Stats Cards */}
+            <section className="gap-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {infos.map((data) => (
                 <StatCard
                   key={data.key}
@@ -169,21 +132,21 @@ function Dashboard() {
               ))}
             </section>
 
-            {/* Your Locks section title */}
-            <h2 className='pt-4 font-bold text-gray-800 text-xl'>Your Locks</h2>
+            {/* Your Locks Section Title */}
+            <h2 className="pt-4 font-bold text-gray-800 text-xl">Your Locks</h2>
 
             <Modal />
 
-            {/* Lock section */}
-            <section className='space-y-4'>
+            {/* Lock Section */}
+            <section className="space-y-4">
               {/* Header Bar */}
-              <div className='flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4'>
+              <div className="flex sm:flex-row flex-col sm:justify-between sm:items-center gap-4">
                 {/* Lock Type Switch */}
-                <div className='flex space-x-2'>
+                <div className="flex space-x-2">
                   <button
                     className={getSwitchButtonClasses(!switchLock)}
                     disabled={!switchLock}
-                    id='tokenLock'
+                    id="tokenLock"
                     onClick={handleSwitch}
                   >
                     Token Locks
@@ -191,7 +154,7 @@ function Dashboard() {
                   <button
                     className={getSwitchButtonClasses(switchLock)}
                     disabled={switchLock}
-                    id='nftLock'
+                    id="nftLock"
                     onClick={handleSwitch}
                   >
                     NFT Locks
@@ -199,31 +162,31 @@ function Dashboard() {
                 </div>
 
                 {/* Filter + Create */}
-                <div className='flex items-center space-x-4'>
+                <div className="flex items-center space-x-4">
                   {/* Status Filter */}
-                  <div className='relative'>
+                  <div className="relative">
                     <button
-                      className='flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-00 text-sm transition-colors'
+                      className="flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-blue-900 text-sm transition-colors"
                       onClick={() => setStatus(!status)}
                     >
                       All Statuses{" "}
-                      <span className='ml-2'>
+                      <span className="ml-2">
                         {status ? (
-                          <ChevronUp size={16} className='text-gray-500' />
+                          <ChevronUp size={16} className="text-gray-500" />
                         ) : (
-                          <ChevronDown size={16} className='text-gray-500' />
+                          <ChevronDown size={16} className="text-gray-500" />
                         )}
                       </span>
                     </button>
                     {status && (
-                      <div className='left-0 z-10 absolute bg-white shadow-lg mt-2 border border-gray-200 rounded-lg w-40'>
-                        <p className='hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer'>
+                      <div className="left-0 z-10 absolute bg-white shadow-lg mt-2 border border-gray-200 rounded-lg w-40">
+                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
                           All
                         </p>
-                        <p className='hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer'>
+                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
                           Locked
                         </p>
-                        <p className='hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer'>
+                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
                           Withdraw
                         </p>
                       </div>
@@ -232,8 +195,8 @@ function Dashboard() {
 
                   {/* Create New Lock */}
                   <Link
-                    to='/dashboard/lock'
-                    className='flex items-center space-x-1 bg-[#00076C] hover:bg-[#00076C] shadow-md px-3 py-1.5 rounded-md font-medium text-white text-sm transition-colors duration-200'
+                    to="/dashboard/lock"
+                    className="flex items-center space-x-1 bg-[#00076C] hover:bg-[#00076C] shadow-md px-3 py-1.5 rounded-md font-medium text-white text-sm transition-colors duration-200"
                   >
                     <Plus size={16} />
                     <span>Create New Lock</span>
@@ -242,8 +205,8 @@ function Dashboard() {
               </div>
 
               {/* Token/NFT Lock List */}
-              <div className='bg-white shadow-lg p-4 border border-gray-200 rounded-xl'>
-                {!switchLock ? <TokenLock /> : <ComingSoon/>}
+              <div className="bg-white shadow-lg p-4 border border-gray-200 rounded-xl">
+                {!switchLock ? <TokenLock /> : <ComingSoon />}
               </div>
             </section>
           </>

@@ -1,37 +1,34 @@
+// src/store/useModalStore.js
+// This is a reference implementation - adjust if your store is different
+
 import { create } from "zustand";
 
 export const useModalStore = create((set) => ({
   isOpen: false,
-  view: "main", // 'main' or 'inner'
-  modalType: null, // e.g. 'TOP_UP', 'WITHDRAW'
-  modalData: null, // card data passed to modal
+  view: "main", // "main" or "inner"
+  modalData: null,
 
-  // Open modal + optionally set type & data
-  openModal: (modalType = null, modalData = null) =>
+  openModal: (type, data) =>
     set({
       isOpen: true,
       view: "main",
-      modalType,
-      modalData,
+      modalData: data,
     }),
 
-  // Close modal + reset everything
   closeModal: () =>
     set({
       isOpen: false,
       view: "main",
-      modalType: null,
       modalData: null,
     }),
 
-  // Navigation within the modal
-  goToInner: () => set({ view: "inner" }),
-  goToMain: () => set({ view: "main" }),
+  goToInner: () =>
+    set({
+      view: "inner",
+    }),
 
-  // Toggle modal open/close (without injecting data)
-  toggleModal: () =>
-    set((state) => ({
-      isOpen: !state.isOpen,
-      view: state.isOpen ? "main" : state.view,
-    })),
+  goToMain: () =>
+    set({
+      view: "main",
+    }),
 }));

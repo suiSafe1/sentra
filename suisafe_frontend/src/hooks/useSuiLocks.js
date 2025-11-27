@@ -344,7 +344,6 @@ export function useSuiLocks() {
       }
 
       await fetchUserLocks();
-      alert("Withdrawal successful!");
     } catch (error) {
       console.error("Withdraw failed:", error);
       if (

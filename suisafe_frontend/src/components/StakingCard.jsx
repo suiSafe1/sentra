@@ -1,5 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
+import ReactDOM from "react-dom/client";
+import { createPortal } from "react-dom";
 import { useModalStore } from "../store/useModalStore";
+import { PiCheckSquareOffsetBold } from "react-icons/pi";
+import ConfettiExplosion from "react-confetti-explosion";
+import { useWindowSize } from "react-use";
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -111,8 +116,162 @@ export const StatusPill = ({ isExpired }) => {
   );
 };
 
-// WithdrawButton component
+/* -------------------------------------------------------------------------- */
+/* Success Modal Component                                                    */
+/* -------------------------------------------------------------------------- */
+const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
+  const { width, height } = useWindowSize();
+
+  console.log("🟣 SUCCESS MODAL RENDER - isOpen:", isOpen);
+  console.log("🟣 showConfetti:", showConfetti);
+
+  if (!isOpen) {
+    console.log("🟣 Modal not open, returning null");
+    return null;
+  }
+
+  console.log("🟣 Modal IS OPEN! Should be visible now!");
+
+  const confettiPortal = showConfetti
+    ? createPortal(
+        <div className="z-2000 fixed inset-0 flex justify-center items-center overflow-hidden pointer-events-none">
+          <ConfettiExplosion
+            force={0.8}
+            duration={3000}
+            particleCount={450}
+            width={width > 0 ? width : 1600}
+            height={height > 0 ? height : 1600}
+            colors={["#00076C", "#00D1FF", "#FFD700", "#FF6B6B", "#4ECDC4"]}
+          />
+        </div>,
+        document.body
+      )
+    : null;
+
+  return (
+    <>
+      <div className="z-1100 fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans">
+        <div className="relative bg-white shadow-lg mx-auto p-8 rounded-lg w-full max-w-md text-center">
+          <div className="flex flex-col items-center">
+            <div className="bg-green-100 p-3 rounded-full">
+              <PiCheckSquareOffsetBold className="text-green-600 text-5xl" />
+            </div>
+            <h2 className="mt-4 font-extrabold text-[#00076C] text-2xl">
+              {title}
+            </h2>
+            <p className="mt-2 text-[#4D5562] text-base">{message}</p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="bg-[#00076C] hover:opacity-90 mt-6 py-3 rounded-lg w-full font-semibold text-white text-lg transition-opacity"
+          >
+            Done
+          </button>
+        </div>
+      </div>
+      {confettiPortal}
+    </>
+  );
+};
+
+// WithdrawButton component WITH SUCCESS MODAL
 export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
+  const handleWithdraw = async (e) => {
+    e.stopPropagation();
+
+    console.log("🔵 STAKING CARD - Starting withdrawal...");
+
+    try {
+      // Call the withdraw function
+      await withdrawLock();
+
+      console.log("🔵 STAKING CARD - Withdrawal completed successfully");
+
+      // Create and show a success modal that persists even if component unmounts
+      const modalRoot = document.createElement("div");
+      modalRoot.id = "withdrawal-success-modal";
+      document.body.appendChild(modalRoot);
+
+      const SuccessContent = () => {
+        const [showConfetti, setShowConfetti] = React.useState(true);
+        const { width, height } = useWindowSize();
+
+        const handleClose = () => {
+          document.body.removeChild(modalRoot);
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        };
+
+        React.useEffect(() => {
+          const timer = setTimeout(() => setShowConfetti(false), 3000);
+          return () => clearTimeout(timer);
+        }, []);
+
+        const confettiPortal = showConfetti
+          ? createPortal(
+              <div className="z-2000 fixed inset-0 flex justify-center items-center overflow-hidden pointer-events-none">
+                <ConfettiExplosion
+                  force={0.8}
+                  duration={3000}
+                  particleCount={450}
+                  width={width > 0 ? width : 1600}
+                  height={height > 0 ? height : 1600}
+                  colors={[
+                    "#00076C",
+                    "#00D1FF",
+                    "#FFD700",
+                    "#FF6B6B",
+                    "#4ECDC4",
+                  ]}
+                />
+              </div>,
+              document.body
+            )
+          : null;
+
+        return (
+          <>
+            <div className="z-[9999] fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans">
+              <div className="relative bg-white shadow-lg mx-auto p-8 rounded-lg w-full max-w-md text-center">
+                <div className="flex flex-col items-center">
+                  <div className="bg-green-100 p-3 rounded-full">
+                    <PiCheckSquareOffsetBold className="text-green-600 text-5xl" />
+                  </div>
+                  <h2 className="mt-4 font-extrabold text-[#00076C] text-2xl">
+                    Withdrawal Successful!
+                  </h2>
+                  <p className="mt-2 text-[#4D5562] text-base">
+                    Your funds have been unlocked and transferred to your
+                    wallet. They are now available for use.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  className="bg-[#00076C] hover:opacity-90 mt-6 py-3 rounded-lg w-full font-semibold text-white text-lg transition-opacity"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+            {confettiPortal}
+          </>
+        );
+      };
+
+      // Render the modal
+      const root = ReactDOM.createRoot(modalRoot);
+      root.render(<SuccessContent />);
+    } catch (error) {
+      console.error("❌ STAKING CARD: Withdrawal error:", error);
+      alert(`Withdrawal failed: ${error.message || error}`);
+    }
+  };
+
   return (
     <div className="flex flex-col items-start gap-1">
       <button
@@ -121,10 +280,7 @@ export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
             ? "bg-blue-600 hover:bg-blue-700 text-white"
             : "bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border border-yellow-400"
         } px-4 py-2 rounded-lg focus:outline-none font-medium text-sm disabled:opacity-60`}
-        onClick={(e) => {
-          e.stopPropagation();
-          withdrawLock();
-        }}
+        onClick={handleWithdraw}
         disabled={isWithdrawing}
       >
         {isWithdrawing ? "Withdrawing..." : "Withdraw"}

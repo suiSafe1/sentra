@@ -54,22 +54,22 @@ export function useWithdrawYieldLock() {
 
       const result = await signAndExecuteTransaction({ transaction: tx });
 
-      if (result?.digest) {
-        console.log("✅ Yield withdrawal successful:", result.digest);
+      console.log("✅ Transaction result:", result);
 
-        setTimeout(() => {
-          refreshActivity();
-        }, 2000);
+      setTimeout(() => {
+        refreshActivity();
+      }, 2000);
 
-        return { success: true, digest: result.digest };
-      }
-
-      return { success: false };
-    } catch (error) {
-      console.error("Yield withdrawal failed:", error);
-      throw error;
-    } finally {
       setIsWithdrawing(false);
+
+      return {
+        success: true,
+        digest: result?.digest || "completed",
+      };
+    } catch (error) {
+      console.error("❌ Yield withdrawal failed:", error);
+      setIsWithdrawing(false);
+      throw error;
     }
   };
 

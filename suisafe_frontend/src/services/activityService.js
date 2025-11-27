@@ -1,6 +1,5 @@
 // src/services/activityService.js
 
-import { client, PACKAGE_ID, PACKAGE_ID_V1 } from "../constants/Constants";
 import sui_logo from "../assets/sui.png";
 import wal_logo from "../assets/wal.png";
 import deep_logo from "../assets/deep.png";
@@ -90,8 +89,10 @@ function getTokenDecimals(symbol) {
 
 /**
  * Parse event data into activity item
+ *
+ * THIS IS THE MAIN FUNCTION USED BY THE EVENT LISTENER
  */
-function parseEventToActivity(event) {
+export function parseEventToActivity(event) {
   try {
     const { type, parsedJson, timestampMs, id } = event;
     const txDigest = id?.txDigest || "";
@@ -231,96 +232,44 @@ function parseEventToActivity(event) {
         };
       }
 
+      case "YieldLockExtended": {
+        const amount = parsedJson?.added_amount || "0";
+        return {
+          id: `${txDigest}-${timestampMs}`,
+          type: "deposit",
+          token: tokenSymbol,
+          icon: tokenIcon,
+          amount: formatAmount(amount, decimals),
+          timestamp: Number(timestampMs),
+          description: `Added ${formatAmount(
+            amount,
+            decimals
+          )} ${tokenSymbol} to yield lock`,
+          txDigest,
+          status: "success",
+        };
+      }
+
+      case "SwapEvent": {
+        return {
+          id: `${txDigest}-${timestampMs}`,
+          type: "swap",
+          token: "SWAP",
+          icon: sui_logo,
+          amount: "N/A",
+          timestamp: Number(timestampMs),
+          description: "Executed token swap",
+          txDigest,
+          status: "success",
+        };
+      }
+
       default:
         return null;
     }
   } catch (error) {
     console.error("Failed to parse event:", error, event);
     return null;
-  }
-}
-
-/**
- * Fetch user's activity history from blockchain events
- */
-export async function fetchUserActivity(userAddress, limit = 50) {
-  if (!userAddress) return [];
-
-  try {
-    console.log("🔍 Fetching activity for:", userAddress);
-
-    // Query events from BOTH package versions
-    const eventTypes = [
-      "LockCreated",
-      "YieldLockCreated",
-      "LockWithdrawn",
-      "YieldLockWithdrawn",
-      "LockExtended",
-    ];
-
-    const allActivities = [];
-
-    // Fetch events for each type from BOTH package versions
-    for (const eventType of eventTypes) {
-      try {
-        // Fetch from V1 package
-        const v1Response = await client.queryEvents({
-          query: { MoveEventType: `${PACKAGE_ID_V1}::sentra::${eventType}` },
-          limit: limit,
-          order: "descending",
-        });
-
-        if (v1Response?.data) {
-          const v1Events = v1Response.data
-            .filter((event) => {
-              const owner = event.parsedJson?.owner;
-              return owner && owner.toLowerCase() === userAddress.toLowerCase();
-            })
-            .map(parseEventToActivity)
-            .filter(Boolean);
-
-          allActivities.push(...v1Events);
-        }
-
-        // Fetch from V2 package (current)
-        const v2Response = await client.queryEvents({
-          query: { MoveEventType: `${PACKAGE_ID}::sentra::${eventType}` },
-          limit: limit,
-          order: "descending",
-        });
-
-        if (v2Response?.data) {
-          const v2Events = v2Response.data
-            .filter((event) => {
-              const owner = event.parsedJson?.owner;
-              return owner && owner.toLowerCase() === userAddress.toLowerCase();
-            })
-            .map(parseEventToActivity)
-            .filter(Boolean);
-
-          allActivities.push(...v2Events);
-        }
-      } catch (err) {
-        console.warn(`Failed to fetch ${eventType}:`, err);
-      }
-    }
-
-    // Remove duplicates by transaction digest + timestamp
-    const uniqueActivities = Array.from(
-      new Map(allActivities.map((item) => [item.id, item])).values()
-    );
-
-    // Sort by timestamp (newest first)
-    uniqueActivities.sort((a, b) => b.timestamp - a.timestamp);
-
-    // Limit total results
-    const limitedActivities = uniqueActivities.slice(0, limit);
-
-    console.log("✅ Fetched activities:", limitedActivities.length);
-    return limitedActivities;
-  } catch (error) {
-    console.error("Failed to fetch user activity:", error);
-    return [];
   }
 }
 
@@ -377,4 +326,13 @@ export function formatActivityTime(timestamp) {
       year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   }
+}
+
+/**
+ * DEPRECATED: This function is no longer used
+ * Real-time listeners replaced the need for manual fetching
+ */
+export async function fetchUserActivity() {
+  console.warn("fetchUserActivity is deprecated. Use event listeners instead.");
+  return [];
 }

@@ -171,14 +171,90 @@ function CreateLockToken() {
   -------------------------------------------------------------- */
   const handleSwitch = (e) => setNftLock(e.target.id === "nft");
 
+  const [rawBalance, setRawBalance] = useState("0");
+
+  useEffect(() => {
+    const fetchBalance = async () => {
+      if (!currentAccount || !selectedToken) return;
+
+      setLoadingBalance(true);
+      try {
+        if (selectedToken.symbol === "SUI") {
+          const balance = await client.getBalance({
+            owner: currentAccount.address,
+            coinType: selectedToken.type,
+          });
+
+          // Store raw balance for calculations
+          setRawBalance(balance.totalBalance);
+
+          // Display formatted balance
+          const balanceInTokens = (
+            Number(balance.totalBalance) / Math.pow(10, selectedToken.decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        } else {
+          const coins = await client.getCoins({
+            owner: currentAccount.address,
+            coinType: selectedToken.type,
+          });
+
+          const totalBalance = coins.data.reduce(
+            (sum, coin) => sum + BigInt(coin.balance),
+            BigInt(0)
+          );
+
+          // Store raw balance for calculations
+          setRawBalance(totalBalance.toString());
+
+          // Display formatted balance
+          const balanceInTokens = (
+            Number(totalBalance) / Math.pow(10, selectedToken.decimals)
+          ).toFixed(2);
+          setAvailableBalance(balanceInTokens);
+        }
+      } catch (error) {
+        console.error("Failed to fetch balance:", error);
+        setAvailableBalance("0");
+        setRawBalance("0");
+      } finally {
+        setLoadingBalance(false);
+      }
+    };
+
+    fetchBalance();
+  }, [currentAccount, selectedToken]);
+
   const handleMaxClick = () => {
+    if (!rawBalance || rawBalance === "0") {
+      alert("No balance available");
+      return;
+    }
+
+    const decimals = selectedToken.decimals;
+    const rawBalanceBigInt = BigInt(rawBalance);
+
     if (selectedToken.symbol === "SUI") {
-      // Reserve 0.05 SUI for gas
-      const maxAmount = Math.max(0, parseFloat(availableBalance) - 0.05);
-      setAmount(maxAmount.toFixed(2));
+      // Reserve 0.05 SUI for gas (0.05 * 10^9 = 50000000)
+      const gasReserve = BigInt(50000000);
+
+      if (rawBalanceBigInt <= gasReserve) {
+        alert("Insufficient balance. Need at least 0.05 SUI for gas.");
+        return;
+      }
+
+      const maxAmountRaw = rawBalanceBigInt - gasReserve;
+      const maxAmount = Number(maxAmountRaw) / Math.pow(10, decimals);
+
+      // Use full precision for the amount input
+      setAmount(maxAmount.toString());
       alert("0.05 SUI reserved for gas fee");
     } else {
-      setAmount(availableBalance);
+      // For non-SUI tokens, use full balance with proper precision
+      const maxAmount = Number(rawBalanceBigInt) / Math.pow(10, decimals);
+
+      // Set the amount with full precision (not just 2 decimals)
+      setAmount(maxAmount.toString());
     }
   };
 

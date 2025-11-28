@@ -29,7 +29,6 @@ import WithdrawalPage from "./routes/WithdrawalPage";
 import Dashboard from "./routes/Dashboard";
 import CreateLockToken from "./routes/CreateLockToken";
 import WalletConnect from "./routes/Connect";
-import PublicDashboard from "./routes/PublicDashboard";
 
 // Components
 import Header from "./components/Header";
@@ -43,15 +42,8 @@ import sentra from "./assets/sentra_dashboard.png";
 // Zustand store
 import { useMenuStore } from "./store/useMenuStore";
 
-// 👇 ADD THIS IMPORT
 import { ActivityProvider } from "../src/context/ActivityContext";
-
-// Styles
-import "flowbite";
 import TVL from "./routes/TVL";
-import { VestingCreator } from "./components/VestingCreator";
-import { VestingTable } from "./components/VestingTable";
-import { VestLock } from "./routes/VestLock";
 
 // ===============================
 // Layout Component
@@ -87,7 +79,7 @@ const Layout = () => {
         <nav className="flex flex-col justify-between space-y-6 h-[calc(80%-30px)]">
           <div className="flex flex-col gap-8">
             <NavLink
-              to="/tvl"
+              to="/dashboard"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -101,7 +93,7 @@ const Layout = () => {
             </NavLink>
 
             <NavLink
-              to="/dashboard"
+              to="/my-locks"
               className={({ isActive }) =>
                 `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
                   isActive
@@ -111,7 +103,7 @@ const Layout = () => {
               }
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span>Dashboard</span>
+              <span>My Locks</span>
             </NavLink>
 
             <NavLink
@@ -176,21 +168,20 @@ const Layout = () => {
 // App Component
 // ===============================
 function App() {
-  const account = useCurrentAccount();
-
   return (
-    // 👇 WRAP EVERYTHING WITH ActivityProvider
     <ActivityProvider>
       <Routes>
-        {/* Public */}
-        <Route path="/public_dashboard" element={<PublicDashboard />} />
-        <Route path="/" element={account ? <Navigate to="/tvl" /> : <Home />} />
+        {/* Landing Page - NO LAYOUT */}
+        <Route path="/" element={<Home />} />
 
-        {/* Layout-protected routes */}
+        {/* All app routes use Layout */}
         <Route element={<Layout />}>
-          <Route path="/connect" element={<WalletConnect />} />
+          <Route path="/dashboard" element={<TVL />}>
+            <Route path="lock" element={<CreateLockToken />} />
+          </Route>
+
           <Route
-            path="/dashboard"
+            path="/my-locks"
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -199,17 +190,8 @@ function App() {
           >
             <Route path="lock" element={<CreateLockToken />} />
           </Route>
-          <Route
-            path="/tvl"
-            element={
-              <ProtectedRoute>
-                <TVL />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="lock" element={<CreateLockToken />} />
-          </Route>
 
+          {/* Other Protected Routes */}
           <Route
             path="/vest"
             element={
@@ -246,11 +228,19 @@ function App() {
             path="/support"
             element={
               <ProtectedRoute>
-                <div>Support Page</div>
+                <ComingSoon />
               </ProtectedRoute>
             }
           />
-          <Route path="/*" element={<NotFound />} />
+
+          {/* Redirect /connect to dashboard */}
+          <Route
+            path="/connect"
+            element={<Navigate to="/dashboard" replace />}
+          />
+
+          {/* Catch-all - redirect to dashboard instead of 404 */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
     </ActivityProvider>

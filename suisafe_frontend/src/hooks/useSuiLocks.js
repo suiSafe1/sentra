@@ -334,7 +334,6 @@ export function useSuiLocks() {
       });
 
       const result = await signAndExecuteTransaction({ transaction: tx });
-      console.log("✅ Withdrawal result:", result);
 
       if (result?.digest) {
         // SUCCESS! Refresh activity

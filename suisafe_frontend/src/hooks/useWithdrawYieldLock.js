@@ -54,8 +54,6 @@ export function useWithdrawYieldLock() {
 
       const result = await signAndExecuteTransaction({ transaction: tx });
 
-      console.log("✅ Transaction result:", result);
-
       setTimeout(() => {
         refreshActivity();
       }, 2000);

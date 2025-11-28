@@ -15,7 +15,6 @@ import usdc_logo from "../assets/usdc.png";
 import scal_logo from "../assets/scal.png";
 import { StatusPill } from "./StakingCard";
 
-// Token icon mapping
 const TOKEN_ICONS = {
   SUI: sui_logo,
   WAL: wal_logo,
@@ -50,22 +49,24 @@ const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
 
   return (
     <>
-      <div className="z-1100 fixed inset-0 flex justify-center items-center bg-black/50 p-4 font-sans">
-        <div className="relative bg-white shadow-lg mx-auto p-8 rounded-lg w-full max-w-md text-center">
+      <div className="z-1100 fixed inset-0 flex justify-center items-center bg-black/50 p-3 sm:p-4 font-sans">
+        <div className="relative bg-white shadow-lg mx-auto p-6 sm:p-8 rounded-lg w-full max-w-[90vw] sm:max-w-md text-center">
           <div className="flex flex-col items-center">
-            <div className="bg-green-100 p-3 rounded-full">
-              <PiCheckSquareOffsetBold className="text-green-600 text-5xl" />
+            <div className="bg-green-100 p-2.5 sm:p-3 rounded-full">
+              <PiCheckSquareOffsetBold className="text-green-600 text-4xl sm:text-5xl" />
             </div>
-            <h2 className="mt-4 font-extrabold text-[#00076C] text-2xl">
+            <h2 className="mt-3 sm:mt-4 font-extrabold text-[#00076C] text-xl sm:text-2xl px-2">
               {title}
             </h2>
-            <p className="mt-2 text-[#4D5562] text-base">{message}</p>
+            <p className="mt-2 text-[#4D5562] text-sm sm:text-base px-2">
+              {message}
+            </p>
           </div>
 
           <button
             type="button"
             onClick={onClose}
-            className="bg-[#00076C] hover:opacity-90 mt-6 py-3 rounded-lg w-full font-semibold text-white text-lg transition-opacity"
+            className="bg-[#00076C] hover:opacity-90 mt-5 sm:mt-6 py-2.5 sm:py-3 rounded-lg w-full font-semibold text-white text-base sm:text-lg transition-opacity"
           >
             Done
           </button>
@@ -97,8 +98,6 @@ const WithdrawButton = ({
     }
 
     try {
-      console.log("Starting withdrawal with data:", lockData);
-
       const result = await withdrawYieldLock(
         lockData.yieldLockId,
         lockData.platform,
@@ -109,11 +108,7 @@ const WithdrawButton = ({
         lockData.scoinInfo
       );
 
-      console.log("Withdrawal result:", result);
-
       if (result) {
-        console.log("✅ Withdrawal completed, showing modal");
-
         setShowConfetti(true);
         setShowSuccess(true);
 
@@ -145,7 +140,7 @@ const WithdrawButton = ({
       <button
         onClick={handleWithdraw}
         disabled={!isExpired || isProcessing}
-        className={`font-semibold text-white py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all ${
+        className={`font-semibold text-white py-2.5 sm:py-3 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm sm:text-base ${
           isExpired ? "bg-green-600 hover:bg-green-700" : "bg-gray-400"
         } ${className}`}
       >
@@ -277,11 +272,8 @@ const TopUpLockModal = () => {
       );
 
       if (result.success) {
-        // Show success modal with confetti
         setShowConfetti(true);
         setShowSuccess(true);
-
-        // Stop confetti after 3 seconds
         setTimeout(() => setShowConfetti(false), 3000);
       }
     } catch (error) {
@@ -294,8 +286,6 @@ const TopUpLockModal = () => {
     setShowSuccess(false);
     setShowConfetti(false);
     closeModal();
-
-    // Reload page after a short delay
     setTimeout(() => {
       window.location.reload();
     }, 500);
@@ -306,17 +296,21 @@ const TopUpLockModal = () => {
 
   const CurrentLockDetail = ({ label, value }) => (
     <div className="flex flex-col items-start">
-      <span className="mb-1 text-gray-500 text-sm">{label}</span>
-      <span className="font-medium text-base">{value}</span>
+      <span className="mb-1 text-gray-500 text-xs sm:text-sm">{label}</span>
+      <span className="font-medium text-sm sm:text-base break-words">
+        {value}
+      </span>
     </div>
   );
 
   const NewTotalDisplay = () => (
-    <div className="bg-blue-50 p-4 border border-blue-200 rounded-xl">
-      <div className="flex justify-between items-center">
-        <div className="flex flex-col">
-          <span className="mb-1 text-gray-600 text-sm">New Total</span>
-          <span className="font-bold text-blue-600 text-xl">
+    <div className="bg-blue-50 p-3 sm:p-4 border border-blue-200 rounded-xl">
+      <div className="flex justify-between items-center gap-2">
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="mb-1 text-gray-600 text-xs sm:text-sm">
+            New Total
+          </span>
+          <span className="font-bold text-blue-600 text-lg sm:text-xl break-words">
             {newTotal.toLocaleString("en-US", {
               minimumFractionDigits: 0,
               maximumFractionDigits: 2,
@@ -326,7 +320,7 @@ const TopUpLockModal = () => {
         </div>
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="w-6 h-6 text-blue-600"
+          className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 flex-shrink-0"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -344,17 +338,17 @@ const TopUpLockModal = () => {
 
   return (
     <>
-      <div className="relative bg-white shadow-xl mx-4 p-6 rounded-xl w-full max-w-md">
+      <div className="relative bg-white shadow-xl mx-3 sm:mx-4 p-4 sm:p-6 rounded-xl w-full max-w-[90vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="font-semibold text-xl">Top Up Lock</h2>
+        <div className="flex justify-between items-center mb-4 sm:mb-6">
+          <h2 className="font-semibold text-lg sm:text-xl">Top Up Lock</h2>
           <button
             onClick={closeModal}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-400 hover:text-gray-600 flex-shrink-0"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="w-6 h-6"
+              className="w-5 h-5 sm:w-6 sm:h-6"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -370,9 +364,11 @@ const TopUpLockModal = () => {
         </div>
 
         {/* Current Lock Details */}
-        <div className="bg-gray-50 mb-6 p-4 border border-gray-200 rounded-lg">
-          <h3 className="mb-4 font-medium text-gray-600">Current Lock</h3>
-          <div className="gap-4 grid grid-cols-3 mb-4">
+        <div className="bg-gray-50 mb-4 sm:mb-6 p-3 sm:p-4 border border-gray-200 rounded-lg">
+          <h3 className="mb-3 sm:mb-4 font-medium text-gray-600 text-sm sm:text-base">
+            Current Lock
+          </h3>
+          <div className="gap-3 sm:gap-4 grid grid-cols-3 mb-3 sm:mb-4">
             <CurrentLockDetail label="Token" value={tokenName} />
             <CurrentLockDetail label="Duration" value="6 months" />
             <CurrentLockDetail
@@ -380,18 +376,22 @@ const TopUpLockModal = () => {
               value={parseFloat(tokenAmount).toLocaleString("en-US")}
             />
           </div>
-          <div className="flex items-center">
-            <span className="mr-2 text-gray-500 text-sm">Yield (APY)</span>
-            <span className="font-bold text-green-600 text-lg">{apy}%</span>
+          <div className="flex items-center flex-wrap">
+            <span className="mr-2 text-gray-500 text-xs sm:text-sm">
+              Yield (APY)
+            </span>
+            <span className="font-bold text-green-600 text-base sm:text-lg">
+              {apy}%
+            </span>
           </div>
         </div>
 
         {/* Form */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           <div>
             <label
               htmlFor="token-select"
-              className="block mb-2 font-medium text-gray-700 text-sm"
+              className="block mb-2 font-medium text-gray-700 text-xs sm:text-sm"
             >
               Select Token
             </label>
@@ -400,7 +400,7 @@ const TopUpLockModal = () => {
                 id="token-select"
                 value={tokenName}
                 disabled
-                className="block bg-gray-100 shadow-sm px-3 py-2 border border-gray-300 rounded-lg w-full appearance-none cursor-not-allowed"
+                className="block bg-gray-100 shadow-sm px-3 py-2 border border-gray-300 rounded-lg w-full appearance-none cursor-not-allowed text-sm sm:text-base"
               >
                 <option value={tokenName}>{tokenName}</option>
               </select>
@@ -418,14 +418,14 @@ const TopUpLockModal = () => {
 
           {/* Amount Input */}
           <div>
-            <div className="flex justify-between items-center mb-2">
+            <div className="flex justify-between items-center gap-2 mb-2">
               <label
                 htmlFor="amount-input"
-                className="block font-medium text-gray-700 text-sm"
+                className="block font-medium text-gray-700 text-xs sm:text-sm"
               >
                 Amount to Add
               </label>
-              <span className="text-gray-500 text-sm">
+              <span className="text-gray-500 text-xs sm:text-sm text-right">
                 {loadingBalance ? (
                   "Loading..."
                 ) : (
@@ -442,11 +442,11 @@ const TopUpLockModal = () => {
                 placeholder="0.00"
                 value={amountToAdd}
                 onChange={handleAmountChange}
-                className="p-1 focus:outline-none w-full text-lg"
+                className="p-1 focus:outline-none w-full text-base sm:text-lg"
               />
               <button
                 onClick={handleMaxClick}
-                className="px-2 font-semibold text-blue-600 hover:text-blue-700 text-sm"
+                className="px-2 font-semibold text-blue-600 hover:text-blue-700 text-xs sm:text-sm flex-shrink-0"
               >
                 MAX
               </button>
@@ -457,18 +457,18 @@ const TopUpLockModal = () => {
         </div>
 
         {/* Buttons */}
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-2 sm:gap-3 mt-6 sm:mt-8">
           <button
             onClick={closeModal}
             disabled={isAdding}
-            className="flex-1 hover:bg-gray-100 py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 disabled:opacity-50"
+            className="flex-1 hover:bg-gray-100 py-2.5 sm:py-3 border border-gray-300 rounded-xl font-semibold text-gray-700 disabled:opacity-50 text-sm sm:text-base"
           >
             Cancel
           </button>
           <button
             onClick={handleConfirmTopUp}
             disabled={!shouldShowNewTotal || isAdding || loadingBalance}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 py-3 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 py-2.5 sm:py-3 rounded-xl font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:text-base"
           >
             {isAdding ? "Processing..." : "Confirm Top Up"}
           </button>
@@ -502,7 +502,6 @@ const Modal = () => {
     isExpired: modalIsExpired,
     memo,
     apy = "12.5",
-    // Withdrawal data
     lockId,
     yieldLockId,
     isYieldLock,
@@ -518,13 +517,9 @@ const Modal = () => {
   const amount = parseFloat(tokenAmount) || 0;
   const timeRemaining = timeLeft ? `${timeLeft} days` : "0 days";
 
-  // Get correct token icon
   const displayIcon = tokenIcon || TOKEN_ICONS[tokenName] || sui_logo;
-
-  // Use memo as description
   const lockDescription = memo || "No description";
 
-  // Handle successful withdrawal
   const handleWithdrawSuccess = () => {
     closeModal();
     setTimeout(() => {
@@ -536,7 +531,7 @@ const Modal = () => {
   const ActionButtons = () => {
     if (isExpired) {
       return (
-        <div className="flex gap-4">
+        <div className="flex gap-3 sm:gap-4">
           <WithdrawButton
             className="w-full"
             isExpired={isExpired}
@@ -557,18 +552,17 @@ const Modal = () => {
       );
     }
 
-    // Default Top Up + Locked buttons
     return (
-      <div className="gap-4 grid grid-cols-2">
+      <div className="gap-3 sm:gap-4 grid grid-cols-2">
         <button
           onClick={goToInner}
-          className="bg-blue-800 hover:bg-blue-900 py-3 rounded-xl font-semibold text-white"
+          className="bg-blue-800 hover:bg-blue-900 py-2.5 sm:py-3 rounded-xl font-semibold text-white text-sm sm:text-base"
         >
           Top Up
         </button>
         <button
           disabled
-          className="py-3 border border-gray-300 rounded-xl font-semibold text-gray-500 cursor-not-allowed"
+          className="py-2.5 sm:py-3 border border-gray-300 rounded-xl font-semibold text-gray-500 cursor-not-allowed text-sm sm:text-base"
         >
           Locked
         </button>
@@ -579,21 +573,21 @@ const Modal = () => {
   if (!isOpen) return null;
 
   return (
-    <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50">
+    <div className="z-50 fixed inset-0 flex justify-center items-center bg-black/50 p-3 sm:p-4">
       {view === "main" && (
-        <div className="relative bg-white shadow-xl mx-4 p-6 rounded-2xl w-full max-w-sm">
+        <div className="relative bg-white shadow-xl mx-auto p-4 sm:p-6 rounded-2xl w-full max-w-[90vw] sm:max-w-sm max-h-[90vh] overflow-y-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="font-semibold text-gray-900 text-xl">
+          <div className="flex justify-between items-center mb-4 sm:mb-6">
+            <h1 className="font-semibold text-gray-900 text-lg sm:text-xl">
               Lock Details
             </h1>
             <button
               onClick={closeModal}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 flex-shrink-0"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-6 h-6"
+                className="w-5 h-5 sm:w-6 sm:h-6"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -609,16 +603,18 @@ const Modal = () => {
           </div>
 
           {/* Token Info */}
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center space-x-2">
+          <div className="flex justify-between items-center gap-2 mb-4 sm:mb-6">
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
               <img
                 src={displayIcon}
                 alt={`${tokenName} logo`}
-                className="w-8 h-8"
+                className="w-7 h-7 sm:w-8 sm:h-8 flex-shrink-0"
               />
-              <div>
-                <p className="font-medium text-gray-900 text-lg">{tokenName}</p>
-                <p className="text-gray-500 text-sm">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-gray-900 text-base sm:text-lg">
+                  {tokenName}
+                </p>
+                <p className="text-gray-500 text-xs sm:text-sm truncate">
                   {amount.toLocaleString()} tokens
                 </p>
               </div>
@@ -628,33 +624,49 @@ const Modal = () => {
 
           {/* Description */}
           {lockDescription && lockDescription !== "No description" && (
-            <div className="bg-gray-50 mb-4 p-3 border rounded-lg">
-              <p className="text-gray-500 text-sm mb-1">Description</p>
-              <p className="font-medium text-gray-800">{lockDescription}</p>
+            <div className="bg-gray-50 mb-3 sm:mb-4 p-2.5 sm:p-3 border rounded-lg">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">
+                Description
+              </p>
+              <p className="font-medium text-gray-800 text-sm sm:text-base break-words">
+                {lockDescription}
+              </p>
             </div>
           )}
 
           {/* Details */}
-          <div className="gap-4 grid grid-cols-2 mb-8">
-            <div className="bg-gray-50 p-4 border rounded-lg">
-              <p className="text-gray-500 text-sm">Lock Period</p>
-              <p className="font-medium text-gray-800">{startDate}</p>
-              <p className="font-medium text-gray-800">to {endDate}</p>
+          <div className="gap-2.5 sm:gap-4 grid grid-cols-2 mb-6 sm:mb-8">
+            <div className="bg-gray-50 p-3 sm:p-4 border rounded-lg">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">
+                Lock Period
+              </p>
+              <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
+                {startDate}
+              </p>
+              <p className="font-medium text-gray-800 text-xs sm:text-sm break-words">
+                to {endDate}
+              </p>
             </div>
 
-            <div className="bg-gray-50 p-4 border rounded-lg">
-              <p className="text-gray-500 text-sm">Time Remaining</p>
-              <p className="font-bold text-gray-900 text-xl">{timeRemaining}</p>
+            <div className="bg-gray-50 p-3 sm:p-4 border rounded-lg">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">
+                Time Remaining
+              </p>
+              <p className="font-bold text-gray-900 text-lg sm:text-xl">
+                {timeRemaining}
+              </p>
             </div>
 
-            <div className="bg-gray-50 p-4 border rounded-lg">
-              <p className="mb-1 text-gray-500 text-sm">APY</p>
-              <p className="font-bold text-blue-600 text-xl">{apy}%</p>
+            <div className="bg-gray-50 p-3 sm:p-4 border rounded-lg">
+              <p className="mb-1 text-gray-500 text-xs sm:text-sm">APY</p>
+              <p className="font-bold text-blue-600 text-lg sm:text-xl">
+                {apy}%
+              </p>
             </div>
 
-            <div className="bg-gray-50 p-4 border rounded-lg">
-              <p className="text-gray-500 text-sm">Status</p>
-              <p className="font-bold text-gray-900">
+            <div className="bg-gray-50 p-3 sm:p-4 border rounded-lg">
+              <p className="text-gray-500 text-xs sm:text-sm mb-1">Status</p>
+              <p className="font-bold text-gray-900 text-sm sm:text-base">
                 {isExpired ? "Ready to Withdraw" : "Locked"}
               </p>
             </div>

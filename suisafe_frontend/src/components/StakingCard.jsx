@@ -11,7 +11,6 @@ import deep_logo from "../assets/deep.png";
 import usdc_logo from "../assets/usdc.png";
 import scal_logo from "../assets/scal.png";
 
-// Token icon mapping
 const TOKEN_ICONS = {
   SUI: sui_logo,
   WAL: wal_logo,
@@ -36,7 +35,6 @@ const arrowIcon = (
   </svg>
 );
 
-// Placeholder for Icons
 const Icons = {
   calendar: (
     <svg
@@ -122,15 +120,9 @@ export const StatusPill = ({ isExpired }) => {
 const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
   const { width, height } = useWindowSize();
 
-  console.log("🟣 SUCCESS MODAL RENDER - isOpen:", isOpen);
-  console.log("🟣 showConfetti:", showConfetti);
-
   if (!isOpen) {
-    console.log("🟣 Modal not open, returning null");
     return null;
   }
-
-  console.log("🟣 Modal IS OPEN! Should be visible now!");
 
   const confettiPortal = showConfetti
     ? createPortal(
@@ -176,20 +168,13 @@ const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
   );
 };
 
-// WithdrawButton component WITH SUCCESS MODAL
 export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
   const handleWithdraw = async (e) => {
     e.stopPropagation();
 
-    console.log("🔵 STAKING CARD - Starting withdrawal...");
-
     try {
-      // Call the withdraw function
       await withdrawLock();
 
-      console.log("🔵 STAKING CARD - Withdrawal completed successfully");
-
-      // Create and show a success modal that persists even if component unmounts
       const modalRoot = document.createElement("div");
       modalRoot.id = "withdrawal-success-modal";
       document.body.appendChild(modalRoot);

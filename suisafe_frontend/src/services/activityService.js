@@ -136,8 +136,6 @@ export async function parseEventToActivity(event, suiClient = null) {
     const typeArgs = eventTypeMatch[2] || "";
 
     if (eventName === "SwapEvent") {
-      console.log("🔄 SwapEvent detected, fetching transaction details...");
-
       let swapInfo = null;
       if (suiClient && txDigest) {
         swapInfo = await fetchSwapTokenInfo(txDigest, suiClient);
@@ -159,13 +157,6 @@ export async function parseEventToActivity(event, suiClient = null) {
       } else if (Array.isArray(coinOutType)) {
         coinOutType = String.fromCharCode(...coinOutType);
       }
-
-      console.log("🔄 Extracted:", {
-        coinInType,
-        coinOutType,
-        amountIn,
-        amountOut,
-      });
 
       const fromToken = getTokenSymbolFromType(coinInType || "");
       const toToken = getTokenSymbolFromType(coinOutType || "");

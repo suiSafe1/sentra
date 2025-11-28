@@ -1,4 +1,3 @@
-// src/pages/Dashboard.jsx
 import React, { useState } from "react";
 import {
   ChevronUp,
@@ -48,7 +47,6 @@ function Dashboard() {
     }
   };
 
-  //  Stats cards data
   const infos = [
     {
       key: 1,
@@ -108,13 +106,11 @@ function Dashboard() {
         : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900"
     }`;
 
-  // Check if we're on the lock creation page
-  const isLockPage = location.pathname === "/dashboard/lock";
+  const isLockPage = location.pathname === "/my-locks/lock";
 
   return (
     <div className="flex flex-col flex-1 bg-gray-50 h-[88vh] overflow-y-scroll text-gray-900">
       <div className="space-y-8 mx-auto p-4 md:p-8 w-full max-w-7xl">
-        {/* If on /dashboard/lock, show nested route */}
         {isLockPage ? (
           <Outlet />
         ) : (
@@ -195,7 +191,7 @@ function Dashboard() {
 
                   {/* Create New Lock */}
                   <Link
-                    to="/dashboard/lock"
+                    to="/my-locks/lock"
                     className="flex items-center space-x-1 bg-[#00076C] hover:bg-[#00076C] shadow-md px-3 py-1.5 rounded-md font-medium text-white text-sm transition-colors duration-200"
                   >
                     <Plus size={16} />

@@ -1,5 +1,3 @@
-// src/components/HeadAuth.jsx (UPDATED)
-
 import { Bell, Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
@@ -16,21 +14,23 @@ function HeadAuth() {
 
   const { menuOpen, toggleMenu } = useMenuStore();
 
-  // Activity state
   const [showActivityPanel, setShowActivityPanel] = useState(false);
   const { activities, isLoading, unreadCount, refresh, markAllAsRead } =
     useActivity();
 
   const handleLogout = () => {
-    disconnect();
     localStorage.removeItem("sui_session");
     localStorage.removeItem("sui_session_proof");
-    navigate("/connect");
+
+    disconnect();
+
+    setTimeout(() => {
+      navigate("/dashboard", { replace: true });
+    }, 100);
   };
 
   const handleBellClick = () => {
     setShowActivityPanel(true);
-    // Mark as read when opening
     if (unreadCount > 0) {
       markAllAsRead();
     }

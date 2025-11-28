@@ -2,9 +2,6 @@ const PRICE_CACHE_DURATION = 60000; // 1 minute
 let priceCache = null;
 let lastFetchTime = 0;
 
-/**
- * Token ID mappings for CoinGecko API
- */
 const TOKEN_IDS = {
   SUI: "sui",
   USDC: "usd-coin",

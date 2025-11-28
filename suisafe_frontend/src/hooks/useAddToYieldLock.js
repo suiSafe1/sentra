@@ -62,7 +62,10 @@ export function useAddToYieldLock() {
           BigInt(0)
         );
 
-        if (totalBalance < tokenAmount) {
+        const actualTokenAmount =
+          tokenAmount > totalBalance ? totalBalance : tokenAmount;
+
+        if (totalBalance === 0n) {
           throw new Error(`Insufficient ${tokenConfig.tokenName} balance`);
         }
 
@@ -71,7 +74,7 @@ export function useAddToYieldLock() {
 
         if (
           coins.data.length > 1 &&
-          BigInt(coins.data[0].balance) < tokenAmount
+          BigInt(coins.data[0].balance) < actualTokenAmount
         ) {
           const coinsToMerge = coins.data
             .slice(1)
@@ -79,7 +82,7 @@ export function useAddToYieldLock() {
           tx.mergeCoins(coin, coinsToMerge);
         }
 
-        [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
+        [coin] = tx.splitCoins(coin, [tx.pure.u64(actualTokenAmount)]);
       }
 
       const marketCoinHandle = tx.moveCall({
@@ -121,7 +124,6 @@ export function useAddToYieldLock() {
         }, 2000);
       }
 
-      console.log("✅ Add to yield lock successful:", digest);
       return { success: true, txHash: digest };
     } catch (error) {
       console.error("Add to yield lock failed:", error);

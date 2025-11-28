@@ -38,7 +38,6 @@ export function useActivity() {
         if (Array.isArray(parsed) && parsed.length > 0) {
           setActivities(parsed);
 
-          // Calculate unread count
           const unread = parsed.filter(
             (activity) => activity.timestamp > lastSeenTimestamp.current
           ).length;
@@ -98,10 +97,7 @@ export function useActivity() {
     async (userAddress) => {
       if (!userAddress) return;
 
-      console.log("🔌 Setting up real-time event listeners for:", userAddress);
-
       try {
-        // Event types to listen to from sentra package
         const sentraEventTypes = [
           "LockCreated",
           "YieldLockCreated",
@@ -111,7 +107,6 @@ export function useActivity() {
           "YieldLockExtended",
         ];
 
-        // Subscribe to events from BOTH package versions
         const packages = [PACKAGE_ID, PACKAGE_ID_V1];
 
         for (const pkg of packages) {
@@ -128,8 +123,6 @@ export function useActivity() {
                       owner &&
                       owner.toLowerCase() === userAddress.toLowerCase()
                     ) {
-                      console.log("📨 New event received:", eventType, event);
-
                       // Parse event to activity format
                       const activity = await parseEventToActivity(
                         event,
@@ -160,14 +153,10 @@ export function useActivity() {
             },
             onMessage: async (event) => {
               try {
-                console.log("🔄 RAW Swap event received:", event);
-
                 const user = event.parsedJson?.user;
 
                 // Check if event belongs to current user
                 if (user && user.toLowerCase() === userAddress.toLowerCase()) {
-                  console.log("✅ Swap event for current user:", event);
-
                   // Parse swap event with proper data extraction
                   const activity = await parseEventToActivity(event, client);
                   if (activity) {
@@ -181,13 +170,11 @@ export function useActivity() {
           });
 
           subscriptionsRef.current.push(swapUnsubscribe);
-          console.log("✅ Swap event listener setup complete");
         } catch (err) {
           console.warn("Failed to subscribe to swap events:", err);
         }
 
         setIsConnected(true);
-        console.log("✅ Event listeners setup complete");
       } catch (err) {
         console.error("❌ Failed to setup event listeners:", err);
         setError("Failed to connect to event stream");
@@ -195,7 +182,6 @@ export function useActivity() {
 
         // Retry connection after 5 seconds
         reconnectTimeoutRef.current = setTimeout(() => {
-          console.log("🔄 Retrying event listener connection...");
           setupEventListeners(userAddress);
         }, 5000);
       }
@@ -207,8 +193,6 @@ export function useActivity() {
    * Cleanup event listeners
    */
   const cleanupEventListeners = useCallback(() => {
-    console.log("🧹 Cleaning up event listeners");
-
     // Unsubscribe from all active subscriptions
     subscriptionsRef.current.forEach((unsubscribe) => {
       try {
@@ -241,8 +225,6 @@ export function useActivity() {
     setError(null);
 
     try {
-      console.log("📚 Fetching historical activities...");
-
       const eventTypes = [
         "LockCreated",
         "YieldLockCreated",
@@ -314,7 +296,6 @@ export function useActivity() {
 
           const validSwaps = parsedSwaps.filter(Boolean);
 
-          console.log("📊 Found swap events:", validSwaps.length);
           allActivities.push(...validSwaps);
         }
       } catch (err) {
@@ -340,8 +321,6 @@ export function useActivity() {
         (activity) => activity.timestamp > lastSeenTimestamp.current
       ).length;
       setUnreadCount(unread);
-
-      console.log("✅ Historical activities loaded:", limitedActivities.length);
     } catch (err) {
       console.error("❌ Failed to fetch historical activities:", err);
       setError(err.message || "Failed to load activities");

@@ -221,6 +221,7 @@ export default function SwapTokens() {
   const [isSwapping, setIsSwapping] = useState(false);
   const [isFetchingRoute, setIsFetchingRoute] = useState(false);
   const [routeError, setRouteError] = useState("");
+  const [useMaxAmount, setUseMaxAmount] = useState(false);
 
   const [balances, setBalances] = useState({});
   const [actualBalances, setActualBalances] = useState({});
@@ -305,11 +306,16 @@ export default function SwapTokens() {
         const fromTokenData = tokens.find((t) => t.symbol === fromToken);
         const toTokenData = tokens.find((t) => t.symbol === toToken);
 
-        const amountInRaw = BigInt(
-          Math.floor(
-            parseFloat(fromAmount) * Math.pow(10, fromTokenData.decimals)
-          )
-        );
+        let amountInRaw;
+        if (useMaxAmount && fromToken !== "SUI") {
+          amountInRaw = actualBalances[fromToken] || 0n;
+        } else {
+          amountInRaw = BigInt(
+            Math.floor(
+              parseFloat(fromAmount) * Math.pow(10, fromTokenData.decimals)
+            )
+          );
+        }
 
         const route = await aggregatorClient.findRouters({
           from: fromTokenData.type,
@@ -339,7 +345,7 @@ export default function SwapTokens() {
 
     const debounce = setTimeout(fetchRoute, 800);
     return () => clearTimeout(debounce);
-  }, [fromAmount, fromToken, toToken]);
+  }, [fromAmount, fromToken, toToken, useMaxAmount, actualBalances]);
 
   const handleSwap = async () => {
     if (!currentAccount) {
@@ -362,9 +368,15 @@ export default function SwapTokens() {
       const toTokenData = tokens.find((t) => t.symbol === toToken);
 
       const swapAmount = parseFloat(fromAmount);
-      const amountInRaw = BigInt(
-        Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
-      );
+
+      let amountInRaw;
+      if (useMaxAmount && fromToken !== "SUI") {
+        amountInRaw = actualBalances[fromToken] || 0n;
+      } else {
+        amountInRaw = BigInt(
+          Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
+        );
+      }
 
       const suiCoins = await suiClient.getCoins({
         owner: currentAccount.address,
@@ -522,6 +534,7 @@ export default function SwapTokens() {
       setTxOutcome({ status: "success", digest: result.digest });
       setFromAmount("");
       setToAmount("");
+      setUseMaxAmount(false);
       await fetchBalances();
     } catch (error) {
       console.error("Swap failed:", error);
@@ -555,6 +568,7 @@ export default function SwapTokens() {
     const value = e.target.value;
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setFromAmount(value);
+      setUseMaxAmount(false);
     }
   };
 
@@ -563,6 +577,7 @@ export default function SwapTokens() {
     setToToken(fromToken);
     setFromAmount(toAmount);
     setToAmount(fromAmount);
+    setUseMaxAmount(false);
   };
 
   const handleMaxClick = () => {
@@ -573,10 +588,12 @@ export default function SwapTokens() {
       const actualSuiBalance = Number(rawBalance) / 1e9;
       const maxAmount = Math.max(0, actualSuiBalance - GAS_BUDGET / 1e9);
       setFromAmount(maxAmount.toFixed(6));
+      setUseMaxAmount(true);
     } else {
       const actualBalance =
         Number(rawBalance) / Math.pow(10, tokenData.decimals);
-      setFromAmount(actualBalance.toFixed(6));
+      setFromAmount(actualBalance.toFixed(tokenData.decimals === 9 ? 9 : 6));
+      setUseMaxAmount(true);
     }
   };
 

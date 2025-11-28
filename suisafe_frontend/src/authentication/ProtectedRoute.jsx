@@ -1,38 +1,33 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useEffect, useState } from "react";
 
-/**
- * ProtectedRoute:
- * - allows access if wallet-kit account exists OR if a stored local session exists.
- * - prevents setState loops by avoiding useEffect or setState here.
- */
 const ProtectedRoute = ({ children }) => {
   const account = useCurrentAccount();
   const location = useLocation();
+  const [isChecking, setIsChecking] = useState(true);
 
-  // direct wallet connection check
-  if (account) {
-    return children;
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsChecking(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isChecking) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
   }
 
-  // fallback: check localStorage synchronously
-  let stored = null;
-  try {
-    stored = typeof window !== "undefined" && localStorage.getItem("sui_session");
-  } catch (e) {
-    stored = null;
+  if (!account) {
+    return <Navigate to="/dashboard" replace state={{ from: location }} />;
   }
 
-  if (stored) {
-    // still redirect to dashboard if they try to access /connect while session exists
-    if (location.pathname === "/connect") {
-      return <Navigate to="/public_dashboard" replace />;
-    }
-    return children;
-  }
-
-  // not authenticated → redirect to connect
-  return <Navigate to="/public_dashboard" replace />;
+  return children;
 };
 
 export default ProtectedRoute;

@@ -15,46 +15,69 @@ const Header = () => {
   const { mutate: connect } = useConnectWallet();
 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isReconnecting, setIsReconnecting] = useState(false);
 
-  // Check both localStorage + dapp-kit
-  const checkAuth = () => {
+  useEffect(() => {
     const session = localStorage.getItem("sui_session");
-    if ((account && session) || session) {
+
+    if (account) {
       setIsAuthenticated(true);
+
+      if (!session) {
+        localStorage.setItem(
+          "sui_session",
+          JSON.stringify({ address: account.address })
+        );
+      }
     } else {
       setIsAuthenticated(false);
     }
-  };
+  }, [account]);
 
   useEffect(() => {
-    // Try auto-reconnect on reload
-    const session = localStorage.getItem("sui_session");
-    if (session && !account) {
-      const { address } = JSON.parse(session);
+    const attemptReconnect = async () => {
+      const session = localStorage.getItem("sui_session");
 
-      // Find matching adapter
-      const adapter = wallets.find((w) =>
-        w.accounts.some((acc) => acc.address === address)
-      );
+      if (session && !account && !isReconnecting) {
+        setIsReconnecting(true);
 
-      if (adapter) {
-        connect({ wallet: adapter });
-      }
-    }
+        try {
+          const { address } = JSON.parse(session);
 
-    checkAuth();
+          const adapter = wallets.find((w) =>
+            w.accounts.some((acc) => acc.address === address)
+          );
 
-    const handleStorage = (e) => {
-      if (e.key === "sui_session") {
-        checkAuth();
+          if (adapter) {
+            connect({ wallet: adapter });
+          } else {
+            localStorage.removeItem("sui_session");
+          }
+        } catch (error) {
+          console.error("Failed to reconnect:", error);
+          localStorage.removeItem("sui_session");
+        } finally {
+          setIsReconnecting(false);
+        }
       }
     };
+
+    attemptReconnect();
+  }, []);
+
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === "sui_session" && !e.newValue) {
+        setIsAuthenticated(false);
+      }
+    };
+
     window.addEventListener("storage", handleStorage);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
     };
-  }, [location, account, wallets, connect]);
+  }, []);
 
   return <>{isAuthenticated ? <HeadAuth /> : <NoAuth />}</>;
 };

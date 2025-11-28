@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   fetchAllLockObjects,
   calculateTotalTVL,
@@ -24,10 +24,18 @@ export function useGlobalAnalytics() {
     apys: {},
   });
 
+  const isFetchingRef = useRef(false);
+  const mountedRef = useRef(true);
+
   useEffect(() => {
-    let isMounted = true;
+    mountedRef.current = true;
 
     const fetchAnalytics = async () => {
+      if (isFetchingRef.current) {
+        return;
+      }
+
+      isFetchingRef.current = true;
       setIsLoading(true);
       setError(null);
 
@@ -38,23 +46,13 @@ export function useGlobalAnalytics() {
           fetchScallopAPYs(),
         ]);
 
-        if (!isMounted) return;
-
-        console.log("🔒 Fetched locks:", {
-          regularCount: locks.regular.length,
-          yieldCount: locks.yield.length,
-        });
-        console.log("💰 Prices:", prices);
-        console.log("📈 APYs:", apys);
+        if (!mountedRef.current) {
+          return;
+        }
 
         const totalTVL = calculateTotalTVL(locks, prices);
-        console.log("💵 Total TVL:", totalTVL);
-
         const tvlByToken = getTVLByToken(locks, prices);
-        console.log("📊 TVL by token:", tvlByToken);
-
         const topPerforming = getTopPerformingAssets(tvlByToken, apys);
-        console.log("🏆 Top performing:", topPerforming);
 
         const totalTVLForAvg = Object.values(tvlByToken).reduce(
           (sum, token) => sum + token.total,
@@ -93,15 +91,15 @@ export function useGlobalAnalytics() {
           apys,
         };
 
-        console.log("✅ Final analytics data:", finalData);
         setData(finalData);
       } catch (err) {
         console.error("❌ Failed to fetch global analytics:", err);
-        if (isMounted) {
+        if (mountedRef.current) {
           setError(err.message || "Failed to load analytics");
         }
       } finally {
-        if (isMounted) {
+        isFetchingRef.current = false;
+        if (mountedRef.current) {
           setIsLoading(false);
         }
       }
@@ -109,16 +107,20 @@ export function useGlobalAnalytics() {
 
     fetchAnalytics();
 
-    const interval = setInterval(fetchAnalytics, 120000);
+    const interval = setInterval(() => {
+      fetchAnalytics();
+    }, 180000); // 3 minutes
 
     return () => {
-      isMounted = false;
+      mountedRef.current = false;
       clearInterval(interval);
     };
   }, []);
 
   const refresh = async () => {
-    setIsLoading(true);
+    if (!isFetchingRef.current) {
+      setIsLoading(true);
+    }
   };
 
   return {

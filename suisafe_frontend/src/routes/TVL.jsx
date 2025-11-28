@@ -19,7 +19,6 @@ export default function TVL() {
   const account = useCurrentAccount();
   const location = useLocation();
 
-  // Fetch global analytics data
   const {
     totalTVL,
     supportedAssets,
@@ -30,23 +29,19 @@ export default function TVL() {
     prices,
   } = useGlobalAnalytics();
 
-  // Check if we are currently on /tvl/lock
-  const isLockPage = location.pathname === "/tvl/lock";
+  const isLockPage = location.pathname === "/dashboard/lock";
 
-  // Handle wallet selection from WalletModal
   const handleSelectWallet = (adapter) => {
     connect({ wallet: adapter });
     setIsWalletModalOpen(false);
   };
 
-  // Handle Connect Wallet button click
   const handleConnectWallet = () => {
     if (!account) {
       setIsWalletModalOpen(true);
     }
   };
 
-  // Token configuration with real data
   const tokenIcons = {
     SUI: sui,
     WAL: wal,
@@ -55,7 +50,6 @@ export default function TVL() {
     SCA: scal,
   };
 
-  // Build tokens array from real data
   const tokens = Object.entries(tvlByToken || {}).map(([symbol, data]) => {
     const price = prices[symbol] || 0;
     const tokenAmount = price > 0 ? data.total / price : 0;
@@ -106,7 +100,7 @@ export default function TVL() {
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-y-scroll">
         {isLockPage ? (
-          // ✅ Only show nested lock page when at /tvl/lock
+          // Only show nested lock page when at /dashboard/lock
           <Outlet />
         ) : (
           <>
@@ -183,7 +177,7 @@ export default function TVL() {
                 ) : showTokens ? (
                   filteredTokens.length > 0 ? (
                     filteredTokens.map((t) => (
-                      <Link key={t.tokenName} to="/tvl/lock">
+                      <Link key={t.tokenName} to="/dashboard/lock">
                         <SuiItem
                           tokenName={t.tokenName}
                           tokenIcon={t.icon}

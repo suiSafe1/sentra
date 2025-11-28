@@ -12,7 +12,6 @@ import { getFullnodeUrl } from "@mysten/sui/client";
 import "@mysten/dapp-kit/dist/index.css";
 import { BrowserRouter } from "react-router-dom";
 
-
 const { networkConfig } = createNetworkConfig({
   mainnet: { url: getFullnodeUrl("mainnet") },
 });

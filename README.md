@@ -1,3 +1,3 @@
-# sentr
+# sentra
 
 project reloaded

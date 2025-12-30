@@ -1,6 +1,6 @@
-# 💸 Sui Safe – A Decentralized Savings & Staking Platform
+# 💸 Sentra – A Decentralized Savings & Staking Platform
 
-Sui Safe is a Web3-native financial app that re-imagines traditional saving apps like PiggyVest and Cowrywise through a decentralized lens. Built on the Sui blockchain, it enables users to **save**, **stake**, and **earn interest**—all without relying on centralized intermediaries.
+Sentra is a Web3-native financial app that re-imagines traditional saving apps like PiggyVest and Cowrywise through a decentralized lens. Built on the Sui blockchain, it enables users to **save**, **stake**, and **earn interest**—all without relying on centralized intermediaries.
 
 We aim to replace traditional identity systems (like usernames/passwords or phone numbers) with **Sui’s wallet abstraction** and a **zero-knowledge proof system** that ensures users can verify ownership and access without exposing private data.
 
@@ -92,7 +92,7 @@ This ensures:
 
 ## 📈 Vision
 
-Sui Safe aims to provide a **transparent**, **secure**, and **permissionless** alternative to centralized fintech platforms. Users will:
+Sentra aims to provide a **transparent**, **secure**, and **permissionless** alternative to centralized fintech platforms. Users will:
 
 - Save and grow funds on-chain.
 - Stake assets securely in vetted vaults.
@@ -106,6 +106,6 @@ Sui Safe aims to provide a **transparent**, **secure**, and **permissionless** a
 - ✅ Wallet connection & session persistence  
 - ✅ Protected dashboard & pages  
 - ✅ Optional zero-knowledge proof signing  
-- 🔜 Multi-chain support  
-- 🔜 Staking pools & interest accrual  
-- 🔜 Advanced analytics & transaction history  
+- ✅ Multi-chain support  
+- ✅ Staking pools & interest accrual  
+- ✅ Advanced analytics & transaction history  

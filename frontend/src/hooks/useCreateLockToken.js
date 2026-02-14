@@ -1,28 +1,21 @@
 import { useState } from "react";
 import { Transaction } from "@mysten/sui/transactions";
-import { SuiClient, getFullnodeUrl } from "@mysten/sui/client";
 import {
   useCurrentAccount,
   useSignAndExecuteTransaction,
 } from "@mysten/dapp-kit";
 import { useActivityContext } from "../context/ActivityContext";
-const PACKAGE_ID =
-  "0xb23925126c4c636e804b44cba4947d7c02651a71f05f87419e71bf1d1894c1ee";
-const REGISTRY_ID =
-  "0x1cb927b87f8d1c00aadf70e36d315abfe156dbf8ea37bf9fcaaeb2bbd4ea43ba";
-const PLATFORM_ID =
-  "0x38648bb04fd4304ccc4ecb28fbf5ac3003103d5f3ae58b172463f73818d10fa5";
-const CLOCK_ID = "0x6";
-const SCALLOP_MAINNET_MARKET_ID =
-  "0xa757975255146dc9686aa823b7838b507f315d704f428cbadad2f4ea061939d9";
-const SCALLOP_MAINNET_VERSION_ID =
-  "0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7";
-const SCALLOP_MINT_PACKAGE =
-  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
-const SCALLOP_S_COIN_CONVERTER_PACKAGE =
-  "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
-
-const client = new SuiClient({ url: getFullnodeUrl("mainnet") });
+import {
+  client,
+  PACKAGE_ID,
+  REGISTRY_ID,
+  PLATFORM_ID,
+  CLOCK_ID,
+  SCALLOP_MAINNET_MARKET_ID,
+  SCALLOP_MAINNET_VERSION_ID,
+  SCALLOP_MINT_PACKAGE,
+  SCALLOP_S_COIN_CONVERTER_PACKAGE,
+} from "../constants/Constants";
 
 export function useCreateLockToken() {
   const currentAccount = useCurrentAccount();
@@ -48,7 +41,7 @@ export function useCreateLockToken() {
     if (selectedDate) return selectedDate;
     const now = new Date();
     const unlockDate = new Date(
-      now.getTime() + selectedDuration * 24 * 60 * 60 * 1000
+      now.getTime() + selectedDuration * 24 * 60 * 60 * 1000,
     );
     return unlockDate.toLocaleDateString();
   };
@@ -59,7 +52,7 @@ export function useCreateLockToken() {
     selectedDate,
     lockDescription = "",
     selectedToken,
-    memo = ""
+    memo = "",
   ) => {
     if (!currentAccount || !amount) {
       alert("Please connect wallet and enter amount");
@@ -88,7 +81,7 @@ export function useCreateLockToken() {
 
       const decimals = selectedToken.decimals || 9;
       const tokenAmount = BigInt(
-        Math.floor(parseFloat(amount) * 10 ** decimals)
+        Math.floor(parseFloat(amount) * 10 ** decimals),
       );
 
       let coin;
@@ -108,7 +101,7 @@ export function useCreateLockToken() {
 
         const totalBalance = coins.data.reduce(
           (sum, coin) => sum + BigInt(coin.balance),
-          BigInt(0)
+          BigInt(0),
         );
 
         if (totalBalance < tokenAmount) {
@@ -131,6 +124,7 @@ export function useCreateLockToken() {
         [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
       }
 
+      // ✅ This now uses the updated SCALLOP_MINT_PACKAGE
       const marketCoinHandle = tx.moveCall({
         target: `${SCALLOP_MINT_PACKAGE}::mint::mint`,
         arguments: [
@@ -153,7 +147,7 @@ export function useCreateLockToken() {
 
       const finalDescription = memo || lockDescription || "Yield Lock";
       const descriptionBytes = Array.from(
-        new TextEncoder().encode(finalDescription)
+        new TextEncoder().encode(finalDescription),
       );
 
       tx.moveCall({
@@ -184,12 +178,12 @@ export function useCreateLockToken() {
       });
 
       const createdObjects = txBlock.objectChanges?.filter(
-        (c) => c.type === "created"
+        (c) => c.type === "created",
       );
       const lockObj = createdObjects?.find((c) =>
         ["Lock", "Locker", "YieldLock"].some((term) =>
-          c.objectType.includes(term)
-        )
+          c.objectType.includes(term),
+        ),
       );
 
       if (lockObj) setLockerId(lockObj.objectId);

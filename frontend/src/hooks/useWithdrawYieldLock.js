@@ -16,7 +16,7 @@ export function useWithdrawYieldLock() {
     clock,
     coinType,
     sCoinType,
-    scoinInfo
+    scoinInfo,
   ) => {
     if (!yieldLockId) {
       throw new Error("Yield Lock ID is required");

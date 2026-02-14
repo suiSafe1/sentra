@@ -33,7 +33,7 @@ import { useActivityContext } from "../context/ActivityContext";
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 const SCALLOP_REDEEM_PACKAGE =
-  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
+  "0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d";
 
 const TOKEN_ICONS = {
   SUI: sui_logo,
@@ -153,7 +153,7 @@ export function useSuiLocks() {
             ["s_coin_balance", "value"],
             "amount",
             "balance",
-            ["balance", "value"]
+            ["balance", "value"],
           );
 
           let coinTypeRaw = extractCoinType(fields);
@@ -197,7 +197,7 @@ export function useSuiLocks() {
           const tokenAmountStr = formatTokenAmountRaw(
             principalBig,
             decimals,
-            2
+            2,
           );
 
           const principalNum =
@@ -207,14 +207,14 @@ export function useSuiLocks() {
             principalNum,
             tokenApy,
             startTimeMs,
-            now
+            now,
           );
 
           const principalUsd = calculateUsdValue(
             tokenName,
             principalBig.toString(),
             decimals,
-            prices
+            prices,
           );
           const yieldUsd = yieldInToken * (prices[tokenName] || 0);
 
@@ -227,8 +227,8 @@ export function useSuiLocks() {
                   100,
                   Math.max(
                     0,
-                    Math.round(((now - startTimeMs) / durationMs) * 100)
-                  )
+                    Math.round(((now - startTimeMs) / durationMs) * 100),
+                  ),
                 )
               : 0;
 
@@ -262,7 +262,7 @@ export function useSuiLocks() {
           console.warn(
             "failed to parse lock object:",
             objRef.data.objectId,
-            innerErr
+            innerErr,
           );
         }
         return acc;
@@ -350,7 +350,7 @@ export function useSuiLocks() {
         error.message?.includes("code 2")
       ) {
         alert(
-          "Error: It's too early to withdraw. Please wait until the lock duration ends."
+          "Error: It's too early to withdraw. Please wait until the lock duration ends.",
         );
       } else {
         alert(`Withdraw failed: ${error.message || error}`);

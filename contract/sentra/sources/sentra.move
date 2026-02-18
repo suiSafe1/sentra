@@ -204,9 +204,18 @@ public struct UserRegistry has key, store {
 }
 
 
-public struct AdminCap has key {
+public struct AdminCap has key, store {
     id: UID,
     platform_id: ID,
+}
+
+/// Holds the AdminCap in escrow during a pending admin transfer.
+/// The new admin must explicitly accept before they gain control.
+public struct PendingAdminTransfer has key {
+    id: UID,
+    cap: AdminCap,
+    current_admin: address,
+    new_admin: address,
 }
 
 // ============================================================================
@@ -551,44 +560,65 @@ public entry fun configure_token_fee<CoinType>(
     });
 }
 
-/// Transfer admin privileges to a new address
-/// 
-/// # Process
-/// 1. Verifies current admin authorization
-/// 2. Updates platform admin address
-/// 3. Transfers AdminCap to new admin
-/// 
-/// # Security
-/// - AdminCap transfer is atomic with address update
-/// - Old admin loses all privileges immediately
-/// - Cannot be reversed without new admin's cooperation
-/// 
-/// # Important
-/// This is a one-way operation. The old admin cannot reclaim privileges.
-public entry fun transfer_admin(
+/// Current admin initiates transfer.
+/// AdminCap is locked in escrow — current admin loses control immediately.
+/// Call cancel_admin_transfer to reclaim if new admin never accepts.
+public entry fun request_admin_transfer(
     cap: AdminCap,
     platform: &mut Platform,
     new_admin: address,
+    ctx: &mut TxContext
+) {
+    let sender = tx_context::sender(ctx);
+    assert!(sender == platform.admin, EUnauthorized);
+    assert!(object::id(&cap) == platform.admin_cap_id, EInvalidCapId);
+
+    let pending = PendingAdminTransfer {
+        id: object::new(ctx),
+        cap,
+        current_admin: sender,
+        new_admin,
+    };
+
+    transfer::share_object(pending);
+}
+
+/// New admin accepts the transfer.
+/// Only callable by the address specified in request_admin_transfer.
+public entry fun accept_admin_transfer(
+    pending: PendingAdminTransfer,
+    platform: &mut Platform,
     clock: &Clock,
     ctx: &mut TxContext
 ) {
     let sender = tx_context::sender(ctx);
-    
-    // Verify current admin
-    assert!(sender == platform.admin, EUnauthorized);
+    assert!(sender == pending.new_admin, EUnauthorized);
+
+    let PendingAdminTransfer { id, cap, current_admin, new_admin } = pending;
     assert!(object::id(&cap) == platform.admin_cap_id, EInvalidCapId);
-    
-    let old_admin = platform.admin;
+
     platform.admin = new_admin;
-    
-    // Transfer AdminCap to new admin
     transfer::transfer(cap, new_admin);
-    
+    object::delete(id);
+
     event::emit(AdminTransferred {
-        old_admin,
-        new_admin,
-        timestamp: clock.timestamp_ms(),
+    old_admin: current_admin,
+    new_admin,
+    timestamp: clock.timestamp_ms(),
     });
+}
+
+/// Cancel a pending admin transfer and reclaim the AdminCap.
+public entry fun cancel_admin_transfer(
+    pending: PendingAdminTransfer,
+    ctx: &mut TxContext
+) {
+    let sender = tx_context::sender(ctx);
+    assert!(sender == pending.current_admin, EUnauthorized);
+
+    let PendingAdminTransfer { id, cap, current_admin, new_admin: _ } = pending;
+    transfer::transfer(cap, current_admin);
+    object::delete(id);
 }
 
 // ============================================================================
@@ -611,6 +641,14 @@ fun safe_mul_div(amount: u64, numerator: u64, denominator: u64): u64 {
     (result as u64)
 }
 
+fun safe_mul_div_ceil(amount: u64, numerator: u64, denominator: u64): u64 {
+    let result = (
+        (amount as u128) * (numerator as u128) + (denominator as u128) - 1
+    ) / (denominator as u128);
+    (result as u64)
+}
+
+
 /// Calculate deposit fee based on configured parameters
 /// 
 /// # Process
@@ -624,7 +662,7 @@ fun safe_mul_div(amount: u64, numerator: u64, denominator: u64): u64 {
 /// complete fee consumption
 fun calculate_deposit_fee(amount: u64, fee_config: &TokenFeeConfig): u64 {
     // Calculate percentage-based fee
-    let percentage_fee = safe_mul_div(amount, fee_config.deposit_fee_bps, BPS_DENOM);
+    let percentage_fee = safe_mul_div_ceil(amount, fee_config.deposit_fee_bps, BPS_DENOM);
     
     // Apply minimum fee
     let fee_after_min = if (percentage_fee < fee_config.min_deposit_fee) {

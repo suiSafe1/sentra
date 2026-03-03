@@ -124,7 +124,6 @@ export function useCreateLockToken() {
         [coin] = tx.splitCoins(coin, [tx.pure.u64(tokenAmount)]);
       }
 
-      // ✅ This now uses the updated SCALLOP_MINT_PACKAGE
       const marketCoinHandle = tx.moveCall({
         target: `${SCALLOP_MINT_PACKAGE}::mint::mint`,
         arguments: [
@@ -166,16 +165,34 @@ export function useCreateLockToken() {
       const result = await signAndExecuteTransaction({ transaction: tx });
       const digest = result?.digest || result?.effects?.transactionDigest;
 
-      if (result?.digest) {
+      if (digest) {
         setTimeout(() => {
           refreshActivity();
         }, 2000);
       }
 
-      const txBlock = await client.getTransactionBlock({
-        digest,
-        options: { showObjectChanges: true },
-      });
+      // Retry fetching the tx block — RPC nodes can lag behind indexing the tx
+      const MAX_RETRIES = 10;
+      const RETRY_DELAY_MS = 1500;
+      let txBlock = null;
+
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          txBlock = await client.getTransactionBlock({
+            digest,
+            options: { showObjectChanges: true },
+          });
+          break; // success — exit retry loop
+        } catch (fetchError) {
+          const isNotFound =
+            fetchError?.message?.includes("Could not find") ||
+            fetchError?.message?.includes("not found");
+
+          if (!isNotFound || attempt === MAX_RETRIES) throw fetchError;
+
+          await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+        }
+      }
 
       const createdObjects = txBlock.objectChanges?.filter(
         (c) => c.type === "created",

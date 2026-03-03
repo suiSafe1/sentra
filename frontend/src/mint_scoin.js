@@ -15,7 +15,7 @@ const SCALLOP_MAINNET_MARKET_ID =
 const SCALLOP_MAINNET_VERSION_ID =
   "0x07871c4b3c847a0f674510d4978d5cf6f960452795e8ff6f189fd2088a3f6ac7";
 const SCALLOP_MINT_PACKAGE =
-  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
+  "0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805";
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 const CLOCK_ID = "0x6";
@@ -53,7 +53,7 @@ const PRIVATE_KEY = "";
 if (!PRIVATE_KEY) {
   console.error("❌ Error: PRIVATE_KEY not set");
   console.error(
-    "\nPlease add your private key to the PRIVATE_KEY variable in the script"
+    "\nPlease add your private key to the PRIVATE_KEY variable in the script",
   );
   console.error("\nYour private key can be in either format:");
   console.error("  - Bech32: suiprivkey1...");
@@ -109,7 +109,7 @@ async function mintSCoin(tokenSymbol, amount) {
     tx.setGasBudget(15_000_000);
 
     const tokenAmount = BigInt(
-      Math.floor(parseFloat(amount) * 10 ** token.decimals)
+      Math.floor(parseFloat(amount) * 10 ** token.decimals),
     );
 
     // Step 1: Get the base coin
@@ -129,15 +129,15 @@ async function mintSCoin(tokenSymbol, amount) {
 
       const totalBalance = coins.data.reduce(
         (sum, coin) => sum + BigInt(coin.balance),
-        BigInt(0)
+        BigInt(0),
       );
 
       if (totalBalance < tokenAmount) {
         const available = Number(totalBalance) / 10 ** token.decimals;
         throw new Error(
           `Insufficient ${token.symbol} balance. Available: ${available.toFixed(
-            token.decimals
-          )}`
+            token.decimals,
+          )}`,
         );
       }
 
@@ -202,10 +202,10 @@ async function mintSCoin(tokenSymbol, amount) {
 
     // Find created sCoin object
     const createdObjects = result.objectChanges?.filter(
-      (c) => c.type === "created"
+      (c) => c.type === "created",
     );
     const sCoinObj = createdObjects?.find((c) =>
-      c.objectType?.includes(token.scoin.type)
+      c.objectType?.includes(token.scoin.type),
     );
 
     if (sCoinObj) {

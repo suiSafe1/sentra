@@ -33,7 +33,7 @@ import { useActivityContext } from "../context/ActivityContext";
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 const SCALLOP_REDEEM_PACKAGE =
-  "0xd384ded6b9e7f4d2c4c9007b0291ef88fbfed8e709bce83d2da69de2d79d013d";
+  "0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805";
 
 const TOKEN_ICONS = {
   SUI: sui_logo,

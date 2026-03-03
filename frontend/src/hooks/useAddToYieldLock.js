@@ -12,7 +12,7 @@ import {
 import { useActivityContext } from "../context/ActivityContext";
 
 const SCALLOP_MINT_PACKAGE =
-  "0x83bbe0b3985c5e3857803e2678899b03f3c4a31be75006ab03faf268c014ce41";
+  "0xde5c09ad171544aa3724dc67216668c80e754860f419136a68d78504eb2e2805";
 const SCALLOP_S_COIN_CONVERTER_PACKAGE =
   "0x80ca577876dec91ae6d22090e56c39bc60dce9086ab0729930c6900bc4162b4c";
 
@@ -39,7 +39,7 @@ export function useAddToYieldLock() {
 
       const decimals = tokenConfig.decimals || 9;
       const tokenAmount = BigInt(
-        Math.floor(parseFloat(amount) * 10 ** decimals)
+        Math.floor(parseFloat(amount) * 10 ** decimals),
       );
 
       let coin;
@@ -59,7 +59,7 @@ export function useAddToYieldLock() {
 
         const totalBalance = coins.data.reduce(
           (sum, coin) => sum + BigInt(coin.balance),
-          BigInt(0)
+          BigInt(0),
         );
 
         const actualTokenAmount =

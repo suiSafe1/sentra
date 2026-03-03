@@ -38,10 +38,13 @@ function HeadAuth() {
 
   return (
     <>
-      <header className="flex justify-between items-center bg-white shadow-md px-6 py-4 w-full">
-        <SearchBar />
+      <header className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 bg-white shadow-md px-6 py-4 w-full">
+        <div className="sm:flex hidden w-full">
+          <SearchBar />
+        </div>
 
-        <div className="flex items-center space-x-4">
+
+        <div className="flex items-center justify-between space-x-4">
           <div
             className="bg-[#F3F4F6] hover:bg-red-500 px-4 py-2 rounded-md font-black text-black/60 hover:text-white transition-colors duration-200 ease-in-out hover:cursor-pointer"
             onClick={handleLogout}
@@ -75,6 +78,10 @@ function HeadAuth() {
               <Menu className="w-6 h-6 text-gray-600" />
             )}
           </button>
+        </div>
+        {/* Mobile Search Bar */}
+        <div className="flex sm:hidden w-full">
+          <SearchBar />
         </div>
       </header>
 

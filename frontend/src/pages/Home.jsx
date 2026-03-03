@@ -92,9 +92,8 @@ const Home = () => {
           {/* Menu */}
           <div
             id="navbar-menu"
-            className={`justify-between w-full md:flex md:w-auto ${
-              isMenuOpen ? "block" : "hidden"
-            }`}
+            className={`justify-between w-full md:flex md:w-auto ${isMenuOpen ? "block" : "hidden"
+              }`}
           >
             <ul className="flex md:flex-row flex-col md:space-x-8 bg-gray-50 md:bg-white mt-4 md:mt-0 p-4 md:p-0 border border-gray-100 md:border-0 rounded-lg font-medium">
               <li>
@@ -129,7 +128,7 @@ const Home = () => {
 
       {/* Hero Section */}
       <div className="flex flex-col justify-center bg-white font-sans text-gray-800">
-        <section className="flex justify-center bg-gradient-to-br from-white via-white to-[#2b3075]">
+        <section className="flex justify-center bg-linear-to-br from-white via-white to-[#2b3075]">
           <div className="justify-center content-center self-center my-28 p-4 w-fit text-left align-center">
             <h1 className="font-bold text-black text-2xl md:text-3xl lg:text-4xl text-center">
               Secure Your Future with <br />
@@ -256,7 +255,7 @@ const Home = () => {
           </div>
         </section>
         <footer className="bg-[#00076C]">
-          <div className="mx-auto p-4 py-6 lg:py-8 w-full max-w-screen-xl">
+          <div className="mx-auto p-4 py-6 lg:py-8 w-full max-w-7xl">
             <div className="md:flex md:justify-between">
               <div className="mb-6 md:mb-0">
                 <a href="#" className="flex items-center">

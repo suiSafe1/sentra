@@ -56,14 +56,14 @@ export function useGlobalAnalytics() {
 
         const totalTVLForAvg = Object.values(tvlByToken).reduce(
           (sum, token) => sum + token.total,
-          0
+          0,
         );
         const weightedAPY = Object.entries(tvlByToken).reduce(
           (sum, [symbol, data]) => {
             const weight = totalTVLForAvg > 0 ? data.total / totalTVLForAvg : 0;
             return sum + (apys[symbol] || 0) * weight;
           },
-          0
+          0,
         );
 
         const uniqueOwners = new Set();
@@ -93,7 +93,6 @@ export function useGlobalAnalytics() {
 
         setData(finalData);
       } catch (err) {
-        console.error("❌ Failed to fetch global analytics:", err);
         if (mountedRef.current) {
           setError(err.message || "Failed to load analytics");
         }

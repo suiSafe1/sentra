@@ -247,7 +247,7 @@ export default function SwapTokens() {
 
         const totalBalance = coins.data.reduce(
           (sum, coin) => sum + BigInt(coin.balance),
-          0n
+          0n,
         );
 
         return {
@@ -271,9 +271,7 @@ export default function SwapTokens() {
 
       setBalances(newBalances);
       setActualBalances(newActualBalances);
-    } catch (error) {
-      console.error("Failed to fetch balances:", error);
-    }
+    } catch (error) {}
   }, [currentAccount, suiClient]);
 
   useEffect(() => {
@@ -312,8 +310,8 @@ export default function SwapTokens() {
         } else {
           amountInRaw = BigInt(
             Math.floor(
-              parseFloat(fromAmount) * Math.pow(10, fromTokenData.decimals)
-            )
+              parseFloat(fromAmount) * Math.pow(10, fromTokenData.decimals),
+            ),
           );
         }
 
@@ -335,7 +333,6 @@ export default function SwapTokens() {
           setRouteError("No route available");
         }
       } catch (error) {
-        console.error("Failed to fetch route:", error);
         setToAmount("");
         setRouteError("Failed to fetch route");
       } finally {
@@ -374,7 +371,7 @@ export default function SwapTokens() {
         amountInRaw = actualBalances[fromToken] || 0n;
       } else {
         amountInRaw = BigInt(
-          Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals))
+          Math.floor(swapAmount * Math.pow(10, fromTokenData.decimals)),
         );
       }
 
@@ -390,7 +387,7 @@ export default function SwapTokens() {
 
       const totalSuiBalance = suiCoins.data.reduce(
         (sum, coin) => sum + BigInt(coin.balance),
-        0n
+        0n,
       );
 
       let swapCoinIds = [];
@@ -402,8 +399,8 @@ export default function SwapTokens() {
             `Insufficient SUI balance. Need ${(
               Number(amountInRaw) / 1e9
             ).toFixed(6)} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(
-              6
-            )}`
+              6,
+            )}`,
           );
         }
 
@@ -436,8 +433,8 @@ export default function SwapTokens() {
             `Insufficient SUI for gas. Need at least ${(
               GAS_BUDGET / 1e9
             ).toFixed(2)} SUI, have ${(Number(totalSuiBalance) / 1e9).toFixed(
-              2
-            )}`
+              2,
+            )}`,
           );
         }
 
@@ -452,7 +449,7 @@ export default function SwapTokens() {
 
         const totalSwapBalance = swapTokenCoins.data.reduce(
           (sum, coin) => sum + BigInt(coin.balance),
-          0n
+          0n,
         );
 
         if (totalSwapBalance < amountInRaw) {
@@ -461,7 +458,7 @@ export default function SwapTokens() {
               Number(amountInRaw) / Math.pow(10, fromTokenData.decimals)
             ).toFixed(6)}, have ${(
               Number(totalSwapBalance) / Math.pow(10, fromTokenData.decimals)
-            ).toFixed(6)}`
+            ).toFixed(6)}`,
           );
         }
 
@@ -508,7 +505,7 @@ export default function SwapTokens() {
 
       if (!treasuryId || treasuryId.startsWith("0x_YOUR_")) {
         throw new Error(
-          `Treasury not initialized for ${fromToken}. Please deploy and update TREASURY_IDS.`
+          `Treasury not initialized for ${fromToken}. Please deploy and update TREASURY_IDS.`,
         );
       }
 
@@ -537,8 +534,6 @@ export default function SwapTokens() {
       setUseMaxAmount(false);
       await fetchBalances();
     } catch (error) {
-      console.error("Swap failed:", error);
-
       let errorMessage = "Swap failed: ";
       if (error.message?.includes("Insufficient")) {
         errorMessage += error.message;
@@ -735,10 +730,10 @@ export default function SwapTokens() {
             {isSwapping
               ? "Swapping..."
               : !currentAccount
-              ? "Connect Wallet"
-              : routeError
-              ? "No Route Available"
-              : "Swap"}
+                ? "Connect Wallet"
+                : routeError
+                  ? "No Route Available"
+                  : "Swap"}
           </button>
         </div>
       </div>

@@ -26,3 +26,6 @@ dist-ssr
 *.sw?
 
 public_components
+
+/src/constants/
+/src/scripts/

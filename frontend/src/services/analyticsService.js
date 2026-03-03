@@ -49,7 +49,6 @@ export async function fetchGlobalTVL() {
 
     return [];
   } catch (error) {
-    console.error("Failed to fetch global TVL:", error);
     return [];
   }
 }
@@ -72,7 +71,6 @@ export async function fetchTokenTVL(tokenSymbol) {
 
     return txb.results;
   } catch (error) {
-    console.error(`Failed to fetch TVL for ${tokenSymbol}:`, error);
     return null;
   }
 }
@@ -92,7 +90,6 @@ export async function fetchGlobalLockStats() {
 
     return txb.results;
   } catch (error) {
-    console.error("Failed to fetch global lock stats:", error);
     return null;
   }
 }
@@ -112,7 +109,6 @@ export async function fetchPlatformStats() {
 
     return txb.results;
   } catch (error) {
-    console.error("Failed to fetch platform stats:", error);
     return null;
   }
 }
@@ -127,7 +123,6 @@ export async function fetchGlobalLockIds() {
     });
 
     if (!platformObj?.data?.content?.fields) {
-      console.warn("Could not access Platform fields");
       return { regularLockIds: [], yieldLockIds: [] };
     }
 
@@ -141,7 +136,6 @@ export async function fetchGlobalLockIds() {
       yieldLockIds,
     };
   } catch (error) {
-    console.error("Failed to fetch global lock IDs:", error);
     return { regularLockIds: [], yieldLockIds: [] };
   }
 }
@@ -170,9 +164,7 @@ export async function fetchAllLockObjects() {
 
           locks.regular.push(...results.filter((r) => r.data));
         }
-      } catch (err) {
-        console.warn("Failed to fetch regular locks:", err);
-      }
+      } catch (err) {}
     }
 
     if (yieldLockIds.length > 0) {
@@ -190,14 +182,11 @@ export async function fetchAllLockObjects() {
 
           locks.yield.push(...results.filter((r) => r.data));
         }
-      } catch (err) {
-        console.warn("Failed to fetch yield locks:", err);
-      }
+      } catch (err) {}
     }
 
     return locks;
   } catch (error) {
-    console.error("Failed to fetch all lock objects:", error);
     return { regular: [], yield: [] };
   }
 }
@@ -229,7 +218,6 @@ export function parseLockObject(lockData) {
       type: lockData.data.type,
     };
   } catch (error) {
-    console.error("Failed to parse lock object:", error);
     return null;
   }
 }
@@ -274,10 +262,7 @@ export function parseYieldLockObject(lockData) {
       strategy: fields.strategy,
       type: lockData.data.type,
     };
-  } catch (error) {
-    console.error("Failed to parse yield lock object:", error);
-    return null;
-  }
+  } catch (error) {}
 }
 
 export function calculateTotalTVL(locks, prices) {

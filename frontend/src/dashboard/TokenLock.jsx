@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useSuiLocks } from "../hooks/useSuiLocks";
 import { StakingCard } from "../components/StakingCard";
 import { useModalStore } from "../store/useModalStore";
 
-function TokenLock() {
+function TokenLock({ status }) {
   const {
     userLocks,
     isLoading,
@@ -14,6 +14,16 @@ function TokenLock() {
   } = useSuiLocks();
 
   const openModal = useModalStore((state) => state.openModal);
+
+  const filteredLocks = useMemo(() => {
+    if (status === "LOCKED") {
+      return userLocks.filter((l) => !l.isExpired);
+    }
+    if (status === "WITHDRAW") {
+      return userLocks.filter((l) => l.isExpired);
+    }
+    return userLocks;
+  }, [userLocks, status]);
 
   if (isLoading) {
     return (
@@ -61,7 +71,7 @@ function TokenLock() {
       </div>
 
       <div className="gap-4 grid">
-        {userLocks.map((data, idx) => {
+        {filteredLocks.map((data, idx) => {
           const isThisWithdrawing = withdrawing === data.yieldLockId;
 
           return (

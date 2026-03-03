@@ -258,19 +258,12 @@ export function useSuiLocks() {
             isExpired,
             memo: lockDescription,
           });
-        } catch (innerErr) {
-          console.warn(
-            "failed to parse lock object:",
-            objRef.data.objectId,
-            innerErr,
-          );
-        }
+        } catch (innerErr) {}
         return acc;
       }, []);
 
       setUserLocks(locks);
     } catch (error) {
-      console.error("Failed to fetch user locks:", error);
       setUserLocks([]);
     } finally {
       setIsLoading(false);
@@ -344,7 +337,6 @@ export function useSuiLocks() {
 
       await fetchUserLocks();
     } catch (error) {
-      console.error("Withdraw failed:", error);
       if (
         error.toString().includes("too early") ||
         error.message?.includes("code 2")

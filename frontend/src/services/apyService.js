@@ -37,8 +37,6 @@ export async function fetchScallopAPYs() {
 
     const apys = {};
 
-    console.log("Raw Scallop API response:", data);
-
     if (data.pools && Array.isArray(data.pools)) {
       data.pools.forEach((pool) => {
         if (pool.symbol && pool.supplyApy !== undefined) {
@@ -49,42 +47,27 @@ export async function fetchScallopAPYs() {
           if (ourSymbol) {
             const apy = parseFloat(pool.supplyApy || 0);
             apys[ourSymbol] = apy * 100;
-            console.log(
-              `Mapped ${apiSymbol} (${pool.symbol}) to ${ourSymbol}: ${
-                apy * 100
-              }%`
-            );
           }
         }
       });
     }
 
     if (Object.keys(apys).length === 0) {
-      console.warn(
-        "No matching tokens found. Available pools:",
-        data.pools?.map((p) => ({ symbol: p.symbol, apy: p.supplyApy }))
-      );
     }
 
     apyCache = apys;
     lastApyFetchTime = now;
 
-    console.log("Parsed Scallop APYs:", apys);
-
     const expectedTokens = ["SUI", "USDC", "WAL", "DEEP", "SCA"];
     expectedTokens.forEach((token) => {
       if (!apys[token]) {
-        console.warn(`Missing APY for ${token}, using 0`);
         apys[token] = 0;
       }
     });
 
     return apys;
   } catch (error) {
-    console.error("Failed to fetch Scallop APYs:", error);
-
     if (apyCache) {
-      console.log("Using cached APY data");
       return apyCache;
     }
 
@@ -97,7 +80,6 @@ export async function fetchScallopAPYs() {
       SCA: 115.0,
     };
 
-    console.log("Using fallback APYs:", fallbackApys);
     return fallbackApys;
   }
 }

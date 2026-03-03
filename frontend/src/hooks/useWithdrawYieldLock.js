@@ -65,7 +65,6 @@ export function useWithdrawYieldLock() {
         digest: result?.digest || "completed",
       };
     } catch (error) {
-      console.error("❌ Yield withdrawal failed:", error);
       setIsWithdrawing(false);
       throw error;
     }

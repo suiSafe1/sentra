@@ -20,8 +20,11 @@ import { useDashboardStats } from "../hooks/useDashboardStats";
 function Dashboard() {
   const [switchLock, setSwitchLock] = useState(false);
   const [status, setStatus] = useState(false);
+  // Status selection state (All, Locked, Withdraw)
+  const [selectedStatus, setSelectedStatus] = useState("ALL");
 
-  const dashboardData = useDashboardStats();
+
+  const dashboardData = useDashboardStats(selectedStatus);
 
   const currentAccount = useCurrentAccount();
   const location = useLocation();
@@ -100,10 +103,9 @@ function Dashboard() {
   );
 
   const getSwitchButtonClasses = (isActive) =>
-    `px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ease-in-out border rounded-md ${
-      isActive
-        ? "bg-[#00076C] text-white border-blue-900 shadow-sm"
-        : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900"
+    `cursor-pointer px-4 py-1.5 text-sm font-semibold transition-colors duration-150 ease-in-out border rounded-md ${isActive
+      ? "bg-[#00076C] text-white border-blue-900 shadow-sm"
+      : "bg-transparent text-gray-600 border-gray-300 hover:border-blue-900 hover:text-blue-900"
     }`;
 
   const isLockPage = location.pathname === "/my-locks/lock";
@@ -147,14 +149,15 @@ function Dashboard() {
                   >
                     Token Locks
                   </button>
-                  <button
+                  {/* TEMP DISABLED: FEATURE NOT NEEDED FOR (v1.1): NFT Locks*/}
+                  {/* <button
                     className={getSwitchButtonClasses(switchLock)}
                     disabled={switchLock}
                     id="nftLock"
                     onClick={handleSwitch}
                   >
                     NFT Locks
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Filter + Create */}
@@ -162,10 +165,14 @@ function Dashboard() {
                   {/* Status Filter */}
                   <div className="relative">
                     <button
-                      className="flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-blue-900 text-sm transition-colors"
+                      className="flex justify-between items-center bg-white shadow-sm px-3 py-1.5 border border-gray-300 hover:border-blue-500 rounded-md text-gray-600 hover:text-blue-900 text-sm transition-colors cursor-pointer"
                       onClick={() => setStatus(!status)}
                     >
-                      All Statuses{" "}
+                      {selectedStatus === "ALL"
+                        ? "All Statuses"
+                        : selectedStatus === "LOCKED"
+                          ? "Locked"
+                          : "Withdraw"}
                       <span className="ml-2">
                         {status ? (
                           <ChevronUp size={16} className="text-gray-500" />
@@ -174,19 +181,29 @@ function Dashboard() {
                         )}
                       </span>
                     </button>
+
+
                     {status && (
-                      <div className="left-0 z-10 absolute bg-white shadow-lg mt-2 border border-gray-200 rounded-lg w-40">
-                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
-                          All
-                        </p>
-                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
-                          Locked
-                        </p>
-                        <p className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer">
-                          Withdraw
-                        </p>
+                      <div className="absolute left-0 z-10 mt-2 w-40 rounded-lg border border-gray-200 bg-white shadow-lg   ">
+                        {[
+                          { label: "All", value: "ALL" },
+                          { label: "Locked", value: "LOCKED" },
+                          { label: "Withdraw", value: "WITHDRAW" },
+                        ].map((item) => (
+                          <p
+                            key={item.value}
+                            onClick={() => {
+                              setSelectedStatus(item.value);
+                              setStatus(false);
+                            }}
+                            className="hover:bg-gray-100 px-4 py-2 text-gray-800 text-sm cursor-pointer"
+                          >
+                            {item.label}
+                          </p>
+                        ))}
                       </div>
                     )}
+
                   </div>
 
                   {/* Create New Lock */}
@@ -202,7 +219,7 @@ function Dashboard() {
 
               {/* Token/NFT Lock List */}
               <div className="bg-white shadow-lg p-4 border border-gray-200 rounded-xl">
-                {!switchLock ? <TokenLock /> : <ComingSoon />}
+                {!switchLock ? <TokenLock status={selectedStatus} /> : <ComingSoon />}
               </div>
             </section>
           </>

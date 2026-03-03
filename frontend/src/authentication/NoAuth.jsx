@@ -31,15 +31,17 @@ function NoAuth() {
 
   return (
     <>
-      <header className="flex justify-between items-center bg-white shadow-md px-6 py-4 w-full">
-        {/* Search Bar */}
-        <SearchBar />
+      <header className="flex sm:flex-row flex-col justify-between sm:items-center gap-2 bg-white shadow-md px-6 py-4 w-full">
+        {/* DesktopSearch Bar */}
+        <div className="sm:flex hidden w-full">
+          <SearchBar />
+        </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center justify-between space-x-4">
           {/* Connect Wallet Button */}
           <button
             onClick={handleConnectWallet}
-            className="bg-[#00076C] hover:bg-[#00076C]/90 px-4 py-2 rounded-md font-semibold text-white transition-colors"
+            className="bg-[#00076C] hover:bg-[#00076C]/90 px-4 py-2 rounded-md font-semibold text-sm sm:text-[16px] text-white text-nowrap transition-colors "
           >
             Connect Wallet
           </button>
@@ -51,6 +53,10 @@ function NoAuth() {
           >
             <Menu className="w-6 h-6 text-gray-600" />
           </button>
+        </div>
+        {/* Mobile Search Bar */}
+        <div className="flex sm:hidden w-full">
+          <SearchBar />
         </div>
       </header>
 

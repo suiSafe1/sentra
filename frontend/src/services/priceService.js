@@ -24,7 +24,7 @@ export async function fetchTokenPrices() {
   try {
     const ids = Object.values(TOKEN_IDS).join(",");
     const response = await fetch(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`
+      `https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd`,
     );
 
     if (!response.ok) {
@@ -44,13 +44,9 @@ export async function fetchTokenPrices() {
     priceCache = prices;
     lastFetchTime = now;
 
-    console.log("Fetched token prices:", prices);
     return prices;
   } catch (error) {
-    console.error("Price fetch error:", error);
-
     if (priceCache) {
-      console.log("Using cached price data");
       return priceCache;
     }
 
@@ -62,7 +58,6 @@ export async function fetchTokenPrices() {
       SCA: 110.35,
     };
 
-    console.log("Using fallback prices:", fallbackPrices);
     return fallbackPrices;
   }
 }

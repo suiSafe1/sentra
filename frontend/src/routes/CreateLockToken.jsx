@@ -147,7 +147,7 @@ function CreateLockToken() {
 
           const totalBalance = coins.data.reduce(
             (sum, coin) => sum + BigInt(coin.balance),
-            BigInt(0)
+            BigInt(0),
           );
 
           const balanceInTokens = (
@@ -156,7 +156,6 @@ function CreateLockToken() {
           setAvailableBalance(balanceInTokens);
         }
       } catch (error) {
-        console.error("Failed to fetch balance:", error);
         setAvailableBalance("0");
       } finally {
         setLoadingBalance(false);
@@ -199,7 +198,7 @@ function CreateLockToken() {
 
           const totalBalance = coins.data.reduce(
             (sum, coin) => sum + BigInt(coin.balance),
-            BigInt(0)
+            BigInt(0),
           );
 
           setRawBalance(totalBalance.toString());
@@ -210,7 +209,6 @@ function CreateLockToken() {
           setAvailableBalance(balanceInTokens);
         }
       } catch (error) {
-        console.error("Failed to fetch balance:", error);
         setAvailableBalance("0");
         setRawBalance("0");
       } finally {
@@ -256,7 +254,7 @@ function CreateLockToken() {
       selectedDuration,
       selectedDate,
       lockDescription,
-      selectedToken
+      selectedToken,
     );
     if (res?.success) {
       setConfirmLock(false);
@@ -281,7 +279,7 @@ function CreateLockToken() {
   const handleDateChange = (dateValue) => {
     setSelectedDate(dateValue);
     const diffDays = Math.ceil(
-      (new Date(dateValue).getTime() - Date.now()) / (24 * 60 * 60 * 1000)
+      (new Date(dateValue).getTime() - Date.now()) / (24 * 60 * 60 * 1000),
     );
     setSelectedDuration(diffDays);
   };
@@ -303,7 +301,7 @@ function CreateLockToken() {
             colors={["#00076C", "#00D1FF", "#FFD700", "#FF6B6B", "#4ECDC4"]}
           />
         </div>,
-        document.body
+        document.body,
       )
     : null;
 
@@ -332,18 +330,18 @@ function CreateLockToken() {
             >
               Token Lock
             </button>
-            <button
+            {/* TEMP DISABLED: FEATURE NOT NEEDED FOR (v1.1): NFT Lock switch button */}
+            {/* <button
               id="nft"
               type="button"
               onClick={handleSwitch}
-              className={`flex-1 p-3 text-[16.05px] font-semibold rounded-lg transition-all ${
-                nftLock ? "bg-[#00076C] text-white" : "text-[#4D5562]"
-              }`}
+              className={`flex-1 p-3 text-[16.05px] font-semibold rounded-lg transition-all ${nftLock ? "bg-[#00076C] text-white" : "text-[#4D5562]"
+                }`}
             >
               NFT Lock
-            </button>
+            </button> */}
           </div>
-
+          {/* TEMP DISABLED: FEATURE NOT NEEDED FOR (v1.1): NFT Lock page */}
           {nftLock ? (
             <CreateLockNft />
           ) : (
@@ -481,13 +479,13 @@ function CreateLockToken() {
               </div>
 
               {/* Memo */}
-              <div className="flex flex-col gap-2 mb-4 font-bold text-[#505A6B]">
+              <div className="flex flex-col gap-2 mb-4 font-bold text-[#505A6B] ">
                 <span>Memo (Optional)</span>
                 <textarea
                   placeholder="Reason for lock..."
                   value={memo}
                   onChange={(e) => setMemo(e.target.value)}
-                  className="bg-white p-2.5 border border-[#4D5562] rounded-lg outline-none h-[85px] font-semibold resize-y"
+                  className="bg-white p-2.5 border border-[#4D5562] rounded-lg outline-none h-[85px] font-semibold resize-y "
                 />
               </div>
 
@@ -520,7 +518,7 @@ function CreateLockToken() {
       </div>
 
       {/* ==================== RIGHT – PREVIEW ==================== */}
-      <section className="flex flex-col justify-between gap-5">
+      <section className="flex flex-col justify-between gap-5 lg:w-[400px] w-full h-fit">
         <div className="bg-white shadow-[0_2px_10px_rgba(0,0,0,0.06)] rounded-xl overflow-hidden">
           <div className="flex items-center gap-2 bg-[#00076C] p-5 font-extrabold text-[20.87px] text-white">
             <MdErrorOutline className="text-[30px]" />
@@ -578,9 +576,11 @@ function CreateLockToken() {
               {memo && (
                 <>
                   <hr className="my-4 border-[#e2e2e2]" />
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col justify-between items-start w-full">
                     <span className="font-semibold text-[#4D5562]">Memo</span>
-                    <span className="font-semibold">{memo}</span>
+                    <p className="font-semibold text-wrap w-full wrap-break-words ">
+                      {memo}
+                    </p>
                   </div>
                 </>
               )}

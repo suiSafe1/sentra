@@ -26,7 +26,7 @@ const Header = () => {
       if (!session) {
         localStorage.setItem(
           "sui_session",
-          JSON.stringify({ address: account.address })
+          JSON.stringify({ address: account.address }),
         );
       }
     } else {
@@ -45,7 +45,7 @@ const Header = () => {
           const { address } = JSON.parse(session);
 
           const adapter = wallets.find((w) =>
-            w.accounts.some((acc) => acc.address === address)
+            w.accounts.some((acc) => acc.address === address),
           );
 
           if (adapter) {
@@ -54,7 +54,6 @@ const Header = () => {
             localStorage.removeItem("sui_session");
           }
         } catch (error) {
-          console.error("Failed to reconnect:", error);
           localStorage.removeItem("sui_session");
         } finally {
           setIsReconnecting(false);

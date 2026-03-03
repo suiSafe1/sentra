@@ -43,7 +43,7 @@ const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
             colors={["#00076C", "#00D1FF", "#FFD700", "#FF6B6B", "#4ECDC4"]}
           />
         </div>,
-        document.body
+        document.body,
       )
     : null;
 
@@ -93,7 +93,6 @@ const WithdrawButton = ({
 
   const handleWithdraw = async () => {
     if (!lockData) {
-      console.error("Lock data not available");
       return;
     }
 
@@ -105,7 +104,7 @@ const WithdrawButton = ({
         lockData.clock,
         lockData.coinType,
         lockData.sCoinType,
-        lockData.scoinInfo
+        lockData.scoinInfo,
       );
 
       if (result) {
@@ -115,7 +114,6 @@ const WithdrawButton = ({
         setTimeout(() => setShowConfetti(false), 3000);
       }
     } catch (error) {
-      console.error("❌ Withdrawal error:", error);
       alert(`Withdrawal failed: ${error.message || error}`);
     }
   };
@@ -210,7 +208,7 @@ const TopUpLockModal = () => {
 
           const totalBalance = coins.data.reduce(
             (sum, coin) => sum + BigInt(coin.balance),
-            BigInt(0)
+            BigInt(0),
           );
 
           const balanceInTokens = (
@@ -219,7 +217,6 @@ const TopUpLockModal = () => {
           setAvailableBalance(balanceInTokens);
         }
       } catch (error) {
-        console.error("Failed to fetch balance:", error);
         setAvailableBalance("0");
       } finally {
         setLoadingBalance(false);
@@ -268,7 +265,7 @@ const TopUpLockModal = () => {
       const result = await addToYieldLock(
         yieldLockId,
         amountToAdd,
-        tokenConfig
+        tokenConfig,
       );
 
       if (result.success) {
@@ -277,7 +274,6 @@ const TopUpLockModal = () => {
         setTimeout(() => setShowConfetti(false), 3000);
       }
     } catch (error) {
-      console.error("Top up failed:", error);
       alert(`Top up failed: ${error.message || error}`);
     }
   };

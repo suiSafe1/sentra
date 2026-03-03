@@ -126,7 +126,6 @@ export function useAddToYieldLock() {
 
       return { success: true, txHash: digest };
     } catch (error) {
-      console.error("Add to yield lock failed:", error);
       throw error;
     } finally {
       setIsLoading(false);

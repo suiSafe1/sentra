@@ -23,7 +23,7 @@ export function useActivity() {
 
   const subscriptionsRef = useRef([]);
   const lastSeenTimestamp = useRef(
-    parseInt(localStorage.getItem(LAST_SEEN_KEY) || "0")
+    parseInt(localStorage.getItem(LAST_SEEN_KEY) || "0"),
   );
   const reconnectTimeoutRef = useRef(null);
 
@@ -39,14 +39,12 @@ export function useActivity() {
           setActivities(parsed);
 
           const unread = parsed.filter(
-            (activity) => activity.timestamp > lastSeenTimestamp.current
+            (activity) => activity.timestamp > lastSeenTimestamp.current,
           ).length;
           setUnreadCount(unread);
         }
       }
-    } catch (err) {
-      console.warn("Failed to load cached activities:", err);
-    }
+    } catch (err) {}
   }, []);
 
   /**
@@ -56,11 +54,9 @@ export function useActivity() {
     try {
       localStorage.setItem(
         ACTIVITY_CACHE_KEY,
-        JSON.stringify(activitiesToCache)
+        JSON.stringify(activitiesToCache),
       );
-    } catch (err) {
-      console.warn("Failed to cache activities:", err);
-    }
+    } catch (err) {}
   }, []);
 
   /**
@@ -87,7 +83,7 @@ export function useActivity() {
       // Increment unread count
       setUnreadCount((prev) => prev + 1);
     },
-    [saveActivitiesToCache]
+    [saveActivitiesToCache],
   );
 
   /**
@@ -126,22 +122,18 @@ export function useActivity() {
                       // Parse event to activity format
                       const activity = await parseEventToActivity(
                         event,
-                        client
+                        client,
                       );
                       if (activity) {
                         addActivity(activity);
                       }
                     }
-                  } catch (err) {
-                    console.error("Failed to process event:", err);
-                  }
+                  } catch (err) {}
                 },
               });
 
               subscriptionsRef.current.push(unsubscribe);
-            } catch (err) {
-              console.warn(`Failed to subscribe to ${eventType}:`, err);
-            }
+            } catch (err) {}
           }
         }
 
@@ -163,20 +155,15 @@ export function useActivity() {
                     addActivity(activity);
                   }
                 }
-              } catch (err) {
-                console.error("Failed to process swap event:", err);
-              }
+              } catch (err) {}
             },
           });
 
           subscriptionsRef.current.push(swapUnsubscribe);
-        } catch (err) {
-          console.warn("Failed to subscribe to swap events:", err);
-        }
+        } catch (err) {}
 
         setIsConnected(true);
       } catch (err) {
-        console.error("❌ Failed to setup event listeners:", err);
         setError("Failed to connect to event stream");
         setIsConnected(false);
 
@@ -186,7 +173,7 @@ export function useActivity() {
         }, 5000);
       }
     },
-    [addActivity]
+    [addActivity],
   );
 
   /**
@@ -199,9 +186,7 @@ export function useActivity() {
         if (typeof unsubscribe === "function") {
           unsubscribe();
         }
-      } catch (err) {
-        console.warn("Failed to unsubscribe:", err);
-      }
+      } catch (err) {}
     });
 
     subscriptionsRef.current = [];
@@ -258,15 +243,13 @@ export function useActivity() {
 
               // Parse events with client
               const parsedEvents = await Promise.all(
-                userEvents.map((event) => parseEventToActivity(event, client))
+                userEvents.map((event) => parseEventToActivity(event, client)),
               );
 
               const validEvents = parsedEvents.filter(Boolean);
               allActivities.push(...validEvents);
             }
-          } catch (err) {
-            console.warn(`Failed to fetch ${eventType}:`, err);
-          }
+          } catch (err) {}
         }
       }
 
@@ -291,20 +274,18 @@ export function useActivity() {
 
           // Parse swap events with client (async)
           const parsedSwaps = await Promise.all(
-            userSwaps.map((event) => parseEventToActivity(event, client))
+            userSwaps.map((event) => parseEventToActivity(event, client)),
           );
 
           const validSwaps = parsedSwaps.filter(Boolean);
 
           allActivities.push(...validSwaps);
         }
-      } catch (err) {
-        console.warn("Failed to fetch swap events:", err);
-      }
+      } catch (err) {}
 
       // Remove duplicates by ID
       const uniqueActivities = Array.from(
-        new Map(allActivities.map((item) => [item.id, item])).values()
+        new Map(allActivities.map((item) => [item.id, item])).values(),
       );
 
       // Sort by timestamp (newest first)
@@ -318,11 +299,10 @@ export function useActivity() {
 
       // Calculate unread count
       const unread = limitedActivities.filter(
-        (activity) => activity.timestamp > lastSeenTimestamp.current
+        (activity) => activity.timestamp > lastSeenTimestamp.current,
       ).length;
       setUnreadCount(unread);
     } catch (err) {
-      console.error("❌ Failed to fetch historical activities:", err);
       setError(err.message || "Failed to load activities");
     } finally {
       setIsLoading(false);

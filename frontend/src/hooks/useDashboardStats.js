@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useSuiLocks } from "./useSuiLocks";
 
-export function useDashboardStats() {
+export function useDashboardStats(status = "ALL") {
   const { userLocks, isLoading, prices } = useSuiLocks();
 
   const stats = useMemo(() => {
@@ -14,18 +14,24 @@ export function useDashboardStats() {
         loading: isLoading,
       };
     }
-
-    const tvl = userLocks.reduce((sum, lock) => {
+    // FILTERED LOCK BY STATUS
+    const filteredLocks =
+      status === "LOCKED"
+        ? userLocks.filter((l) => !l.isExpired)
+        : status === "WITHDRAW"
+          ? userLocks.filter((l) => l.isExpired)
+          : userLocks;
+    const tvl = filteredLocks.reduce((sum, lock) => {
       return sum + parseFloat(lock.principalUsd || 0);
     }, 0);
 
-    const totalYield = userLocks.reduce((sum, lock) => {
+    const totalYield = filteredLocks.reduce((sum, lock) => {
       return sum + parseFloat(lock.yieldEarnedUsd || 0);
     }, 0);
 
-    const activeLocks = userLocks.filter((lock) => !lock.isExpired).length;
+    const activeLocks = filteredLocks.filter((lock) => !lock.isExpired).length;
 
-    const readyForWithdrawal = userLocks.filter(
+    const readyForWithdrawal = filteredLocks.filter(
       (lock) => lock.isExpired
     ).length;
 

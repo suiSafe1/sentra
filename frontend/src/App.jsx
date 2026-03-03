@@ -7,6 +7,7 @@ import {
   NavLink,
   useNavigate,
   useLocation,
+  Link,
 } from "react-router-dom";
 
 // Wallet & Icons
@@ -45,6 +46,8 @@ import { useMenuStore } from "./store/useMenuStore";
 import { ActivityProvider } from "../src/context/ActivityContext";
 import TVL from "./routes/TVL";
 
+// React  Hot Toaste
+import { Toaster } from "react-hot-toast";
 // ===============================
 // Layout Component
 // ===============================
@@ -64,16 +67,22 @@ const Layout = () => {
 
   return (
     <div className="flex h-screen">
+      {/* BACKDROP */}
+      {menuOpen && (
+        <div
+          onClick={closeMenu}
+          className="fixed inset-0 bg-black/40 z-40 md:hidden"
+        />
+      )}
       {/* Sidebar */}
       <aside
-        className={`flex-none bg-[#00076C] text-white p-6 space-y-6 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 w-64 md:w-64 ${
-          menuOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0 md:static`}
+        className={`flex-none bg-[#00076C] text-white p-6 space-y-6 fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 w-64 md:w-64 ${menuOpen ? "translate-x-0" : "-translate-x-full"
+          } md:translate-x-0 md:static`}
       >
-        <div className="flex justify-between items-center mb-8 md:mb-12">
+        <Link to="/" className="flex justify-between items-center mb-8 md:mb-12">
           <img src={sentra} alt="The sentra logo" className="h-[60px]" />
           <X className="md:hidden w-6 h-6 cursor-pointer" onClick={closeMenu} />
-        </div>
+        </Link>
 
         {/* Sidebar Nav */}
         <nav className="flex flex-col justify-between space-y-6 h-[calc(80%-30px)]">
@@ -81,10 +90,9 @@ const Layout = () => {
             <NavLink
               to="/dashboard"
               className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                  isActive
-                    ? "bg-white text-blue-900"
-                    : "text-white hover:bg-[#00076C]/20"
+                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${isActive
+                  ? "bg-white text-blue-900"
+                  : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
@@ -95,10 +103,9 @@ const Layout = () => {
             <NavLink
               to="/my-locks"
               className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                  isActive
-                    ? "bg-white text-blue-900"
-                    : "text-white hover:bg-[#00076C]/20"
+                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${isActive
+                  ? "bg-white text-blue-900"
+                  : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
@@ -109,10 +116,9 @@ const Layout = () => {
             <NavLink
               to="/swap"
               className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                  isActive
-                    ? "bg-white text-blue-900"
-                    : "text-white hover:bg-[#00076C]/20"
+                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${isActive
+                  ? "bg-white text-blue-900"
+                  : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
@@ -120,28 +126,27 @@ const Layout = () => {
               <span>Swap</span>
             </NavLink>
 
-            <NavLink
+            {/* TEMP DISABLED: FEATURE NOT NEEDED FOR (v1.1): Route to Vest Tokens */}
+            {/* <NavLink
               to="/vest"
               className={({ isActive }) =>
-                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                  isActive
-                    ? "bg-white text-blue-900"
-                    : "text-white hover:bg-[#00076C]/20"
+                `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${isActive
+                  ? "bg-white text-blue-900"
+                  : "text-white hover:bg-[#00076C]/20"
                 }`
               }
             >
               <Lock className="w-5 h-5" />
               <span>Vest Tokens</span>
-            </NavLink>
+            </NavLink> */}
           </div>
 
           <NavLink
             to="/support"
             className={({ isActive }) =>
-              `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${
-                isActive
-                  ? "bg-white text-blue-900"
-                  : "text-white hover:bg-[#00076C]/20"
+              `flex items-center space-x-2 px-3 py-2 rounded-xl w-full ${isActive
+                ? "bg-white text-blue-900"
+                : "text-white hover:bg-[#00076C]/20"
               }`
             }
           >
@@ -152,7 +157,7 @@ const Layout = () => {
       </aside>
 
       {/* Main Content */}
-      <div className="w-full">
+      <div className="w-full" >
         <Header />
         <Outlet />
       </div>
@@ -170,6 +175,14 @@ const Layout = () => {
 function App() {
   return (
     <ActivityProvider>
+      {/* React TOoaster */}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+        }}
+      />
+
       <Routes>
         {/* Landing Page - NO LAYOUT */}
         <Route path="/" element={<Home />} />

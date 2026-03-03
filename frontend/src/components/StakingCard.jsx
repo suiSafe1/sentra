@@ -136,7 +136,7 @@ const SuccessModal = ({ isOpen, onClose, title, message, showConfetti }) => {
             colors={["#00076C", "#00D1FF", "#FFD700", "#FF6B6B", "#4ECDC4"]}
           />
         </div>,
-        document.body
+        document.body,
       )
     : null;
 
@@ -213,7 +213,7 @@ export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
                   ]}
                 />
               </div>,
-              document.body
+              document.body,
             )
           : null;
 
@@ -252,7 +252,6 @@ export const WithdrawButton = ({ isExpired, isWithdrawing, withdrawLock }) => {
       const root = ReactDOM.createRoot(modalRoot);
       root.render(<SuccessContent />);
     } catch (error) {
-      console.error("❌ STAKING CARD: Withdrawal error:", error);
       alert(`Withdrawal failed: ${error.message || error}`);
     }
   };

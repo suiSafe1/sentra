@@ -83,7 +83,7 @@ async function fetchSwapTokenInfo(txDigest, suiClient) {
     });
 
     const confirmSwapEvent = txDetails.events?.find((evt) =>
-      evt.type.includes("ConfirmSwapEvent")
+      evt.type.includes("ConfirmSwapEvent"),
     );
 
     if (confirmSwapEvent?.parsedJson) {
@@ -117,7 +117,6 @@ async function fetchSwapTokenInfo(txDigest, suiClient) {
 
     return null;
   } catch (error) {
-    console.error("Failed to fetch swap token info:", error);
     return null;
   }
 }
@@ -177,7 +176,7 @@ export async function parseEventToActivity(event, suiClient = null) {
         timestamp: Number(timestampMs),
         description: `Swapped ${formatAmount(
           amountIn,
-          fromDecimals
+          fromDecimals,
         )} ${fromToken} to ${formatAmount(amountOut, toDecimals)} ${toToken}`,
         txDigest,
         status: "success",
@@ -222,7 +221,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Locked ${formatAmount(
             amount,
-            decimals
+            decimals,
           )} ${tokenSymbol}`,
           txDigest,
           status: "success",
@@ -241,7 +240,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Created Yield Lock: ${formatAmount(
             amount,
-            decimals
+            decimals,
           )} ${tokenSymbol}${desc ? ` - ${desc}` : ""}`,
           txDigest,
           status: "success",
@@ -259,7 +258,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Unlocked ${formatAmount(
             amount,
-            decimals
+            decimals,
           )} ${tokenSymbol}`,
           txDigest,
           status: "success",
@@ -279,7 +278,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Unlocked ${formatAmount(
             totalWithdrawn,
-            decimals
+            decimals,
           )} ${tokenSymbol} (+ ${formatAmount(yieldEarned, decimals)} yield)`,
           txDigest,
           status: "success",
@@ -297,7 +296,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Added ${formatAmount(
             amount,
-            decimals
+            decimals,
           )} ${tokenSymbol} to lock`,
           txDigest,
           status: "success",
@@ -315,7 +314,7 @@ export async function parseEventToActivity(event, suiClient = null) {
           timestamp: Number(timestampMs),
           description: `Added ${formatAmount(
             amount,
-            decimals
+            decimals,
           )} ${tokenSymbol} to yield lock`,
           txDigest,
           status: "success",
@@ -326,7 +325,6 @@ export async function parseEventToActivity(event, suiClient = null) {
         return null;
     }
   } catch (error) {
-    console.error("Failed to parse event:", error, event);
     return null;
   }
 }
